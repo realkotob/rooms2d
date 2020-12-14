@@ -45,7 +45,7 @@ Client.socket.on('allplayers', function (data) {
             call.answer(stream); // Answer the call with an A/V stream.
             call.on('stream', (remoteStream) => {
                 // Show stream in some <video> element.
-                var peer_id = call.peer.id.toString();
+                var peer_id = call.peer.toString();
                 console.log("Answered player " + peer_id);
                 const remoteVideo = document.getElementById("p" + peer_id);
                 if (remoteVideo) {
