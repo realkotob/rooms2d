@@ -45,14 +45,14 @@ Client.socket.on('allplayers', function (data) {
             call.answer(stream); // Answer the call with an A/V stream.
             call.on('stream', (remoteStream) => {
                 // Show stream in some <video> element.
-                const remoteVideo = document.getElementById(call.peer.id);
+                const remoteVideo = document.getElementById("p" + call.peer.id);
                 if (remoteVideo) {
                     remoteVideo.srcObject = remoteStream;
                 } else {
                     var video = document.createElement('video');
                     video.srcObject = remoteStream;
                     video.autoplay = true;
-                    video.id = call.peer.id;
+                    video.id = "p" + call.peer.id;
                     var element = document.getElementById("media-container");
                     element.appendChild(video);
                 }
@@ -101,14 +101,14 @@ function call_player(p_id) {
         const call = Game.peer.call(p_id.toString(), stream);
         call.on('stream', (remoteStream) => {
             // Show stream in some <video> element.
-            const remoteVideo = document.getElementById(p_id.toString());
+            const remoteVideo = document.getElementById("p" + p_id.toString());
             if (remoteVideo) {
                 remoteVideo.srcObject = remoteStream;
             } else {
                 var video = document.createElement('video');
                 video.srcObject = remoteStream;
                 video.autoplay = true;
-                video.id = p_id.toString();
+                video.id = "p" + p_id.toString();
                 var element = document.getElementById("media-container");
                 element.appendChild(video);
             }

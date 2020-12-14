@@ -49,7 +49,7 @@ Game.update = function () {
         if (p_id == Game.player_id) {
             continue;
         }
-        var child_video = video_parent ? video_parent.querySelector('#' + p_id) : null;
+        var child_video = video_parent ? video_parent.querySelector('#p' + p_id) : null;
         if (!child_video) {
             continue;
         }
