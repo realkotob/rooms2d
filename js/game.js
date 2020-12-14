@@ -50,7 +50,7 @@ Game.update = function () {
             var distance = Phaser.Math.distance(
                 player.x, player.y, current_player.x, current_player.y);
 
-            child_video.volume = Math.clamp(distance / 200, 0, 1);
+            child_video.volume = Math.clamp(distance / 400, 0, 1);
         }
     }
 }
