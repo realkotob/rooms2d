@@ -97,7 +97,7 @@ function call_player(p_id) {
         const call = Game.peer.call(p_id.toString(), stream);
         call.on('stream', (remoteStream) => {
             // Show stream in some <video> element.
-            const remoteVideo = document.getElementById("remote-video");
+            const remoteVideo = document.getElementById("local-video");
             if (remoteVideo) {
                 remoteVideo.srcObject = stream;
             }
