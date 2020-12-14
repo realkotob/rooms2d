@@ -61,7 +61,7 @@ Game.getCoordinates = function (layer, pointer) {
 
 Game.players = [];
 Game.addNewPlayer = function (p_id, p_x, p_y) {
-    Game.players.append(p_id)
+    Game.players.push(p_id)
     Game.playerMap[p_id] = game.add.sprite(p_x, p_y, 'sprite');
 };
 
