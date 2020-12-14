@@ -1,6 +1,23 @@
+var fs = require('fs');
+var https = require('https');
 var express = require('express');
 var app = express();
-var server = require('http').Server(app);
+
+const PORT = 8081;
+const path = '/etc/letsencrypt/live/testing.backend.groovyantoid.com/';
+
+// var key = fs.readFileSync(__dirname + '/certs/server.key', 'utf8'); // Self signed
+// var cert = fs.readFileSync(__dirname + '/certs/server.cert', 'utf8');
+var key = fs.readFileSync(path + 'privkey.pem', 'utf8');
+var cert = fs.readFileSync(path + 'fullchain.pem', 'utf8');
+var options = {
+    key: key,
+    cert: cert
+};
+
+
+// var server = require('http').Server(app);
+var server = https.Server(options, app);
 var io = require('socket.io').listen(server);
 const { ExpressPeerServer } = require('peer');
 
@@ -19,9 +36,9 @@ app.get('/', function (req, res) {
 
 server.lastPlayderID = 0;
 
-server.listen(process.env.PORT || 8081, function () {
-    console.log('Listening on http://localhost:' + server.address().port);
-
+server.listen(process.env.PORT || PORT, function () {
+    // console.log('Listening on http://localhost:' + server.address().port);
+    console.log(`Server running at: http://localhost:${PORT}/`);
 });
 
 io.on('connection', function (socket) {
