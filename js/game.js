@@ -11,8 +11,16 @@ Game.preload = function () {
     game.load.image('sprite', 'assets/sprites/sprite.png');
 };
 
+Game.playerMap = {};
+Game.players = [];
+var phased_created = false;
 Game.create = function () {
+    phased_created = true;
+
+    // FIXME This part is not good, because it means it overwrites anything that was recieved before phaser loaded
     Game.playerMap = {};
+    Game.players = [];
+
     var testKey = game.input.keyboard.addKey(Phaser.Keyboard.ENTER);
     testKey.onDown.add(Client.sendTest, this);
     var map = game.add.tilemap('map');
@@ -59,9 +67,9 @@ Game.getCoordinates = function (layer, pointer) {
     Client.sendClick(pointer.worldX, pointer.worldY);
 };
 
-Game.players = [];
+
 Game.addNewPlayer = function (p_id, p_x, p_y) {
-    Game.players.push(p_id)
+    Game.players.push(p_id);
     Game.playerMap[p_id] = game.add.sprite(p_x, p_y, 'sprite');
 };
 
