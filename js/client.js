@@ -1,8 +1,3 @@
-navigator.getUserMedia_ = (navigator.getUserMedia
-    || navigator.webkitGetUserMedia
-    || navigator.mozGetUserMedia
-    || navigator.msGetUserMedia);
-
 var Client = {};
 
 Client.socket = io.connect();
@@ -45,6 +40,10 @@ Client.socket.on('allplayers', function (data) {
 
     Game.peer.on('call', (call) => {
         console.log("Answering player ");
+        navigator.getUserMedia_ = (navigator.getUserMedia
+            || navigator.webkitGetUserMedia
+            || navigator.mozGetUserMedia
+            || navigator.msGetUserMedia);
         navigator.getUserMedia_({ video: false, audio: true }, (stream) => {
             call.answer(stream); // Answer the call with an A/V stream.
             call.on('stream', (remoteStream) => {
@@ -89,7 +88,10 @@ function call_player(p_id) {
         Game.conn.send('Hello!');
     });
 
-
+    navigator.getUserMedia_ = (navigator.getUserMedia
+        || navigator.webkitGetUserMedia
+        || navigator.mozGetUserMedia
+        || navigator.msGetUserMedia);
     navigator.getUserMedia_({ video: false, audio: true }, (stream) => {
         console.log("Got media stream to call player ", p_id);
         const call = Game.peer.call(p_id.toString(), stream);
