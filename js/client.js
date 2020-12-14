@@ -50,7 +50,7 @@ Client.socket.on('allplayers', function (data) {
                 // Show stream in some <video> element.
                 const remoteVideo = document.getElementById("remote-video");
                 if (remoteVideo) {
-                    remoteVideo.srcObject = stream;
+                    remoteVideo.srcObject = remoteStream;
                 }
             });
         }, (err) => {
@@ -97,9 +97,9 @@ function call_player(p_id) {
         const call = Game.peer.call(p_id.toString(), stream);
         call.on('stream', (remoteStream) => {
             // Show stream in some <video> element.
-            const remoteVideo = document.getElementById("local-video");
+            const remoteVideo = document.getElementById("remote-video");
             if (remoteVideo) {
-                remoteVideo.srcObject = stream;
+                remoteVideo.srcObject = remoteStream;
             }
         });
     }, (err) => {
