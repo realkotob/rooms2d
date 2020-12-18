@@ -1,23 +1,40 @@
 var fs = require('fs');
 var https = require('https');
+var http = require('http');
 var express = require('express');
 var app = express();
 
-const PORT = 443;
-const path = '/etc/letsencrypt/live/testing.backend.groovyantoid.com/';
-
-// var key = fs.readFileSync(__dirname + '/certs/server.key', 'utf8'); // Self signed
-// var cert = fs.readFileSync(__dirname + '/certs/server.cert', 'utf8');
-var key = fs.readFileSync(path + 'privkey.pem', 'utf8');
-var cert = fs.readFileSync(path + 'fullchain.pem', 'utf8');
-var options = {
-    key: key,
-    cert: cert
-};
+var PORT = 8081;
+const cert_path = '/etc/letsencrypt/live/testing.backend.groovyantoid.com/';
 
 
-// var server = require('http').Server(app);
-var server = https.Server(options, app);
+var server;
+try {
+    if (fs.existsSync(cert_path)) {
+        PORT == 443;
+        console.log("The file exists.");
+
+        // var key = fs.readFileSync(__dirname + '/certs/server.key', 'utf8'); // Self signed
+        // var cert = fs.readFileSync(__dirname + '/certs/server.cert', 'utf8');
+        var key = fs.readFileSync(cert_path + 'privkey.pem', 'utf8');
+        var cert = fs.readFileSync(cert_path + 'fullchain.pem', 'utf8');
+        var options = {
+            key: key,
+            cert: cert
+        };
+
+        server = https.Server(options, app);
+
+    } else {
+        console.log('The file does not exist.');
+        server = http.Server(app);
+    }
+} catch (err) {
+    console.error(err);
+    server = http.Server(app);
+}
+
+
 var io = require('socket.io').listen(server);
 const { ExpressPeerServer } = require('peer');
 
