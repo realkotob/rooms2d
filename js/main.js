@@ -5,16 +5,10 @@ const config = {
   type: Phaser.AUTO,
   scale: {
     parent: 'game',
-    mode: Phaser.Scale.RESIZE,
+    mode: Phaser.Scale.FIT, // Tried to use Resize but it wasn't good enough, might be better if I can get this example to work https://github.com/photonstorm/phaser3-examples/blob/master/public/src/scalemanager/resize%20and%20fit.js
     autoCenter: Phaser.Scale.CENTER_BOTH,
-    min: {
-      width: 320,
-      height: 480
-    },
-    max: {
-      width: 1920,
-      height: 1400
-    }
+    width: 1068,
+    height: 600
   },
   backgroundColor: '#2e3136',
   // scene: [Boot, Preloader, MainMenu, MainGame],
