@@ -166,12 +166,15 @@ export default class MainGame extends Phaser.Scene {
         this.load.tilemapTiledJSON('map', 'assets/map/example_map.json');
         this.load.image('tilesheet', 'assets/map/tilesheet.png');
         this.load.image('sprite', 'assets/sprites/sprite.png');
+        this.load.image('crosshair', 'assets/sprites/crosshair.png');
     };
 
     create() {
         const self = this;
 
         this.phaser_created = true;
+
+
 
         // var testKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
         // testKey.onDown.add(this.Client.sendTest, this);
@@ -191,6 +194,9 @@ export default class MainGame extends Phaser.Scene {
 
         // layer.inputEnabled = true; // Allows clicking on the map ; it's enough to do it on the last layer
         this.Client.askNewPlayer();
+
+        this.crosshair = this.add.sprite(-100, -100, 'crosshair');
+        this.crosshair.setVisible(false);
 
 
         this.input.mouse.disableContextMenu();
@@ -256,6 +262,8 @@ export default class MainGame extends Phaser.Scene {
 
         if (!!this.tween_map[this.player_id]) {
             this.tween_map[this.player_id].stop();
+            this.crosshair.setVisible(false);
+
         }
 
         var _player = this.incrementPlayerPos(this.player_id, move_vector);
@@ -358,13 +366,18 @@ export default class MainGame extends Phaser.Scene {
                 player.depth = player.y + player.height / 2;
             }
         });
+        // if (!!this.crosshair)
+        //     this.crosshair.depth = this.crosshair.y + this.crosshair.height / 2;
 
     }
 
     movePlayerTo(p_id, p_x, p_y) {
+        const self = this;
+
         var player = this.playerMap[p_id];
         if (!player) {
             console.log("Warning! Player is null");
+            return;
         }
         var distance = Phaser.Math.Distance.Between(player.x, player.y, p_x, p_y);
         if (distance <= 0) {
@@ -385,8 +398,16 @@ export default class MainGame extends Phaser.Scene {
             y: p_y,
             // ease: 'Sine.easeIn',
             duration: _duration,
-            paused: false
+            paused: false,
+            onComplete: function () {
+                self.crosshair.setVisible(false);
+            },
         });
+
+        if (this.player_id == p_id) {
+            this.crosshair.setPosition(p_x, p_y);
+            this.crosshair.setVisible(true);
+        }
 
         // this.tween_map[p_id].play();
 
