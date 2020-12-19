@@ -9,30 +9,23 @@ const cert_path = '/etc/letsencrypt/live/testing.backend.groovyantoid.com/';
 
 
 var server;
-var _using_ssl = false;
-try {
-    if (fs.existsSync(cert_path)) {
-        _using_ssl = true;
-        PORT == 443;
-        console.log("The file exists.");
+if (fs.existsSync(cert_path)) {
+    PORT = 443;
+    console.log("The file exists.");
 
-        // var key = fs.readFileSync(__dirname + '/certs/server.key', 'utf8'); // Self signed
-        // var cert = fs.readFileSync(__dirname + '/certs/server.cert', 'utf8');
-        var key = fs.readFileSync(cert_path + 'privkey.pem', 'utf8');
-        var cert = fs.readFileSync(cert_path + 'fullchain.pem', 'utf8');
-        var options = {
-            key: key,
-            cert: cert
-        };
+    // var key = fs.readFileSync(__dirname + '/certs/server.key', 'utf8'); // Self signed
+    // var cert = fs.readFileSync(__dirname + '/certs/server.cert', 'utf8');
+    var key = fs.readFileSync(cert_path + 'privkey.pem', 'utf8');
+    var cert = fs.readFileSync(cert_path + 'fullchain.pem', 'utf8');
+    var options = {
+        key: key,
+        cert: cert
+    };
 
-        server = https.Server(options, app);
+    server = https.Server(options, app);
 
-    } else {
-        console.log('The file does not exist.');
-        server = http.Server(app);
-    }
-} catch (err) {
-    console.error(err);
+} else {
+    console.log('The file does not exist.');
     server = http.Server(app);
 }
 
@@ -55,7 +48,7 @@ app.get('/', function (req, res) {
 
 server.lastPlayderID = 0;
 
-server.listen(!!_using_ssl ? 443 : 8081, function () {
+server.listen(process.env.PORT || PORT, function () {
     // console.log('Listening on http://localhost:' + server.address().port);
     console.log(`Server running at: http://localhost:${PORT}/`);
 });
