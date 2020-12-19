@@ -325,7 +325,7 @@ export default class MainGame extends Phaser.Scene {
         if (p_id == this.player_id) {
             this.current_player = _new_player;
             _new_player.body.collideWorldBounds = true;
-
+            _new_player.setImmovable(true);
             this.cameras.main.startFollow(_new_player, false, 1, 1);
             // NOTE Second parameter of startFollow is for rounding pixel jitter. 
             // Setting it to true will fix the jitter of world tiles but add jitter for the player sprite.
