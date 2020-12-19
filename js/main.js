@@ -5,10 +5,16 @@ const config = {
   type: Phaser.AUTO,
   scale: {
     parent: 'game',
-    mode: Phaser.Scale.FIT,
+    mode: Phaser.Scale.RESIZE,
     autoCenter: Phaser.Scale.CENTER_BOTH,
-    width: 800,
-    height: 600
+    min: {
+      width: 320,
+      height: 480
+    },
+    max: {
+      width: 1920,
+      height: 1400
+    }
   },
   backgroundColor: '#2e3136',
   // scene: [Boot, Preloader, MainMenu, MainGame],

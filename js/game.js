@@ -169,23 +169,38 @@ export default class MainGame extends Phaser.Scene {
         this.load.image('crosshair', 'assets/sprites/crosshair.png');
     };
 
+    updateCamera() {
+        // const width = this.scale.gameSize.width;
+        // const height = this.scale.gameSize.height;
+
+        // const camera = this.cameras.main;
+
+        // camera.setViewport(0, 0, width, height);
+
+        // this.adaptive_layer.setPosition(width / 2, height / 2);
+        // this.adaptive_layer.setScale(this.scene.getZoom());
+    }
+
+    resize() {
+        // this.updateCamera();
+    }
+
     create() {
         const self = this;
 
+        // this.adaptive_layer = this.add.container();
+
         this.phaser_created = true;
 
-
-
         // var testKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
-        // testKey.onDown.add(this.Client.sendTest, this);
         var map = this.make.tilemap({ key: 'map', tileWidth: 32, tileHeight: 32 });
         var tileset = map.addTilesetImage('tilesheet');
-        // var layer = map.createLayer(0, tileset, 100, 200);
-        // var layer = map.createLayer("layer 1", tileset);
         var layer;
         for (var i = 0; i < map.layers.length; i++) {
             layer = map.createLayer(i, tileset);
         }
+
+        // this.adaptive_layer.add(map);
 
         //  Set the camera and physics bounds to be the size of 4x4 bg images
         this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
@@ -197,6 +212,7 @@ export default class MainGame extends Phaser.Scene {
 
         this.crosshair = this.add.sprite(-100, -100, 'crosshair');
         this.crosshair.setVisible(false);
+        // this.adaptive_layer.add(this.crosshair);
 
 
         this.input.mouse.disableContextMenu();
@@ -221,13 +237,9 @@ export default class MainGame extends Phaser.Scene {
 
         this.current_move_input = new Phaser.Math.Vector2(0, 0);
 
-        // Alternatives
-        // this.keys_wasd = this.input.keyboard.addKeys('W,S,A,D');
-        // this.key_down = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
-        // this.key_up = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
-        // this.key_left = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
-        // this.key_right = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
+        // this.scene.launch('GameScene');
 
+        // this.gameScene = this.scene.get('GameScene');
     }
 
     update(time, delta) {
@@ -307,6 +319,7 @@ export default class MainGame extends Phaser.Scene {
     addNewPlayer(p_id, p_x, p_y) {
         this.players.push(p_id);
         var _new_player = this.physics.add.sprite(p_x, p_y, 'sprite');
+        // this.adaptive_layer.add(_new_player);
         this.playerMap[p_id] = _new_player;
         if (p_id == this.player_id) {
             this.current_player = _new_player;
