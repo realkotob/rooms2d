@@ -30,7 +30,10 @@ if (fs.existsSync(cert_path)) {
 }
 
 
-var io = require('socket.io').listen(server);
+var io = require('socket.io').listen(server,
+    {
+        cookie: false // from https://github.com/socketio/socket.io/issues/2276
+    });
 const { ExpressPeerServer } = require('peer');
 
 const peerServer = ExpressPeerServer(server, {
