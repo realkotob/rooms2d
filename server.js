@@ -9,8 +9,10 @@ const cert_path = '/etc/letsencrypt/live/testing.backend.groovyantoid.com/';
 
 
 var server;
+var _using_ssl = false;
 try {
     if (fs.existsSync(cert_path)) {
+        _using_ssl = true;
         PORT == 443;
         console.log("The file exists.");
 
@@ -53,7 +55,7 @@ app.get('/', function (req, res) {
 
 server.lastPlayderID = 0;
 
-server.listen(process.env.PORT || PORT, function () {
+server.listen(!!_using_ssl ? 443 : 8081, function () {
     // console.log('Listening on http://localhost:' + server.address().port);
     console.log(`Server running at: http://localhost:${PORT}/`);
 });
