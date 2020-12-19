@@ -329,6 +329,10 @@ export default class MainGame extends Phaser.Scene {
             // NOTE Second parameter of startFollow is for rounding pixel jitter. 
             // Setting it to true will fix the jitter of world tiles but add jitter for the player sprite.
         }
+
+        // Add label
+        var style = { font: "14px Arial", fill: "#000000", wordWrap: true, wordWrapWidth: _new_player.width, align: "center" };//, backgroundColor: "#ffff00" };
+        _new_player.name_label = this.add.text(_new_player.x + _new_player.width / 2, _new_player.y + _new_player.height / 2, "P" + p_id, style);
     };
 
     incrementPlayerPos(p_id, p_vector) {
@@ -377,6 +381,8 @@ export default class MainGame extends Phaser.Scene {
             var player = this.playerMap[_index];
             if (!!player) {
                 player.depth = player.y + player.height / 2;
+                player.name_label.x = player.x - + player.name_label.width / 2;
+                player.name_label.y = player.y + player.height / 3;
             }
         });
         // if (!!this.crosshair)
