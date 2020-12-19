@@ -47,8 +47,8 @@ export default class MainGame extends Phaser.Scene {
 
 
         this.Client.socket.on('allplayers', function (data) {
-            console.log("My new player id is ", data.you.id);
             self.player_id = data.you.id.toString();
+            console.log("My new player id is ", self.player_id);
             self.peer = new Peer(self.player_id);
             self.peer.on('open', function () {
                 console.log('My PeerJS ID is:', self.peer.id);
@@ -98,13 +98,17 @@ export default class MainGame extends Phaser.Scene {
 
 
             self.Client.socket.on('clicked', function (data) {
-                if (this.player_id != data.id)
+                if (self.player_id != data.id) {
+                    // console.log("player %s clicked. current player %s", data.id, self.player_id)
                     self.movePlayerTo(data.id, data.x, data.y);
+                }
             });
 
             self.Client.socket.on('moved', function (data) {
-                if (this.player_id != data.id)
+                if (self.player_id != data.id) {
+                    // console.log("player %s moved. current player %s", data.id, self.player_id)
                     self.setPlayerPos(data.id, data.x, data.y);
+                }
             });
 
             self.Client.socket.on('remove', function (id) {
@@ -316,7 +320,7 @@ export default class MainGame extends Phaser.Scene {
         }
         var distance = Phaser.Math.Distance.Between(player.x, player.y, p_x, p_y);
         if (distance <= 0) {
-            console.log("Warning! Distance is 0");
+            console.log("Warning! Distance is 0. Move ignored.");
             return;
         }
         var _duration = distance * 10;

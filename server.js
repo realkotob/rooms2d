@@ -46,7 +46,7 @@ app.get('/', function (req, res) {
     res.sendFile(__dirname + '/index.html');
 });
 
-server.lastPlayderID = 0;
+server.lastPlayderID = 1;
 
 server.listen(process.env.PORT || PORT, function () {
     // console.log('Listening on http://localhost:' + server.address().port);
