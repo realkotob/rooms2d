@@ -1,5 +1,22 @@
-
 //noinspection JSCheckFunctionSignatures,JSCheckFunctionSignatures,JSCheckFunctionSignatures
-var game = new Phaser.Game(24 * 32, 17 * 32, Phaser.AUTO, document.getElementById('game'));
-game.state.add('Game', Game);
-game.state.start('Game');
+import MainGame from './game.js';
+
+const config = {
+  type: Phaser.AUTO,
+  scale: {
+    parent: 'game',
+    mode: Phaser.Scale.FIT,
+    autoCenter: Phaser.Scale.CENTER_BOTH,
+    width: 800,
+    height: 600
+  },
+  backgroundColor: '#2e3136',
+  // scene: [Boot, Preloader, MainMenu, MainGame],
+  scene: [MainGame],
+  physics: {
+    default: 'arcade',
+    arcade: { debug: false }
+  }
+};
+
+let game = new Phaser.Game(config);

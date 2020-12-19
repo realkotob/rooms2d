@@ -5,30 +5,31 @@
     <meta charset="UTF-8">
     <script src="/socket.io/socket.io.js"></script>
     <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script> -->
+    <!-- <script type="text/javascript" src="js/phaser.js"></script> -->
     <script type="text/javascript" src="js/phaser.min.js"></script>
     <script type="text/javascript" src="js/peerjs.min.js"></script>
-    <title>Basic multiplayer online game</title>
+    <script src="js/game.js" type="module"></script>
+    <script src="js/client.js" type="text/javascript"></script>
+    <title>Basic Proximity Chat</title>
 </head>
 
-<body>
+<body style="background-color:#2e3136;">
     <div id='game'></div>
-    <div class="content-container">
-        <div class="active-users-panel" id="active-user-container">
+    <div hidden class=" content-container">
+        <!-- <div class="active-users-panel" id="active-user-container">
             <h3 class="panel-title">Active Users:</h3>
-        </div>
-        <div class="video-chat-container">
-            <h2 class="talk-info" id="talking-with-info">
+        </div> -->
+        <div hidden class="video-chat-container">
+            <!-- <h2 class="talk-info" id="talking-with-info">
                 Select active user on the left menu.
-            </h2>
-            <div class="video-container" id="media-container">
+            </h2> -->
+            <div hidden class="video-container" id="media-container">
                 <video autoplay class="remote-video" id="remote-video"></video>
                 <video autoplay class="local-video" id="local-video"></video>
             </div>
         </div>
     </div>
 </body>
-<script src="js/game.js" type="text/javascript"></script>
-<script src="js/main.js" type="text/javascript"></script>
-<script src="js/client.js" type="text/javascript"></script>
+<script src="js/main.js" type="module"></script>
 
 </html>
