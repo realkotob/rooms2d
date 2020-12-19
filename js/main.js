@@ -16,7 +16,8 @@ const config = {
   physics: {
     default: 'arcade',
     arcade: { debug: false }
-  }
+  },
+  pixelArt: true // from https://www.html5gamedevs.com/topic/36343-disable-antialias-in-phaser-3/
 };
 
 let game = new Phaser.Game(config);

@@ -2,8 +2,8 @@
 
 export default class MainGame extends Phaser.Scene {
     static MAX_HEAR_DISTANCE = 400;
-    static MOVE_TWEEN_SPEED = 0.5;
-    static MOVE_SPEED = 0.5;
+    static MOVE_TWEEN_SPEED = 0.25;
+    static MOVE_SPEED = 0.25;
     Client = {};
 
     constructor() {
@@ -173,11 +173,6 @@ export default class MainGame extends Phaser.Scene {
 
         this.phaser_created = true;
 
-        //  Set the camera and physics bounds to be the size of 4x4 bg images
-        this.cameras.main.setBounds(0, 0, 1920 * 2, 1080 * 2);
-        this.physics.world.setBounds(0, 0, 1920 * 2, 1080 * 2);
-
-
         // var testKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
         // testKey.onDown.add(this.Client.sendTest, this);
         var map = this.make.tilemap({ key: 'map', tileWidth: 32, tileHeight: 32 });
@@ -188,6 +183,11 @@ export default class MainGame extends Phaser.Scene {
         for (var i = 0; i < map.layers.length; i++) {
             layer = map.createLayer(i, tileset);
         }
+
+        //  Set the camera and physics bounds to be the size of 4x4 bg images
+        this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+        this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+        this.cameras.main.zoom = 2;
 
         // layer.inputEnabled = true; // Allows clicking on the map ; it's enough to do it on the last layer
         this.Client.askNewPlayer();
@@ -302,8 +302,11 @@ export default class MainGame extends Phaser.Scene {
         this.playerMap[p_id] = _new_player;
         if (p_id == this.player_id) {
             this.current_player = _new_player;
-            this.cameras.main.startFollow(_new_player, true, 0.05, 0.05);
             _new_player.body.collideWorldBounds = true;
+
+            this.cameras.main.startFollow(_new_player, false, 1, 1);
+            // NOTE Second parameter of startFollow is for rounding pixel jitter. 
+            // Setting it to true will fix the jitter of world tiles but add jitter for the player sprite.
         }
     };
 
