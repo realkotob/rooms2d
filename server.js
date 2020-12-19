@@ -56,11 +56,14 @@ server.listen(process.env.PORT || PORT, function () {
     console.log(`Server running at: http://localhost:${PORT}/`);
 });
 
+const CHARACTER_SPRITE_COUNT = 32;
 io.on('connection', function (socket) {
 
     socket.on('newplayer', function () {
+        server.lastPlayderID += 1;
         socket.player = {
-            id: server.lastPlayderID++,
+            id: server.lastPlayderID,
+            sprite: server.lastPlayderID % CHARACTER_SPRITE_COUNT,
             x: randomInt(100, 400),
             y: randomInt(100, 400)
         };

@@ -45,7 +45,7 @@ export default class MainGame extends Phaser.Scene {
         };
 
         this.Client.socket.on('newplayer', function (data) {
-            self.addNewPlayer(data.id, data.x, data.y);
+            self.addNewPlayer(data.id, data.x, data.y, data.sprite);
         });
 
 
@@ -96,7 +96,7 @@ export default class MainGame extends Phaser.Scene {
 
             const _all = data.all;
             for (var i = 0; i < _all.length; i++) {
-                self.addNewPlayer(_all[i].id, _all[i].x, _all[i].y);
+                self.addNewPlayer(_all[i].id, _all[i].x, _all[i].y, _all[i].sprite);
             }
 
 
@@ -167,6 +167,7 @@ export default class MainGame extends Phaser.Scene {
         this.load.image('tilesheet', 'assets/map/tilesheet.png');
         this.load.image('sprite', 'assets/sprites/sprite.png');
         this.load.image('crosshair', 'assets/sprites/crosshair.png');
+        this.load.spritesheet('characters', 'assets/sprites/32_Characters/All.png', { frameWidth: 48, frameHeight: 51 });
     };
 
     updateCamera() {
@@ -316,9 +317,9 @@ export default class MainGame extends Phaser.Scene {
 
 
 
-    addNewPlayer(p_id, p_x, p_y) {
+    addNewPlayer(p_id, p_x, p_y, p_sprite_id) {
         this.players.push(p_id);
-        var _new_player = this.physics.add.sprite(p_x, p_y, 'sprite');
+        var _new_player = this.physics.add.sprite(p_x, p_y, 'characters', p_sprite_id);
         // this.adaptive_layer.add(_new_player);
         this.playerMap[p_id] = _new_player;
         if (p_id == this.player_id) {
@@ -382,7 +383,7 @@ export default class MainGame extends Phaser.Scene {
             if (!!player) {
                 player.depth = player.y + player.height / 2;
                 player.name_label.x = player.x - + player.name_label.width / 2;
-                player.name_label.y = player.y + player.height / 3;
+                player.name_label.y = player.y + player.height / 2;
             }
         });
         // if (!!this.crosshair)
