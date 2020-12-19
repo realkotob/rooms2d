@@ -437,6 +437,7 @@ export default class MainGame extends Phaser.Scene {
         for (var i = 0; i < this.players.length; i++) {
             if (this.players[i] == id) { this.players.splice(i, 1); }
         }
+        this.playerMap[id].name_label.destroy();
         this.playerMap[id].destroy();
         delete this.playerMap[id];
     };
