@@ -229,6 +229,7 @@ export default class MainGame extends Phaser.Scene {
         }
         this.handle_player_controls(delta);
         this.handle_voice_proxomity();
+        this.updatePlayerYSort();
     }
 
     handle_player_controls(delta) {
@@ -287,7 +288,7 @@ export default class MainGame extends Phaser.Scene {
 
     addNewPlayer(p_id, p_x, p_y) {
         this.players.push(p_id);
-        this.playerMap[p_id] = this.add.sprite(p_x, p_y, 'sprite');
+        this.playerMap[p_id] = this.physics.add.sprite(p_x, p_y, 'sprite');
     };
 
     incrementPlayerPos(p_id, p_vector) {
@@ -304,13 +305,27 @@ export default class MainGame extends Phaser.Scene {
         return player;
     }
 
-    setPlayerPos(p_id, p_x, p_y) {
+    setPlayerPos(p_id, p_x, p_y, lerp = false) {
         var player = this.playerMap[p_id];
         if (!player) {
             console.log("Warning! Player is null");
         }
-        player.x = p_x;
-        player.y = p_y;
+        if (!!tween_duration) {
+
+        } else {
+            player.x = p_x;
+            player.y = p_y;
+        }
+    }
+
+    updatePlayerYSort() {
+        this.players.forEach(_index => {
+            var player = this.playerMap[_index];
+            if (!!player) {
+                player.depth = player.y + player.height / 2;
+            }
+        });
+
     }
 
     movePlayerTo(p_id, p_x, p_y) {
@@ -324,6 +339,8 @@ export default class MainGame extends Phaser.Scene {
             return;
         }
         var _duration = distance * 10;
+
+        // this.physics.moveToObject(player, pointer, _duration);
 
         if (!!this.tween) {
             this.tween.stop();
