@@ -37,6 +37,9 @@ export default class MainGame extends Phaser.Scene {
         this.Client.sendClick = function (x, y) {
             self.Client.socket.emit('click', { x: x, y: y });
         };
+        this.Client.sendMove = function (x, y) {
+            self.Client.socket.emit('move', { x: x, y: y });
+        };
 
         this.Client.socket.on('newplayer', function (data) {
             self.addNewPlayer(data.id, data.x, data.y);
@@ -94,9 +97,14 @@ export default class MainGame extends Phaser.Scene {
             }
 
 
-            self.Client.socket.on('move', function (data) {
-                // if (this.player_id != data.id)
-                self.movePlayer(data.id, data.x, data.y);
+            self.Client.socket.on('clicked', function (data) {
+                if (this.player_id != data.id)
+                    self.movePlayerTo(data.id, data.x, data.y);
+            });
+
+            self.Client.socket.on('moved', function (data) {
+                if (this.player_id != data.id)
+                    self.setPlayerPos(data.id, data.x, data.y);
             });
 
             self.Client.socket.on('remove', function (id) {
@@ -181,21 +189,69 @@ export default class MainGame extends Phaser.Scene {
         this.input.on('pointerdown', function (pointer) {
 
             if (pointer.leftButtonDown()) {
-                self.movePlayer(this.player_id, pointer.x, pointer.y);
+                self.movePlayerTo(this.player_id, pointer.x, pointer.y);
                 self.Client.sendClick(pointer.x, pointer.y);
             }
 
         }, self);
+
+        this.keys_arrows = this.input.keyboard.createCursorKeys();
+        this.keys_wasd = this.input.keyboard.addKeys({
+            'up': Phaser.Input.Keyboard.KeyCodes.W,
+            'left': Phaser.Input.Keyboard.KeyCodes.A,
+            'down': Phaser.Input.Keyboard.KeyCodes.S,
+            'right': Phaser.Input.Keyboard.KeyCodes.D
+        });
+
+        this.current_move_input = new Phaser.Math.Vector2(0, 0);
+
+        // Alternatives
+        // this.keys_wasd = this.input.keyboard.addKeys('W,S,A,D');
+        // this.key_down = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
+        // this.key_up = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
+        // this.key_left = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
+        // this.key_right = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
+
+        this.MOVE_SPEED = 0.5;
     }
 
-    update() {
+    update(time, delta) {
         if (!this.player_id) {
             return;
         }
-        var current_player = this.playerMap[this.player_id];
-        if (!current_player) {
+        this.current_player = this.playerMap[this.player_id];
+        if (!this.current_player) {
             return;
         }
+        this.handle_player_controls(delta);
+        this.handle_voice_proxomity();
+    }
+
+    handle_player_controls(delta) {
+        this.current_move_input.set(0, 0);
+        if (this.keys_arrows.up.isDown || this.keys_wasd.up.isDown) {
+            this.current_move_input.y = -1;
+        }
+        if (this.keys_arrows.down.isDown || this.keys_wasd.down.isDown) {
+            this.current_move_input.y = +1;
+        }
+        if (this.keys_arrows.right.isDown || this.keys_wasd.right.isDown) {
+            this.current_move_input.x = +1;
+        }
+        if (this.keys_arrows.left.isDown || this.keys_wasd.left.isDown) {
+            this.current_move_input.x = -1;
+        }
+
+        // this.incrementPlayerPos(this.player_id, this.current_move_input.x * delta * this.MOVE_SPEED, this.current_move_input.y * delta  * this.MOVE_SPEED);
+        var _player = this.incrementPlayerPos(this.player_id, this.current_move_input.scale(delta * this.MOVE_SPEED));
+        if (!!_player) {
+            this.Client.sendMove(_player.x, _player.y);
+        }
+
+
+    }
+
+    handle_voice_proxomity() {
         try {
             var video_parent = document.querySelector('#media-container');
             for (var i = 0; i < this.players.length; i++) {
@@ -210,7 +266,7 @@ export default class MainGame extends Phaser.Scene {
                 var player = this.playerMap[p_id];
                 if (!!player) {
                     var _distance = Phaser.Math.Distance.Between(
-                        player.x, player.y, current_player.x, current_player.y);
+                        player.x, player.y, this.current_player.x, this.current_player.y);
 
                     var _volume = 1 - MainGame.clamp(_distance / MainGame.MAX_HEAR_DISTANCE, 0, 1);
 
@@ -230,7 +286,30 @@ export default class MainGame extends Phaser.Scene {
         this.playerMap[p_id] = this.add.sprite(p_x, p_y, 'sprite');
     };
 
-    movePlayer(p_id, p_x, p_y) {
+    incrementPlayerPos(p_id, p_vector) {
+        if (p_vector.lengthSq() == 0) {
+            return null;
+        }
+        var player = this.playerMap[p_id];
+        if (!player) {
+            console.log("Warning! Player is null");
+            return null;
+        }
+        player.x += p_vector.x;
+        player.y += p_vector.y;
+        return player;
+    }
+
+    setPlayerPos(p_id, p_x, p_y) {
+        var player = this.playerMap[p_id];
+        if (!player) {
+            console.log("Warning! Player is null");
+        }
+        player.x = p_x;
+        player.y = p_y;
+    }
+
+    movePlayerTo(p_id, p_x, p_y) {
         var player = this.playerMap[p_id];
         if (!player) {
             console.log("Warning! Player is null");
