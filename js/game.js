@@ -303,6 +303,7 @@ export default class MainGame extends Phaser.Scene {
         if (p_id == this.player_id) {
             this.current_player = _new_player;
             this.cameras.main.startFollow(_new_player, true, 0.05, 0.05);
+            _new_player.body.collideWorldBounds = true;
         }
     };
 
