@@ -40,10 +40,10 @@ const peerServer = ExpressPeerServer(server, {
     path: '/myapp'
 });
 
-app.use('/r/peerjs', peerServer);
-app.use('/r/css', express.static(__dirname + '/css'));
-app.use('/r/js', express.static(__dirname + '/js'));
-app.use('/r/assets', express.static(__dirname + '/assets'));
+app.use('*/peerjs', peerServer);
+app.use('*/css', express.static(__dirname + '/css'));
+app.use('*/js', express.static(__dirname + '/js'));
+app.use('*/assets', express.static(__dirname + '/assets'));
 
 const FORCE_ROOM_IN_URL = true;
 const DEFAULT_ROOM = "general"
@@ -53,11 +53,6 @@ if (FORCE_ROOM_IN_URL) {
         res.redirect('/r/' + DEFAULT_ROOM)
     });
 } else {
-    app.use('/peerjs', peerServer);
-    app.use('/css', express.static(__dirname + '/css'));
-    app.use('/js', express.static(__dirname + '/js'));
-    app.use('/assets', express.static(__dirname + '/assets'));
-
     app.get('/', function (req, res) {
         res.sendFile(__dirname + '/index.html');
     });
