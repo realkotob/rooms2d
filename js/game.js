@@ -166,6 +166,7 @@ export default class MainGame extends Phaser.Scene {
         this.load.tilemapTiledJSON('map', 'assets/map/example_map.json');
         this.load.image('tilesheet', 'assets/map/tilesheet.png');
         this.load.image('sprite', 'assets/sprites/sprite.png');
+        this.load.image('ball', 'assets/sprites/ball.png');
         this.load.image('crosshair', 'assets/sprites/crosshair.png');
         this.load.spritesheet('characters', 'assets/sprites/32_Characters/All.png', { frameWidth: 48, frameHeight: 51 });
     };
@@ -186,12 +187,18 @@ export default class MainGame extends Phaser.Scene {
         // this.updateCamera();
     }
 
+    on_hit_ball() {
+        console.log("Player hit ball");
+    }
+
     create() {
         const self = this;
 
         // this.adaptive_layer = this.add.container();
 
         this.phaser_created = true;
+
+
 
         // var testKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
         var map = this.make.tilemap({ key: 'map', tileWidth: 32, tileHeight: 32 });
@@ -210,6 +217,19 @@ export default class MainGame extends Phaser.Scene {
 
         // layer.inputEnabled = true; // Allows clicking on the map ; it's enough to do it on the last layer
         this.Client.askNewPlayer();
+
+        this.ball = this.physics.add.sprite(400, 200, 'ball');
+        // this.ball.body.bounce = new Phaser.Math.Vector2(1, 1);
+        this.ball.body.setVelocity(100, 100);
+        this.ball.setCollideWorldBounds(true);
+        this.ball.setImmovable(false);
+        this.ball.setBounce(1);
+        this.ball.setCircle(24);
+        this.ball.setPushable(true);
+
+
+        this.player_group = this.physics.add.group();
+        this.physics.add.collider(this.player_group, this.ball, this.on_hit_ball);
 
         this.crosshair = this.add.sprite(-100, -100, 'crosshair');
         this.crosshair.setVisible(false);
@@ -326,9 +346,11 @@ export default class MainGame extends Phaser.Scene {
             this.current_player = _new_player;
             _new_player.body.collideWorldBounds = true;
             _new_player.setImmovable(true);
+            _new_player.setPushable(false);
             this.cameras.main.startFollow(_new_player, false, 1, 1);
             // NOTE Second parameter of startFollow is for rounding pixel jitter. 
             // Setting it to true will fix the jitter of world tiles but add jitter for the player sprite.
+            this.player_group.add(_new_player);
         }
 
         // Add label
