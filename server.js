@@ -49,7 +49,7 @@ app.get('/', function (req, res) {
     res.sendFile(__dirname + '/index.html');
 });
 
-server.lastPlayderID = 1;
+server.lastPlayderID = 0;
 
 server.listen(process.env.PORT || PORT, function () {
     // console.log('Listening on http://localhost:' + server.address().port);
