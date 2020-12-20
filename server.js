@@ -56,7 +56,7 @@ server.listen(process.env.PORT || PORT, function () {
     console.log(`Server running at: http://localhost:${PORT}/`);
 });
 
-const CHARACTER_SPRITE_COUNT = 32;
+const CHARACTER_SPRITE_COUNT = 24;
 io.on('connection', function (socket) {
 
     socket.on('newplayer', function () {

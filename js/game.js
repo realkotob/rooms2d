@@ -103,7 +103,7 @@ export default class MainGame extends Phaser.Scene {
             self.Client.socket.on('clicked', function (data) {
                 if (self.player_id != data.id) {
                     // console.log("player %s clicked. current player %s", data.id, self.player_id)
-                    self.movePlayerTo(data.id, data.x, data.y);
+                    self.movePlayerPhysics(data.id, data.x, data.y);
                 }
             });
 
@@ -169,6 +169,7 @@ export default class MainGame extends Phaser.Scene {
         this.load.image('ball', 'assets/sprites/ball.png');
         this.load.image('crosshair', 'assets/sprites/crosshair.png');
         this.load.spritesheet('characters', 'assets/sprites/32_Characters/All.png', { frameWidth: 48, frameHeight: 51 });
+        this.load.spritesheet('slime', 'assets/sprites/slime_monster/slime_monster_spritesheet.png', { frameWidth: 24, frameHeight: 24 });
     };
 
     updateCamera() {
@@ -218,22 +219,27 @@ export default class MainGame extends Phaser.Scene {
         // layer.inputEnabled = true; // Allows clicking on the map ; it's enough to do it on the last layer
         this.Client.askNewPlayer();
 
-        this.ball = this.physics.add.sprite(400, 200, 'ball');
+        this.crosshair = this.add.sprite(-100, -100, 'crosshair');
+        this.crosshair.setVisible(false);
+        // this.adaptive_layer.add(this.crosshair);
+
+
+        this.ball = this.physics.add.sprite(400, 200, 'slime', 6);
+        this.ball.scale = 2;
         // this.ball.body.bounce = new Phaser.Math.Vector2(1, 1);
         this.ball.body.setVelocity(100, 100);
         this.ball.setCollideWorldBounds(true);
         this.ball.setImmovable(false);
         this.ball.setBounce(1);
-        this.ball.setCircle(24);
+        this.ball.setCircle(12);
         this.ball.setPushable(true);
+        this.ball.setDrag(40);
+        this.ball.setMaxVelocity(1000);
 
 
         this.player_group = this.physics.add.group();
         this.physics.add.collider(this.player_group, this.ball, this.on_hit_ball);
 
-        this.crosshair = this.add.sprite(-100, -100, 'crosshair');
-        this.crosshair.setVisible(false);
-        // this.adaptive_layer.add(this.crosshair);
 
 
         this.input.mouse.disableContextMenu();
@@ -242,7 +248,7 @@ export default class MainGame extends Phaser.Scene {
 
             if (pointer.leftButtonDown()) {
                 var world_pointer = self.cameras.main.getWorldPoint(pointer.x, pointer.y);
-                self.movePlayerTo(this.player_id, world_pointer.x, world_pointer.y);
+                self.movePlayerPhysics(this.player_id, world_pointer.x, world_pointer.y);
                 self.Client.sendClick(world_pointer.x, world_pointer.y);
             }
 
@@ -345,8 +351,9 @@ export default class MainGame extends Phaser.Scene {
         if (p_id == this.player_id) {
             this.current_player = _new_player;
             _new_player.body.collideWorldBounds = true;
-            _new_player.setImmovable(true);
             _new_player.setPushable(false);
+            _new_player.setImmovable(true);
+            _new_player.setBounce(0);
             this.cameras.main.startFollow(_new_player, false, 1, 1);
             // NOTE Second parameter of startFollow is for rounding pixel jitter. 
             // Setting it to true will fix the jitter of world tiles but add jitter for the player sprite.
@@ -400,17 +407,60 @@ export default class MainGame extends Phaser.Scene {
     }
 
     updatePlayerYSort() {
+        const self = this;
         this.players.forEach(_index => {
             var player = this.playerMap[_index];
             if (!!player) {
                 player.depth = player.y + player.height / 2;
+
+
                 player.name_label.x = player.x - + player.name_label.width / 2;
                 player.name_label.y = player.y + player.height / 2;
+
+
+
+
+                if (player.body.speed > 0) {
+                    var distance = Phaser.Math.Distance.Between(player.x, player.y, player.current_target.x, player.current_target.y);
+
+                    //  4 is our distance tolerance, i.e. how close the source can get to the target
+                    //  before it is considered as being there. The faster it moves, the more tolerance is required.
+                    if (distance < 10) {
+                        player.body.reset(player.current_target.x, player.current_target.y);
+                        if (_index == self.player_id) {
+                            self.crosshair.setVisible(false);
+
+                        }
+                    }
+                }
             }
         });
         // if (!!this.crosshair)
         //     this.crosshair.depth = this.crosshair.y + this.crosshair.height / 2;
 
+    }
+
+    movePlayerPhysics(p_id, p_x, p_y) {
+        const self = this;
+
+        var player = this.playerMap[p_id];
+        if (!player) {
+            console.log("Warning! Player is null");
+            return;
+        }
+
+        player.current_target = new Phaser.Math.Vector2(p_x, p_y);
+
+        var distance = Phaser.Math.Distance.Between(player.x, player.y, p_x, p_y);
+
+
+        this.physics.moveToObject(player, player.current_target, null,
+            distance / MainGame.MOVE_TWEEN_SPEED);
+
+        if (this.player_id == p_id) {
+            this.crosshair.setPosition(p_x, p_y);
+            this.crosshair.setVisible(true);
+        }
     }
 
     movePlayerTo(p_id, p_x, p_y) {
