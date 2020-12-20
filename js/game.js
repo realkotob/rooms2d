@@ -28,13 +28,29 @@ export default class MainGame extends Phaser.Scene {
 
         this.Client.socket = io.connect();
 
+        // this.Client.socket.on('connected', function () {
+        //     // get path from current URL
+        //     let room = window.location.pathname.slice(3);   // remove leading /chat/
+        //     let pos = room.indexOf('/');
+        //     if (pos !== -1) {
+        //         room = room.slice(0, pos);
+        //     }
+        //     console.log("Room ID %s", room);
+        //     self.room_id = room;
+        // });
+
         this.Client.sendTest = function () {
             console.log("test sent");
             self.Client.socket.emit('test');
         };
 
         this.Client.askNewPlayer = function () {
-            self.Client.socket.emit('newplayer');
+            let pos = window.location.pathname.indexOf('/r/');
+            if (pos !== -1) {
+                self.room_id = window.location.pathname.slice(pos + 3);
+            }
+            // console.log("Room ID %s", self.room_id);
+            self.Client.socket.emit('newplayer', { room: self.room_id });
         };
 
         this.Client.sendClick = function (x, y) {
