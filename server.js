@@ -45,7 +45,7 @@ app.use('/r/css', express.static(__dirname + '/css'));
 app.use('/r/js', express.static(__dirname + '/js'));
 app.use('/r/assets', express.static(__dirname + '/assets'));
 
-const FORCE_ROOM_IN_URL = true;
+const FORCE_ROOM_IN_URL = false;
 const DEFAULT_ROOM = "general"
 
 if (FORCE_ROOM_IN_URL) {
