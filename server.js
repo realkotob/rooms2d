@@ -45,10 +45,12 @@ app.use('/r/css', express.static(__dirname + '/css'));
 app.use('/r/js', express.static(__dirname + '/js'));
 app.use('/r/assets', express.static(__dirname + '/assets'));
 
-const REDIRECT_MAIN = false;
-if (REDIRECT_MAIN) {
+const FORCE_ROOM_IN_URL = true;
+const DEFAULT_ROOM = "general"
+
+if (FORCE_ROOM_IN_URL) {
     app.get('/', function (req, res) {
-        res.redirect('/r/main')
+        res.redirect('/r/' + DEFAULT_ROOM)
     });
 } else {
     app.use('/peerjs', peerServer);
@@ -73,7 +75,6 @@ server.listen(process.env.PORT || PORT, function () {
     console.log(`Server running at: http://localhost:${PORT}/`);
 });
 
-const DEFAULT_ROOM = "general"
 
 const CHARACTER_SPRITE_COUNT = 24;
 io.on('connection', function (socket) {
