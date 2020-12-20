@@ -73,7 +73,7 @@ server.listen(process.env.PORT || PORT, function () {
     console.log(`Server running at: http://localhost:${PORT}/`);
 });
 
-const DEFAULT_ROOM = "main"
+const DEFAULT_ROOM = "general"
 
 const CHARACTER_SPRITE_COUNT = 24;
 io.on('connection', function (socket) {
