@@ -85,7 +85,7 @@ io.on('connection', function (socket) {
 
         server.lastPlayderID += 1;
         let _name = p_data.username && p_data.username.length > 0 ? p_data.username : ("P" + server.lastPlayderID);
-        console.log("Player name is %s", _name);
+        // console.log("Player name is %s", _name);
         socket.player = {
             id: server.lastPlayderID,
             room: _room,

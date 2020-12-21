@@ -21,9 +21,25 @@ export default class Login extends Phaser.Scene {
       url: 'js/rex-notes/dist/rexuiplugin.min.js',
       sceneKey: 'rexUI'
     });
+
+    this.load.tilemapTiledJSON('map', 'assets/map/example_map.json');
+    this.load.image('tilesheet', 'assets/map/tilesheet.png');
   }
 
   create() {
+    var map = this.make.tilemap({ key: 'map', tileWidth: 32, tileHeight: 32 });
+    var tileset = map.addTilesetImage('tilesheet');
+    var layer;
+    for (var i = 0; i < map.layers.length; i++) {
+      layer = map.createLayer(i, tileset);
+      if (layer.layer.name == "collision") {
+        layer.visible = false;
+      }
+    }
+    this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+    this.cameras.main.zoom = 1.5;
+
+
     var _room_name = "/r/ general";
     let pos = window.location.pathname.indexOf('/r/');
     if (pos !== -1) {
@@ -45,7 +61,9 @@ export default class Login extends Phaser.Scene {
       //.drawBounds(this.add.graphics(), 0xff0000);
       .popUp(500);
 
-    // this.add.text(0, 560, 'Click user name or password field to edit it\nClick Login button to show user name and password')
+    // this.add.text(0, 560, 'Click user name or password field to edit it\nClick Login button to show user name and password');
+
+
   }
 
   update() { }
