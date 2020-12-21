@@ -8449,7 +8449,7 @@
    <tile/>
   </data>
  </layer>
- <layer id="12" name="collision" width="24" height="17" opacity="0">
+ <layer id="12" name="collision" width="24" height="17">
   <data>
    <tile gid="24"/>
    <tile gid="24"/>
@@ -8539,13 +8539,13 @@
    <tile/>
    <tile/>
    <tile/>
-   <tile gid="24"/>
-   <tile gid="24"/>
-   <tile gid="24"/>
-   <tile gid="24"/>
-   <tile gid="24"/>
-   <tile gid="24"/>
-   <tile gid="24"/>
+   <tile/>
+   <tile/>
+   <tile/>
+   <tile/>
+   <tile/>
+   <tile/>
+   <tile/>
    <tile gid="24"/>
    <tile gid="24"/>
    <tile/>
@@ -8805,11 +8805,11 @@
    <tile/>
    <tile/>
    <tile/>
-   <tile gid="24"/>
-   <tile gid="24"/>
-   <tile gid="24"/>
-   <tile gid="24"/>
-   <tile gid="24"/>
+   <tile/>
+   <tile/>
+   <tile/>
+   <tile/>
+   <tile/>
    <tile/>
    <tile/>
    <tile/>

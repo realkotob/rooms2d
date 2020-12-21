@@ -249,9 +249,11 @@ export default class MainGame extends Phaser.Scene {
         this.youtubePlayer.original_config = yt_original_config;
 
         this.player_group = this.physics.add.group();
-        this.on_hit_tilemap = function () {
-            console.log("Player hit tilemap");
-        };
+        this.ball_group = this.physics.add.group();
+
+
+        this.physics.add.collider(this.player_group, this.ball_group, this.on_hit_ball);
+
 
         // var testKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
         var map = this.make.tilemap({ key: 'map', tileWidth: 32, tileHeight: 32 });
@@ -259,71 +261,48 @@ export default class MainGame extends Phaser.Scene {
         var map2 = this.make.tilemap({ key: 'map', tileWidth: 32, tileHeight: 32 });
         var map3 = this.make.tilemap({ key: 'map', tileWidth: 32, tileHeight: 32 });
         var tileset = map.addTilesetImage('tilesheet');
+
         var layer;
         for (var i = 0; i < map.layers.length; i++) {
             layer = map.createLayer(i, tileset);
             if (layer.layer.name == "collision") {
-                console.log("Created collision layer");
                 layer.setCollisionByProperty({ collides: true });
                 // layer.setCollisionBetween(22, 24);
-                this.physics.add.collider(this.player_group, layer, this.on_hit_tilemap);
+                this.physics.add.collider(this.player_group, layer);
+                this.physics.add.collider(this.ball_group, layer);
+                layer.visible = false;
             }
         }
         for (var i = 0; i < map1.layers.length; i++) {
             layer = map1.createLayer(i, tileset, map.widthInPixels);
             if (layer.layer.name == "collision") {
-                console.log("Created collision layer");
                 layer.setCollisionByProperty({ collides: true });
                 // layer.setCollisionBetween(22, 24);
-                this.physics.add.collider(this.player_group, layer, this.on_hit_tilemap);
+                this.physics.add.collider(this.player_group, layer);
+                this.physics.add.collider(this.ball_group, layer);
+                layer.visible = false;
             }
         }
         for (var i = 0; i < map2.layers.length; i++) {
             layer = map2.createLayer(i, tileset, 0, map.heightInPixels);
             if (layer.layer.name == "collision") {
-                console.log("Created collision layer");
                 layer.setCollisionByProperty({ collides: true });
                 // layer.setCollisionBetween(22, 24);
-                this.physics.add.collider(this.player_group, layer, this.on_hit_tilemap);
+                this.physics.add.collider(this.player_group, layer);
+                this.physics.add.collider(this.ball_group, layer);
+                layer.visible = false;
             }
         }
         for (var i = 0; i < map3.layers.length; i++) {
             layer = map3.createLayer(i, tileset, map.widthInPixels, map.heightInPixels);
             if (layer.layer.name == "collision") {
-                console.log("Created collision layer");
                 layer.setCollisionByProperty({ collides: true });
                 // layer.setCollisionBetween(22, 24);
-                this.physics.add.collider(this.player_group, layer, this.on_hit_tilemap);
+                this.physics.add.collider(this.player_group, layer);
+                this.physics.add.collider(this.ball_group, layer);
+                layer.visible = false;
             }
         }
-        // if (!map.getLayer("collision")) {
-        //     console.log("Collision layer not found!");
-        // } else {
-        //     console.log("Collision layer %s", JSON.stringify(map.getLayer("collision")));
-        // }
-        // map.setCollisionByProperty({ collides: true }, true, true, "collision");
-        // // if (!!map.getLayer("collision"))
-        // //     map.getLayer("collision").setCollisionBetween(22, 24);
-        // // map.setCollisionBetween(22, 24, true, true, "collision");
-
-        // map1.setCollisionByProperty({ collides: true }, true, true, "collision");
-        // map1.setCollisionBetween(22, 24, true, true, "collision");
-
-        // map2.setCollisionByProperty({ collides: true }, true, true, "collision");
-        // map2.setCollisionBetween(22, 24, true, true, "collision");
-
-        // map3.setCollisionByProperty({ collides: true }, true, true, "collision");
-        // map3.setCollisionBetween(22, 24, true, true, "collision");
-
-
-
-
-        console.log("Col layer " + map.getLayer("collision").name);
-
-        this.physics.add.collider(this.player_group, map.getLayer("collision"), this.on_hit_tilemap);
-        this.physics.add.collider(this.player_group, map1.getLayer("collision"), this.on_hit_tilemap);
-        this.physics.add.collider(this.player_group, map2.getLayer("collision"), this.on_hit_tilemap);
-        this.physics.add.collider(this.player_group, map3.getLayer("collision"), this.on_hit_tilemap);
 
         // this.adaptive_layer.add(map);
 
@@ -351,7 +330,7 @@ export default class MainGame extends Phaser.Scene {
         // this.adaptive_layer.add(this.crosshair);
 
 
-        this.ball = this.physics.add.sprite(400, 200, 'slime', 6);
+        this.ball = this.physics.add.sprite(300, 400, 'slime', 6);
         this.ball.scale = 2;
         // this.ball.body.bounce = new Phaser.Math.Vector2(1, 1);
         this.ball.body.setVelocity(100, 100);
@@ -362,9 +341,10 @@ export default class MainGame extends Phaser.Scene {
         this.ball.setPushable(true);
         this.ball.setDrag(40);
         this.ball.setMaxVelocity(1000);
+        this.ball_group.add(this.ball);
 
 
-        this.physics.add.collider(this.player_group, this.ball, this.on_hit_ball);
+
 
 
 
