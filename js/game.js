@@ -220,7 +220,7 @@ export default class MainGame extends Phaser.Scene {
 
         let yt_original_config = {
             x: 1300,
-            y: 225,
+            y: 150,
             width: 426,
             height: 240
         }
@@ -265,20 +265,17 @@ export default class MainGame extends Phaser.Scene {
         //  Set the camera and physics bounds to be the size of 4x4 bg images
         this.cameras.main.setBounds(0, 0, map.widthInPixels * 2, map.heightInPixels * 2);
         this.physics.world.setBounds(0, 0, map.widthInPixels * 2, map.heightInPixels * 2);
-        this.cameras.main.zoom = 1.2;
+        this.cameras.main.zoom = 1.5;
         this.youtubePlayer.original_config.zoom = this.cameras.main.zoom;
 
 
-        this.input.on('wheel', function (pointer, gameObjects, deltaX, deltaY, deltaZ) {
-            let _new_zoom = MainGame.clamp(self.cameras.main.zoom - deltaY * 0.025, 1.2, 1.6);
-            self.cameras.main.zoom = _new_zoom;
-            let _zoom_change = (self.youtubePlayer.original_config.zoom - _new_zoom) / self.youtubePlayer.original_config.zoom;
-            self.youtubePlayer.x = self.youtubePlayer.original_config.x - _zoom_change * 130;
-            self.youtubePlayer.y = self.youtubePlayer.original_config.y - _zoom_change * 70;
-            // self.youtubePlayer.resize(self.youtubePlayer.original_config.width * _zoom_change,
-            // self.youtubePlayer.original_config.height * _zoom_change);
-            // self.youtubePlayer.resize(self.youtubePlayer.original_config.width * 2, self.youtubePlayer.original_config.height * 2);
-        });
+        // this.input.on('wheel', function (pointer, gameObjects, deltaX, deltaY, deltaZ) {
+        //     let _new_zoom = MainGame.clamp(self.cameras.main.zoom - deltaY * 0.025, 1.2, 1.6);
+        //     self.cameras.main.zoom = _new_zoom;
+        //     let _zoom_change = (self.youtubePlayer.original_config.zoom - _new_zoom) / self.youtubePlayer.original_config.zoom;
+        //     self.youtubePlayer.x = self.youtubePlayer.original_config.x - _zoom_change * 130;
+        //     self.youtubePlayer.y = self.youtubePlayer.original_config.y - _zoom_change * 70;
+        // });
 
 
         // layer.inputEnabled = true; // Allows clicking on the map ; it's enough to do it on the last layer
@@ -342,6 +339,18 @@ export default class MainGame extends Phaser.Scene {
         this.handle_player_controls(delta);
         this.handle_voice_proxomity();
         this.updatePlayerYSort();
+        this.handleVideo();
+    }
+    handleVideo() {
+        var _distance_vid = Phaser.Math.Distance.Between(
+            this.youtubePlayer.x, this.youtubePlayer.y, this.current_player.x, this.current_player.y);
+        this.youtubePlayer.setVolume(1 - MainGame.clamp(_distance_vid / (MainGame.MAX_HEAR_DISTANCE * 2), 0, 1));
+        let _dist_y = this.youtubePlayer.y - this.current_player.y;
+        if (_distance_vid < MainGame.MAX_HEAR_DISTANCE * 0.75 && -_dist_y < MainGame.MAX_HEAR_DISTANCE / 2) {
+            this.cameras.main.followOffset.y = Phaser.Math.Linear(this.cameras.main.followOffset.y, -_dist_y, 0.05);
+        } else {
+            this.cameras.main.followOffset.y = Phaser.Math.Linear(this.cameras.main.followOffset.y, 0, 0.05);
+        }
     }
 
     handle_player_controls(delta) {
@@ -381,9 +390,7 @@ export default class MainGame extends Phaser.Scene {
     handle_voice_proxomity() {
         try {
             // let yt_pos = this.youtubePlayer.getPosition();
-            var _distance_vid = Phaser.Math.Distance.Between(
-                this.youtubePlayer.x, this.youtubePlayer.y, this.current_player.x, this.current_player.y);
-            this.youtubePlayer.setVolume(1 - MainGame.clamp(_distance_vid / (MainGame.MAX_HEAR_DISTANCE * 2), 0, 1));
+
             var video_parent = document.querySelector('#media-container');
             for (var i = 0; i < this.players.length; i++) {
                 var p_id = this.players[i];
