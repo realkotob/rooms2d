@@ -220,7 +220,7 @@ export default class MainGame extends Phaser.Scene {
 
         let yt_original_config = {
             x: 1300,
-            y: 150,
+            y: 160,
             width: 426,
             height: 240
         }
