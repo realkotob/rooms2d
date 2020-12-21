@@ -187,8 +187,12 @@ export default class MainGame extends Phaser.Scene {
         this.load.spritesheet('characters', 'assets/sprites/32_Characters/All.png', { frameWidth: 48, frameHeight: 51 });
         this.load.spritesheet('slime', 'assets/sprites/slime_monster/slime_monster_spritesheet.png', { frameWidth: 24, frameHeight: 24 });
 
-        var url = 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexyoutubeplayerplugin.min.js';
-        this.load.plugin('rexyoutubeplayerplugin', url, true);
+        try {
+            var url = 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexyoutubeplayerplugin.min.js';
+            this.load.plugin('rexyoutubeplayerplugin', url, true);
+        } catch (error) {
+            console.error("Erorr preloading yt plugin" + error);
+        }
     };
 
     updateCamera() {
@@ -225,20 +229,29 @@ export default class MainGame extends Phaser.Scene {
             height: 240
         }
 
-        this.youtubePlayer = this.add.rexYoutubePlayer(
-            yt_original_config.x, yt_original_config.y, yt_original_config.width, yt_original_config.height, {
-            videoId: 'OkQlrIQhUMQ',
-            modestBranding: true,
-            loop: false,
-            autoPlay: false,
-        }).on('ready', function () {
-            console.log("Video ready");
-            // self.youtubePlayer.setPosition(600, 300);
-        });
+        try {
+            this.youtubePlayer = this.add.rexYoutubePlayer(
+                yt_original_config.x, yt_original_config.y, yt_original_config.width, yt_original_config.height, {
+                videoId: 'OkQlrIQhUMQ',
+                modestBranding: true,
+                loop: false,
+                autoPlay: false,
+            }).on('ready', function () {
+                console.log("Video ready");
+                // self.youtubePlayer.setPosition(600, 300);
+            });
+        } catch (error) {
+            console.error("Erorr starting yt plugin" + error);
+        }
+
+
 
         this.youtubePlayer.original_config = yt_original_config;
 
-
+        this.player_group = this.physics.add.group();
+        this.on_hit_tilemap = function () {
+            console.log("Player hit tilemap");
+        };
 
         // var testKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
         var map = this.make.tilemap({ key: 'map', tileWidth: 32, tileHeight: 32 });
@@ -249,16 +262,68 @@ export default class MainGame extends Phaser.Scene {
         var layer;
         for (var i = 0; i < map.layers.length; i++) {
             layer = map.createLayer(i, tileset);
+            if (layer.layer.name == "collision") {
+                console.log("Created collision layer");
+                layer.setCollisionByProperty({ collides: true });
+                // layer.setCollisionBetween(22, 24);
+                this.physics.add.collider(this.player_group, layer, this.on_hit_tilemap);
+            }
         }
         for (var i = 0; i < map1.layers.length; i++) {
             layer = map1.createLayer(i, tileset, map.widthInPixels);
+            if (layer.layer.name == "collision") {
+                console.log("Created collision layer");
+                layer.setCollisionByProperty({ collides: true });
+                // layer.setCollisionBetween(22, 24);
+                this.physics.add.collider(this.player_group, layer, this.on_hit_tilemap);
+            }
         }
         for (var i = 0; i < map2.layers.length; i++) {
             layer = map2.createLayer(i, tileset, 0, map.heightInPixels);
+            if (layer.layer.name == "collision") {
+                console.log("Created collision layer");
+                layer.setCollisionByProperty({ collides: true });
+                // layer.setCollisionBetween(22, 24);
+                this.physics.add.collider(this.player_group, layer, this.on_hit_tilemap);
+            }
         }
         for (var i = 0; i < map3.layers.length; i++) {
             layer = map3.createLayer(i, tileset, map.widthInPixels, map.heightInPixels);
+            if (layer.layer.name == "collision") {
+                console.log("Created collision layer");
+                layer.setCollisionByProperty({ collides: true });
+                // layer.setCollisionBetween(22, 24);
+                this.physics.add.collider(this.player_group, layer, this.on_hit_tilemap);
+            }
         }
+        // if (!map.getLayer("collision")) {
+        //     console.log("Collision layer not found!");
+        // } else {
+        //     console.log("Collision layer %s", JSON.stringify(map.getLayer("collision")));
+        // }
+        // map.setCollisionByProperty({ collides: true }, true, true, "collision");
+        // // if (!!map.getLayer("collision"))
+        // //     map.getLayer("collision").setCollisionBetween(22, 24);
+        // // map.setCollisionBetween(22, 24, true, true, "collision");
+
+        // map1.setCollisionByProperty({ collides: true }, true, true, "collision");
+        // map1.setCollisionBetween(22, 24, true, true, "collision");
+
+        // map2.setCollisionByProperty({ collides: true }, true, true, "collision");
+        // map2.setCollisionBetween(22, 24, true, true, "collision");
+
+        // map3.setCollisionByProperty({ collides: true }, true, true, "collision");
+        // map3.setCollisionBetween(22, 24, true, true, "collision");
+
+
+
+
+        console.log("Col layer " + map.getLayer("collision").name);
+
+        this.physics.add.collider(this.player_group, map.getLayer("collision"), this.on_hit_tilemap);
+        this.physics.add.collider(this.player_group, map1.getLayer("collision"), this.on_hit_tilemap);
+        this.physics.add.collider(this.player_group, map2.getLayer("collision"), this.on_hit_tilemap);
+        this.physics.add.collider(this.player_group, map3.getLayer("collision"), this.on_hit_tilemap);
 
         // this.adaptive_layer.add(map);
 
@@ -299,7 +364,6 @@ export default class MainGame extends Phaser.Scene {
         this.ball.setMaxVelocity(1000);
 
 
-        this.player_group = this.physics.add.group();
         this.physics.add.collider(this.player_group, this.ball, this.on_hit_ball);
 
 

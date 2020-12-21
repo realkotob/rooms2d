@@ -142,8 +142,20 @@
          "width":24,
          "x":0,
          "y":0
+        }, 
+        {
+         "data":[24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 0, 0, 0, 0, 0, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 0, 0, 0, 0, 0, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 0, 0, 0, 0, 0, 24, 24, 24, 24, 24, 24, 24, 24, 24, 0, 0, 0, 24, 24, 24, 24, 24, 24, 24, 0, 0, 0, 0, 0, 24, 24, 24, 24, 24, 24, 24, 24, 24, 0, 0, 0, 24, 24, 24, 24, 24, 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 24, 24, 0, 0, 0, 24, 24, 24, 24, 24, 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 24, 0, 0, 0, 0, 24, 24, 24, 24, 24, 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 24, 24, 24, 24, 24, 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 24, 24, 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 24, 24, 24, 24, 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 24, 24, 24, 24, 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 24, 24, 24, 24, 24, 0, 0, 0, 0, 24, 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 24, 0, 24, 24, 24, 0, 0, 0, 0, 24, 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 24, 24, 24, 24, 24, 0, 0, 0, 0, 24, 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 24, 24, 24, 24, 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+         "height":17,
+         "id":12,
+         "name":"collision",
+         "opacity":0,
+         "type":"tilelayer",
+         "visible":true,
+         "width":24,
+         "x":0,
+         "y":0
         }],
- "nextlayerid":12,
+ "nextlayerid":13,
  "nextobjectid":383,
  "orientation":"orthogonal",
  "renderorder":"right-down",
@@ -196,6 +208,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -251,6 +268,38 @@
                          "name":"v",
                          "type":"string",
                          "value":""
+                        }]
+                }, 
+                {
+                 "id":23,
+                 "objectgroup":
+                    {
+                     "draworder":"index",
+                     "id":5,
+                     "name":"",
+                     "objects":[
+                            {
+                             "height":32,
+                             "id":4,
+                             "name":"",
+                             "rotation":0,
+                             "type":"",
+                             "visible":true,
+                             "width":32,
+                             "x":0,
+                             "y":0
+                            }],
+                     "opacity":1,
+                     "type":"objectgroup",
+                     "visible":true,
+                     "x":0,
+                     "y":0
+                    },
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -317,6 +366,11 @@
                  "id":44,
                  "properties":[
                         {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
                          "name":"v",
                          "type":"string",
                          "value":""
@@ -325,6 +379,11 @@
                 {
                  "id":45,
                  "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }, 
                         {
                          "name":"v",
                          "type":"string",
@@ -335,6 +394,11 @@
                  "id":46,
                  "properties":[
                         {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
                          "name":"v",
                          "type":"string",
                          "value":""
@@ -343,6 +407,11 @@
                 {
                  "id":47,
                  "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }, 
                         {
                          "name":"v",
                          "type":"string",
@@ -353,6 +422,11 @@
                  "id":48,
                  "properties":[
                         {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
                          "name":"v",
                          "type":"string",
                          "value":""
@@ -361,6 +435,11 @@
                 {
                  "id":49,
                  "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }, 
                         {
                          "name":"v",
                          "type":"string",
@@ -439,6 +518,11 @@
                          "value":""
                         }, 
                         {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
                          "name":"v",
                          "type":"string",
                          "value":""
@@ -451,6 +535,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }, 
                         {
                          "name":"v",
@@ -467,6 +556,11 @@
                          "value":""
                         }, 
                         {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
                          "name":"v",
                          "type":"string",
                          "value":""
@@ -479,6 +573,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }, 
                         {
                          "name":"v",
@@ -495,6 +594,11 @@
                          "value":""
                         }, 
                         {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
                          "name":"v",
                          "type":"string",
                          "value":""
@@ -507,6 +611,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }, 
                         {
                          "name":"v",
@@ -559,6 +668,11 @@
                          "value":""
                         }, 
                         {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
                          "name":"v",
                          "type":"string",
                          "value":""
@@ -571,6 +685,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -580,6 +699,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -589,6 +713,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -598,6 +727,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -607,6 +741,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }, 
                         {
                          "name":"v",
@@ -668,6 +807,11 @@
                          "value":""
                         }, 
                         {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
                          "name":"v",
                          "type":"string",
                          "value":""
@@ -680,6 +824,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -689,6 +838,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -698,6 +852,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -707,6 +866,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -716,6 +880,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }, 
                         {
                          "name":"v",
@@ -757,6 +926,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -766,6 +940,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -775,6 +954,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -784,6 +968,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -793,6 +982,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -802,6 +996,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -847,6 +1046,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -856,6 +1060,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -865,6 +1074,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -874,6 +1088,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -883,6 +1102,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -892,6 +1116,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -937,6 +1166,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -946,6 +1180,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -955,6 +1194,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -964,6 +1208,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -973,6 +1222,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -982,6 +1236,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1110,6 +1369,11 @@
                          "value":""
                         }, 
                         {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
                          "name":"v",
                          "type":"string",
                          "value":""
@@ -1210,6 +1474,11 @@
                          "value":""
                         }, 
                         {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
                          "name":"v",
                          "type":"string",
                          "value":""
@@ -1222,6 +1491,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1231,6 +1505,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }, 
                         {
                          "name":"v",
@@ -1349,6 +1628,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1358,6 +1642,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1367,6 +1656,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1376,6 +1670,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1385,6 +1684,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1531,6 +1835,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1540,6 +1849,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1549,6 +1863,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1558,6 +1877,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1567,6 +1891,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1667,6 +1996,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1676,6 +2010,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1685,6 +2024,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1694,6 +2038,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1703,6 +2052,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1767,6 +2121,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1776,6 +2135,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1785,6 +2149,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1794,6 +2163,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1803,6 +2177,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1887,6 +2266,11 @@
                          "value":""
                         }, 
                         {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":false
+                        }, 
+                        {
                          "name":"v",
                          "type":"string",
                          "value":""
@@ -1899,6 +2283,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1908,6 +2297,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1917,6 +2311,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1926,6 +2325,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1985,6 +2389,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1994,6 +2403,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -2003,6 +2417,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -2012,6 +2431,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -2021,6 +2445,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -2111,6 +2540,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -2120,6 +2554,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -2129,6 +2568,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -2138,6 +2582,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -2147,6 +2596,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -2192,6 +2646,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -2201,6 +2660,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -2210,6 +2674,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -2219,6 +2688,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -2228,6 +2702,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -2273,6 +2752,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -2282,6 +2766,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -2291,6 +2780,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -2300,6 +2794,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -2309,6 +2808,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -2327,6 +2831,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -2336,6 +2845,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -2345,6 +2859,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -2354,6 +2873,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -2363,6 +2887,11 @@
                          "name":"c",
                          "type":"string",
                          "value":""
+                        }, 
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
