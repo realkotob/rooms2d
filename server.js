@@ -74,22 +74,25 @@ server.listen(process.env.PORT || PORT, function () {
 const CHARACTER_SPRITE_COUNT = 24;
 io.on('connection', function (socket) {
 
-    socket.on('newplayer', async function (newplayer_data) {
-        var _room = DEFAULT_ROOM;
-        if (!!newplayer_data && !!newplayer_data.room && !(/[^\w.]/.test(newplayer_data.room))) {  // from https://stackoverflow.com/a/46125634
-            _room = newplayer_data.room;
+    socket.on('newplayer', async function (p_data) {
+        let _room = DEFAULT_ROOM;
+        if (!!p_data && !!p_data.room && !(/[^\w.]/.test(p_data.room))) {  // from https://stackoverflow.com/a/46125634
+            _room = p_data.room;
         }
         // (newplayer_data && newplayer_data.room) || DEFAULT_ROOM);
 
         await socket.join(_room);
 
         server.lastPlayderID += 1;
+        let _name = p_data.username && p_data.username.length > 0 ? p_data.username : ("P" + server.lastPlayderID);
+        console.log("Player name is %s", _name);
         socket.player = {
             id: server.lastPlayderID,
             room: _room,
             sprite: server.lastPlayderID % CHARACTER_SPRITE_COUNT,
             x: randomInt(100, 400),
-            y: randomInt(100, 400)
+            y: randomInt(100, 400),
+            uname: _name
         };
         // console.log("Room for %s is %s", socket.player.id, socket.player.room);
 

@@ -50,7 +50,9 @@ export default class MainGame extends Phaser.Scene {
                 self.room_id = window.location.pathname.slice(pos + 3);
             }
             // console.log("Room ID %s", self.room_id);
-            self.Client.socket.emit('newplayer', { room: self.room_id });
+            let _name = localStorage.getItem("username");
+            console.log("Selected name %s", _name);
+            self.Client.socket.emit('newplayer', { room: self.room_id, username: _name });
         };
 
         this.Client.sendClick = function (x, y) {
@@ -61,7 +63,7 @@ export default class MainGame extends Phaser.Scene {
         };
 
         this.Client.socket.on('newplayer', function (data) {
-            self.addNewPlayer(data.id, data.x, data.y, data.sprite);
+            self.addNewPlayer(data.id, data.x, data.y, data.sprite, data.uname);
         });
 
 
@@ -112,7 +114,7 @@ export default class MainGame extends Phaser.Scene {
 
             const _all = data.all;
             for (var i = 0; i < _all.length; i++) {
-                self.addNewPlayer(_all[i].id, _all[i].x, _all[i].y, _all[i].sprite);
+                self.addNewPlayer(_all[i].id, _all[i].x, _all[i].y, _all[i].sprite, _all[i].uname);
             }
 
 
@@ -189,7 +191,8 @@ export default class MainGame extends Phaser.Scene {
         this.load.spritesheet('slime', 'assets/sprites/slime_monster/slime_monster_spritesheet.png', { frameWidth: 24, frameHeight: 24 });
 
         try {
-            var url = 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexyoutubeplayerplugin.min.js';
+            // var url = 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexyoutubeplayerplugin.min.js';
+            var url = 'js/rex-notes/dist/rexyoutubeplayerplugin.min.js';
             this.load.plugin('rexyoutubeplayerplugin', url, true);
         } catch (error) {
             console.error("Erorr preloading yt plugin" + error);
@@ -548,13 +551,15 @@ export default class MainGame extends Phaser.Scene {
 
 
 
-    addNewPlayer(p_id, p_x, p_y, p_sprite_id) {
+    addNewPlayer(p_id, p_x, p_y, p_sprite_id, p_username) {
+        console.log("Recieved player name %s ", p_username);
         this.players.push(p_id);
         var _new_player = this.physics.add.sprite(p_x, p_y, 'char_' + p_sprite_id, 0);
         // this.adaptive_layer.add(_new_player);
         this.playerMap[p_id] = _new_player;
         _new_player.scale = 3;
         _new_player.sprite_id = p_sprite_id;
+        _new_player.username = p_username;
         if (p_id == this.player_id) {
             this.current_player = _new_player;
             _new_player.body.collideWorldBounds = true;
@@ -568,9 +573,9 @@ export default class MainGame extends Phaser.Scene {
         }
 
         // Add label
-        var style = { font: "14px Arial", fill: "#000000", wordWrap: true, wordWrapWidth: (_new_player.width * _new_player.scale), align: "center" };//, backgroundColor: "#ffff00" };
+        var style = { font: "14px Arial", fill: "#000000", wordWrap: false, wordWrapWidth: (_new_player.width * _new_player.scale), align: "center" };//, backgroundColor: "#ffff00" };
         _new_player.name_label = this.add.text(
-            _new_player.x + (_new_player.width * _new_player.scale) / 2, _new_player.y + (_new_player.height * _new_player.scale) / 2, "P" + p_id, style);
+            _new_player.x + (_new_player.width * _new_player.scale) / 2, _new_player.y + (_new_player.height * _new_player.scale) / 2, _new_player.username, style);
     };
 
     incrementPlayerPos(p_id, p_vector) {
@@ -621,7 +626,7 @@ export default class MainGame extends Phaser.Scene {
             if (!!player) {
                 player.depth = player.y + (player.height * player.scale) / 2;
 
-
+                // console.log("Update label: %s", player.name_label.text);
                 player.name_label.x = Phaser.Math.Linear(player.name_label.x, player.x - + player.name_label.width / 2, 0.5);
                 player.name_label.y = Phaser.Math.Linear(player.name_label.y, player.y + (player.height * player.scale) / 2, 0.5);
 

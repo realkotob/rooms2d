@@ -1,5 +1,6 @@
 //noinspection JSCheckFunctionSignatures,JSCheckFunctionSignatures,JSCheckFunctionSignatures
 import MainGame from './game.js';
+import Login from './login.js';
 
 const config = {
   type: Phaser.AUTO,
@@ -12,7 +13,7 @@ const config = {
   },
   backgroundColor: '#2e3136',
   // scene: [Boot, Preloader, MainMenu, MainGame],
-  scene: [MainGame],
+  scene: [Login, MainGame],
   physics: {
     default: 'arcade',
     arcade: { debug: false }
