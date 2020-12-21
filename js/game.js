@@ -186,6 +186,9 @@ export default class MainGame extends Phaser.Scene {
         this.load.image('crosshair', 'assets/sprites/crosshair.png');
         this.load.spritesheet('characters', 'assets/sprites/32_Characters/All.png', { frameWidth: 48, frameHeight: 51 });
         this.load.spritesheet('slime', 'assets/sprites/slime_monster/slime_monster_spritesheet.png', { frameWidth: 24, frameHeight: 24 });
+
+        var url = 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexyoutubeplayerplugin.min.js';
+        this.load.plugin('rexyoutubeplayerplugin', url, true);
     };
 
     updateCamera() {
@@ -215,22 +218,68 @@ export default class MainGame extends Phaser.Scene {
 
         this.phaser_created = true;
 
+        let yt_original_config = {
+            x: 1300,
+            y: 225,
+            width: 426,
+            height: 240
+        }
+
+        this.youtubePlayer = this.add.rexYoutubePlayer(
+            yt_original_config.x, yt_original_config.y, yt_original_config.width, yt_original_config.height, {
+            videoId: 'OkQlrIQhUMQ',
+            modestBranding: true,
+            loop: false,
+            autoPlay: false,
+        }).on('ready', function () {
+            console.log("Video ready");
+            // self.youtubePlayer.setPosition(600, 300);
+        });
+
+        this.youtubePlayer.original_config = yt_original_config;
+
 
 
         // var testKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
         var map = this.make.tilemap({ key: 'map', tileWidth: 32, tileHeight: 32 });
+        var map1 = this.make.tilemap({ key: 'map', tileWidth: 32, tileHeight: 32 });
+        var map2 = this.make.tilemap({ key: 'map', tileWidth: 32, tileHeight: 32 });
+        var map3 = this.make.tilemap({ key: 'map', tileWidth: 32, tileHeight: 32 });
         var tileset = map.addTilesetImage('tilesheet');
         var layer;
         for (var i = 0; i < map.layers.length; i++) {
             layer = map.createLayer(i, tileset);
         }
+        for (var i = 0; i < map1.layers.length; i++) {
+            layer = map1.createLayer(i, tileset, map.widthInPixels);
+        }
+        for (var i = 0; i < map2.layers.length; i++) {
+            layer = map2.createLayer(i, tileset, 0, map.heightInPixels);
+        }
+        for (var i = 0; i < map3.layers.length; i++) {
+            layer = map3.createLayer(i, tileset, map.widthInPixels, map.heightInPixels);
+        }
 
         // this.adaptive_layer.add(map);
 
         //  Set the camera and physics bounds to be the size of 4x4 bg images
-        this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
-        this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
-        this.cameras.main.zoom = 2;
+        this.cameras.main.setBounds(0, 0, map.widthInPixels * 2, map.heightInPixels * 2);
+        this.physics.world.setBounds(0, 0, map.widthInPixels * 2, map.heightInPixels * 2);
+        this.cameras.main.zoom = 1.2;
+        this.youtubePlayer.original_config.zoom = this.cameras.main.zoom;
+
+
+        this.input.on('wheel', function (pointer, gameObjects, deltaX, deltaY, deltaZ) {
+            let _new_zoom = MainGame.clamp(self.cameras.main.zoom - deltaY * 0.025, 1.2, 1.6);
+            self.cameras.main.zoom = _new_zoom;
+            let _zoom_change = (self.youtubePlayer.original_config.zoom - _new_zoom) / self.youtubePlayer.original_config.zoom;
+            self.youtubePlayer.x = self.youtubePlayer.original_config.x - _zoom_change * 130;
+            self.youtubePlayer.y = self.youtubePlayer.original_config.y - _zoom_change * 70;
+            // self.youtubePlayer.resize(self.youtubePlayer.original_config.width * _zoom_change,
+            // self.youtubePlayer.original_config.height * _zoom_change);
+            // self.youtubePlayer.resize(self.youtubePlayer.original_config.width * 2, self.youtubePlayer.original_config.height * 2);
+        });
+
 
         // layer.inputEnabled = true; // Allows clicking on the map ; it's enough to do it on the last layer
         this.Client.askNewPlayer();
@@ -261,9 +310,9 @@ export default class MainGame extends Phaser.Scene {
         this.input.mouse.disableContextMenu();
 
         this.input.on('pointerdown', function (pointer) {
-
             if (pointer.leftButtonDown()) {
                 var world_pointer = self.cameras.main.getWorldPoint(pointer.x, pointer.y);
+                // console.log("Pressed local: %s %s world: %s %s", pointer.x, pointer.y, world_pointer.x, world_pointer.y);
                 self.movePlayerPhysics(this.player_id, world_pointer.x, world_pointer.y);
                 self.Client.sendClick(world_pointer.x, world_pointer.y);
             }
@@ -331,6 +380,10 @@ export default class MainGame extends Phaser.Scene {
 
     handle_voice_proxomity() {
         try {
+            // let yt_pos = this.youtubePlayer.getPosition();
+            var _distance_vid = Phaser.Math.Distance.Between(
+                this.youtubePlayer.x, this.youtubePlayer.y, this.current_player.x, this.current_player.y);
+            this.youtubePlayer.setVolume(1 - MainGame.clamp(_distance_vid / (MainGame.MAX_HEAR_DISTANCE * 2), 0, 1));
             var video_parent = document.querySelector('#media-container');
             for (var i = 0; i < this.players.length; i++) {
                 var p_id = this.players[i];

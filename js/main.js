@@ -4,7 +4,7 @@ import MainGame from './game.js';
 const config = {
   type: Phaser.AUTO,
   scale: {
-    parent: 'game',
+    parent: 'divId',
     mode: Phaser.Scale.FIT, // Tried to use Resize but it wasn't good enough, might be better if I can get this example to work https://github.com/photonstorm/phaser3-examples/blob/master/public/src/scalemanager/resize%20and%20fit.js
     autoCenter: Phaser.Scale.CENTER_BOTH,
     width: 1068,
@@ -16,6 +16,9 @@ const config = {
   physics: {
     default: 'arcade',
     arcade: { debug: false }
+  },
+  dom: {
+    createContainer: true
   },
   pixelArt: true // from https://www.html5gamedevs.com/topic/36343-disable-antialias-in-phaser-3/
 };
