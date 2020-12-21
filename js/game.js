@@ -179,12 +179,13 @@ export default class MainGame extends Phaser.Scene {
     };
 
     preload() {
+        this.char_anims = {};
         this.load.tilemapTiledJSON('map', 'assets/map/example_map.json');
         this.load.image('tilesheet', 'assets/map/tilesheet.png');
         this.load.image('sprite', 'assets/sprites/sprite.png');
         this.load.image('ball', 'assets/sprites/ball.png');
         this.load.image('crosshair', 'assets/sprites/crosshair.png');
-        this.load.spritesheet('characters', 'assets/sprites/32_Characters/All.png', { frameWidth: 48, frameHeight: 51 });
+        this.load.spritesheet('characters', 'assets/sprites/characters/other/All.png', { frameWidth: 48, frameHeight: 51 });
         this.load.spritesheet('slime', 'assets/sprites/slime_monster/slime_monster_spritesheet.png', { frameWidth: 24, frameHeight: 24 });
 
         try {
@@ -193,7 +194,44 @@ export default class MainGame extends Phaser.Scene {
         } catch (error) {
             console.error("Erorr preloading yt plugin" + error);
         }
+        for (let i = 0; i < 24; i++) {
+            this.load_char_spritesheet(i);
+        }
     };
+
+    load_char_spritesheet(char_id) {
+        // if (!this.char_sprites[char_id]) {
+        this.load.spritesheet('char_' + char_id, 'assets/sprites/characters/char_' + char_id + '.png', { frameWidth: 16, frameHeight: 17 });
+
+        // }
+
+    }
+    load_char_anims(char_id) {
+        this.anims.create({
+            key: 'down_' + char_id,
+            frames: this.anims.generateFrameNumbers('char_' + char_id, { frames: [0, 4, 8] }),
+            frameRate: 8,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'right_' + char_id,
+            frames: this.anims.generateFrameNumbers('char_' + char_id, { frames: [1, 5, 9] }),
+            frameRate: 8,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'up_' + char_id,
+            frames: this.anims.generateFrameNumbers('char_' + char_id, { frames: [2, 6, 10] }),
+            frameRate: 8,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'left_' + char_id,
+            frames: this.anims.generateFrameNumbers('char_' + char_id, { frames: [3, 7, 11] }),
+            frameRate: 8,
+            repeat: -1
+        });
+    }
 
     updateCamera() {
         // const width = this.scale.gameSize.width;
@@ -217,6 +255,10 @@ export default class MainGame extends Phaser.Scene {
 
     create() {
         const self = this;
+
+        for (let i = 0; i < 24; i++) {
+            this.load_char_anims(i);
+        }
 
         // this.adaptive_layer = this.add.container();
 
@@ -343,11 +385,6 @@ export default class MainGame extends Phaser.Scene {
         this.ball.setMaxVelocity(1000);
         this.ball_group.add(this.ball);
 
-
-
-
-
-
         this.input.mouse.disableContextMenu();
 
         this.input.on('pointerdown', function (pointer) {
@@ -376,14 +413,15 @@ export default class MainGame extends Phaser.Scene {
     }
 
     update(time, delta) {
+        this.handle_player_anims();
+        this.updatePlayerYSort();
         if (!this.player_id || !this.current_player) {
             return;
 
         }
         this.handle_player_controls(delta);
         this.handle_voice_proxomity();
-        this.updatePlayerYSort();
-        this.handleVideo();
+        // this.handleVideo();
     }
     handleVideo() {
         var _distance_vid = Phaser.Math.Distance.Between(
@@ -396,6 +434,7 @@ export default class MainGame extends Phaser.Scene {
             this.cameras.main.followOffset.y = Phaser.Math.Linear(this.cameras.main.followOffset.y, 0, 0.05);
         }
     }
+
 
     handle_player_controls(delta) {
         this.current_move_input.set(0, 0);
@@ -430,20 +469,66 @@ export default class MainGame extends Phaser.Scene {
 
 
     }
+    static ANIM_VEL_CUTOFF = 0.1;
+    handle_player_anims() {
+        this.players.forEach(p_id => {
+            var player = this.playerMap[p_id];
+            if (!!player) { // Animate based on velocity
+                var _p_vel = player.body.velocity;
+                if (Math.abs(_p_vel.x) >= Math.abs(_p_vel.y)) {
+                    if (_p_vel.x > MainGame.ANIM_VEL_CUTOFF) {
+                        if (!player.anims.isPlaying || !player.anims.currentAnim.key.startsWith("right"))
+                            player.play("right_" + player.sprite_id);
+                    } else if (_p_vel.x < -MainGame.ANIM_VEL_CUTOFF) {
+                        if (!player.anims.isPlaying || !player.anims.currentAnim.key.startsWith("left"))
+                            player.play("left_" + player.sprite_id);
+                    } else {
+                        if (!!player.anims.currentAnim) {
+                            // console.log("Stop anim");
+                            let first_frame = player.anims.currentAnim.getFrameAt(0);
+                            player.anims.pause(first_frame);
+                            // player.anims.stopOnFrame(first_frame);
+                        }
+                        // player.anims.isPlaying = false;
+                        // player.anims.repeat = 0;
+                        // player.anims.stopAfterRepeat(1);
+                    }
+                } else {
+                    if (_p_vel.y > MainGame.ANIM_VEL_CUTOFF) {
+                        if (!player.anims.isPlaying || !player.anims.currentAnim.key.startsWith("down"))
+                            player.play("down_" + player.sprite_id);
+                    } else if (_p_vel.y < -MainGame.ANIM_VEL_CUTOFF) {
+                        if (!player.anims.isPlaying || !player.anims.currentAnim.key.startsWith("up"))
+                            player.play("up_" + player.sprite_id);
+                    } else {
+                        if (!!player.anims.currentAnim) {
+                            // console.log("Stop anim");
+                            let first_frame = player.anims.currentAnim.getFrameAt(0);
+                            player.anims.pause(first_frame);
+                            // player.anims.stopOnFrame(first_frame);
+                        }
+                        // player.anims.repeat = 0;
+                        // player.anims.stopAfterRepeat(1);
+                    }
+                }
+            }
+        });
+    }
+
 
     handle_voice_proxomity() {
         try {
-            // let yt_pos = this.youtubePlayer.getPosition();
-
             var video_parent = document.querySelector('#media-container');
-            for (var i = 0; i < this.players.length; i++) {
-                var p_id = this.players[i];
+            this.players.forEach(p_id => {
                 if (p_id == this.player_id) {
-                    continue;
+                    return;
                 }
+
+                // TODO Need to profile this and make sure it's ok. 
+                // I can optimize this by storing the DOMS in a map.
                 var child_video = video_parent ? video_parent.querySelector('#p' + p_id) : null;
                 if (!child_video) {
-                    continue;
+                    return;
                 }
                 var player = this.playerMap[p_id];
                 if (!!player) {
@@ -451,10 +536,10 @@ export default class MainGame extends Phaser.Scene {
                         player.x, player.y, this.current_player.x, this.current_player.y);
 
                     var _volume = 1 - MainGame.clamp(_distance / MainGame.MAX_HEAR_DISTANCE, 0, 1);
-
+                    // TODO I can store the last volume separately if the getter here is costly
                     child_video.volume = _volume;
                 }
-            }
+            });
 
         } catch (error) {
             console.warn(error);
@@ -465,9 +550,11 @@ export default class MainGame extends Phaser.Scene {
 
     addNewPlayer(p_id, p_x, p_y, p_sprite_id) {
         this.players.push(p_id);
-        var _new_player = this.physics.add.sprite(p_x, p_y, 'characters', p_sprite_id);
+        var _new_player = this.physics.add.sprite(p_x, p_y, 'char_' + p_sprite_id, 0);
         // this.adaptive_layer.add(_new_player);
         this.playerMap[p_id] = _new_player;
+        _new_player.scale = 3;
+        _new_player.sprite_id = p_sprite_id;
         if (p_id == this.player_id) {
             this.current_player = _new_player;
             _new_player.body.collideWorldBounds = true;
@@ -481,8 +568,9 @@ export default class MainGame extends Phaser.Scene {
         }
 
         // Add label
-        var style = { font: "14px Arial", fill: "#000000", wordWrap: true, wordWrapWidth: _new_player.width, align: "center" };//, backgroundColor: "#ffff00" };
-        _new_player.name_label = this.add.text(_new_player.x + _new_player.width / 2, _new_player.y + _new_player.height / 2, "P" + p_id, style);
+        var style = { font: "14px Arial", fill: "#000000", wordWrap: true, wordWrapWidth: (_new_player.width * _new_player.scale), align: "center" };//, backgroundColor: "#ffff00" };
+        _new_player.name_label = this.add.text(
+            _new_player.x + (_new_player.width * _new_player.scale) / 2, _new_player.y + (_new_player.height * _new_player.scale) / 2, "P" + p_id, style);
     };
 
     incrementPlayerPos(p_id, p_vector) {
@@ -531,14 +619,11 @@ export default class MainGame extends Phaser.Scene {
         this.players.forEach(_index => {
             var player = this.playerMap[_index];
             if (!!player) {
-                player.depth = player.y + player.height / 2;
+                player.depth = player.y + (player.height * player.scale) / 2;
 
 
-                player.name_label.x = player.x - + player.name_label.width / 2;
-                player.name_label.y = player.y + player.height / 2;
-
-
-
+                player.name_label.x = Phaser.Math.Linear(player.name_label.x, player.x - + player.name_label.width / 2, 0.5);
+                player.name_label.y = Phaser.Math.Linear(player.name_label.y, player.y + (player.height * player.scale) / 2, 0.5);
 
                 if (player.body.speed > 0) {
                     var distance = Phaser.Math.Distance.Between(player.x, player.y, player.current_target.x, player.current_target.y);
