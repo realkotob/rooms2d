@@ -24,6 +24,7 @@ export default class Login extends Phaser.Scene {
 
     this.load.tilemapTiledJSON('map', 'assets/map/example_map.json');
     this.load.image('tilesheet', 'assets/map/tilesheet.png');
+    this.load.image('pixel', 'assets/pixel.png');
   }
 
   create() {
@@ -38,7 +39,9 @@ export default class Login extends Phaser.Scene {
     }
     this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
     this.cameras.main.zoom = 1.5;
-
+    this.bg_dim = this.add.tileSprite(
+      map.widthInPixels / 2, map.heightInPixels / 2, map.widthInPixels, map.heightInPixels, 'pixel').setAlpha(0.2);
+     this.bg_dim.setTint(0x000000);
 
     var _room_name = "/r/ general";
     let pos = window.location.pathname.indexOf('/r/');
