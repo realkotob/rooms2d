@@ -424,7 +424,7 @@ export default class MainGame extends Phaser.Scene {
         }
         this.handle_player_controls(delta);
         this.handle_voice_proxomity();
-        // this.handleVideo();
+        this.handleVideo();
     }
     handleVideo() {
         var _distance_vid = Phaser.Math.Distance.Between(
@@ -560,6 +560,7 @@ export default class MainGame extends Phaser.Scene {
         _new_player.scale = 3;
         _new_player.sprite_id = p_sprite_id;
         _new_player.username = p_username;
+        _new_player.setCircle(6);
         if (p_id == this.player_id) {
             this.current_player = _new_player;
             _new_player.body.collideWorldBounds = true;
