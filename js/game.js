@@ -191,8 +191,8 @@ export default class MainGame extends Phaser.Scene {
         this.load.spritesheet('slime', 'assets/sprites/slime_monster/slime_monster_spritesheet.png', { frameWidth: 24, frameHeight: 24 });
 
         try {
-            // var url = 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexyoutubeplayerplugin.min.js';
-            var url = 'js/rex-notes/dist/rexyoutubeplayerplugin.min.js';
+            var url = 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexyoutubeplayerplugin.min.js';
+            // var url = 'js/rex-notes/dist/rexyoutubeplayerplugin.min.js';
             this.load.plugin('rexyoutubeplayerplugin', url, true);
         } catch (error) {
             console.error("Erorr preloading yt plugin" + error);

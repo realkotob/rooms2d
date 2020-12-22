@@ -10,15 +10,15 @@ export default class Login extends Phaser.Scene {
   }
 
   preload() {
-    // this.load.image('user', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/assets/images/person.png');
-    // this.load.image('password', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/assets/images/key.png');
-    this.load.image('user', 'js/rex-notes/assets/images/person.png');
-    this.load.image('password', 'js/rex-notes/assets/images/key.png');
+    this.load.image('user', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/assets/images/person.png');
+    this.load.image('password', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/assets/images/key.png');
+    // this.load.image('user', 'js/rex-notes/assets/images/person.png');
+    // this.load.image('password', 'js/rex-notes/assets/images/key.png');
 
     this.load.scenePlugin({
       key: 'rexuiplugin',
-      // url: 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexuiplugin.min.js',
-      url: 'js/rex-notes/dist/rexuiplugin.min.js',
+      url: 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexuiplugin.min.js',
+      // url: 'js/rex-notes/dist/rexuiplugin.min.js',
       sceneKey: 'rexUI'
     });
 
