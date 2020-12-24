@@ -42,20 +42,10 @@ const peerServer = ExpressPeerServer(server, {
 
 app.use('*/peerjs', peerServer);
 
-const PRODUCTION = true;
-if (PRODUCTION) {
-    app.set('appPath', 'public');
-    app.use(express.static(__dirname + '/public'));
-    app.use('*/public', express.static(__dirname + '/public'));
-} else {
-    app.set('appPath', 'client/src');
-    app.use(express.static(__dirname + '/client/src'));
-    // app.use('*/client', express.static(__dirname + ' /client'));
-}
 
-// app.use('*/src', express.static(__dirname + '/client/src'));
-// app.use('*/client', express.static(__dirname + '/client'));
-// app.use('*/assets', express.static(__dirname + '/assets'));
+app.set('appPath', __dirname + '/public');
+// app.use(express.static(__dirname + '/public'));
+app.use('*/public', express.static(__dirname + '/public'));
 
 const FORCE_ROOM_IN_URL = true;
 const DEFAULT_ROOM = "general"
