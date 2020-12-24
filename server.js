@@ -93,6 +93,8 @@ io.on('connection', function (socket) {
             sprite: server.lastPlayderID % CHARACTER_SPRITE_COUNT,
             px: randomInt(100, 400),
             py: randomInt(100, 400),
+            vx: 0,
+            vy: 0,
             uname: _name
         };
         // console.log("Room for %s is %s", socket.player.id, socket.player.room);
@@ -102,14 +104,6 @@ io.on('connection', function (socket) {
         socket.emit('allplayers', { you: socket.player, all: await getAllPlayers(_room) });
         socket.to(_room).emit('newplayer', socket.player);
 
-        socket.on('click', function (data) {
-            // console.log('click to ' + data.x + ', ' + data.y);
-            socket.player.px = data.px;
-            socket.player.py = data.py;
-            socket.player.vx = data.vx;
-            socket.player.vy = data.vy;
-            io.in(_room).emit('clicked', socket.player);
-        });
         socket.on('move', function (data) {
             // console.log('move to ' + data.x + ', ' + data.y);
             socket.player.px = data.px;

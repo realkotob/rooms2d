@@ -91,15 +91,13 @@ export default class MainGame extends Phaser.Scene {
             self.Client.socket.emit('newplayer', { room: self.room_id, username: _name });
         };
 
-        this.Client.sendClick = function (p_px, p_py, p_vx, p_vy) {
-            self.Client.socket.emit('click', { px: p_px, py: p_py, vx: p_vx, vy: p_vy });
-        };
-        this.Client.sendMove = function (p_px, p_py, p_vx, p_vy) {
-            self.Client.socket.emit('move', { px: p_px, py: p_py, vx: p_vx, vy: p_vy });
+        this.Client.sendMove = function (p_pos_x, p_pos_y, p_vel_x, p_vel_y) {
+            self.Client.socket.emit('move', { px: p_pos_x, py: p_pos_y, vx: p_vel_x, vy: p_vel_y });
         };
 
         this.Client.socket.on('newplayer', function (data) {
-            self.addNewPlayer(data.id, data.px, data.py, data.vx, data.vy, data.sprite, data.uname);
+            console.log("Recieved newplayer %s ", JSON.stringify(data));
+            self.addNewPlayer(data.id, data.px, data.py, data.sprite, data.uname);
         });
 
 
@@ -150,21 +148,15 @@ export default class MainGame extends Phaser.Scene {
 
             const _all = data.all;
             for (let i = 0; i < _all.length; i++) {
+                console.log("Recieved allplayers %s ", JSON.stringify(data));
                 self.addNewPlayer(_all[i].id, _all[i].x, _all[i].y, _all[i].sprite, _all[i].uname);
             }
 
 
-            self.Client.socket.on('clicked', function (data) {
-                if (self.player_id != data.id) {
-                    // console.log("player %s clicked. current player %s", data.id, self.player_id)
-                    self.updatePlayerPhysics(data.id, data.px, data.py, data.vx, data.py);
-                }
-            });
-
             self.Client.socket.on('moved', function (data) {
                 if (self.player_id != data.id) {
                     // console.log("player %s moved. current player %s", data.id, self.player_id)
-                    self.updatePlayerPhysics(data.id, data.px, data.py, data.vx, data.py);
+                    self.updatePlayerPhysics(data.id, data.px, data.py, data.vx, data.vy);
                 }
             });
 
@@ -461,7 +453,6 @@ export default class MainGame extends Phaser.Scene {
                 let _player = self.movePlayerToPosWithPhysics(self.player_id, world_pointer.x, world_pointer.y);
                 if (_player)
                     self.Client.sendMove(_player.x, _player.y, _player.body.velocity.x, _player.body.velocity.y);
-
             }
 
         }, self);
@@ -491,6 +482,7 @@ export default class MainGame extends Phaser.Scene {
         this.handle_player_controls(delta);
         this.handle_voice_proxomity();
         this.handleVideo();
+        this.handleSimulationSync();
     }
     handleVideo() {
         let _distance_vid = Phaser.Math.Distance.Between(
@@ -620,31 +612,34 @@ export default class MainGame extends Phaser.Scene {
             if (p_id == this.player_id) {
                 return;
             }
-            let player = this.playerMap[p_id];
-            if (!!player) {
+            let _player = this.playerMap[p_id];
+            if (!!_player && !!_player.sync_target) {
                 // TODO Reduce allocations
-                let old_pos = new Phaser.Math.Vector2(player.x, player.y);
-                let new_pos = old_pos.lerp(player.sync_target, 0.1);
-                player.x = new_pos.x;
-                player.y = new_pos.y;
+
+                // let _new_pos = Phaser.Math.Vector2.prototype.lerp.apply(_player, _player.sync_target, 0.1);
+                let _old_pos = new Phaser.Math.Vector2(_player.x, _player.y);
+                let _new_pos = _old_pos.lerp(_player.sync_target, 0.1);
+
+                _player.x = _new_pos.x;
+                _player.y = _new_pos.y;
             }
         });
     }
 
 
 
-    addNewPlayer(p_id, p_px, p_py, p_vx, p_vy, p_sprite_id, p_username) {
-        console.log("Recieved player name %s ", p_username);
+    addNewPlayer(p_id, p_pos_x, p_pos_y, p_sprite_id, p_username) {
         this.players.push(p_id);
-        let _new_player = this.physics.add.sprite(p_px, p_py, 'char_' + p_sprite_id, 0);
-        _new_player.body.velocity.x = p_vx;
-        _new_player.body.velocity.y = p_vy;
+        let _new_player = this.physics.add.sprite(p_pos_x, p_pos_y, 'char_' + p_sprite_id, 0);
+        // _new_player.body.velocity.x = p_vel_x;
+        // _new_player.body.velocity.y = p_vel_y;
         // this.adaptive_layer.add(_new_player);
         this.playerMap[p_id] = _new_player;
         _new_player.scale = 3;
         _new_player.sprite_id = p_sprite_id;
         _new_player.username = p_username;
         _new_player.setCircle(6);
+        _new_player.sync_target = new Phaser.Math.Vector2(p_pos_x, p_pos_y);
         if (p_id == this.player_id) {
             this.current_player = _new_player;
             _new_player.body.collideWorldBounds = true;
@@ -735,21 +730,21 @@ export default class MainGame extends Phaser.Scene {
 
     }
 
-    updatePlayerPhysics(p_id, p_px, p_py, p_vx, p_vy) {
+    updatePlayerPhysics(p_id, p_pos_x, p_pos_y, p_vel_x, p_vel_y) {
 
-        let player = this.playerMap[p_id];
-        if (!player) {
+        let _player = this.playerMap[p_id];
+        if (!_player) {
             console.log("Warning! Player is null");
             return;
         }
 
-        player.sync_target = new Phaser.Math.Vector2(p_px, p_py);
-        player.setVelocity(p_vx, p_vy);
-
+        _player.sync_target.x = p_pos_x;
+        _player.sync_target.y = p_pos_y;
+        _player.setVelocity(p_vel_x, p_vel_y);
     }
 
 
-    movePlayerToPosWithPhysics(p_id, p_px, p_py) {
+    movePlayerToPosWithPhysics(p_id, p_pos_x, p_pos_y) {
         const self = this;
 
         let _player = this.playerMap[p_id];
@@ -758,16 +753,16 @@ export default class MainGame extends Phaser.Scene {
             return;
         }
 
-        _player.current_target = new Phaser.Math.Vector2(p_px, p_py);
+        _player.current_target = new Phaser.Math.Vector2(p_pos_x, p_pos_y);
 
-        let distance = Phaser.Math.Distance.Between(_player.x, _player.y, p_px, p_py);
+        let distance = Phaser.Math.Distance.Between(_player.x, _player.y, p_pos_x, p_pos_y);
 
 
         this.physics.moveToObject(_player, _player.current_target, null,
             distance / MainGame.MOVE_TWEEN_SPEED);
 
         if (this.player_id == p_id) {
-            this.crosshair.setPosition(p_px, p_py);
+            this.crosshair.setPosition(p_pos_x, p_pos_y);
             this.crosshair.setVisible(true);
         }
         return _player;

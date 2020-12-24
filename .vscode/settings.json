@@ -1,0 +1,13 @@
+{
+  "search.exclude": {
+    "**/public": true,
+    "**/types": true,
+    "client/other": true,
+    "client/src/lib": true
+  },
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/types": true,
+    "public": true
+  }
+}
