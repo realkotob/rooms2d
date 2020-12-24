@@ -513,21 +513,19 @@ export default class MainGame extends Phaser.Scene {
         }
 
         let move_vector = this.current_move_input.scale(delta * MainGame.MOVE_SPEED);
-        if (move_vector.lengthSq() == 0) {
-            return null;
+        let _player = this.playerMap[p_id];
+        if (move_vector.lengthSq() > 0) {
+            // TODO Only need to send stop signal once no?
+            if (!!this.tween_map[this.player_id]) {
+                this.tween_map[this.player_id].stop();
+                this.crosshair.setVisible(false);
+
+            }
+
+            this.incrementPlayerPos(this.player_id, move_vector);
         }
 
-        if (!!this.tween_map[this.player_id]) {
-            this.tween_map[this.player_id].stop();
-            this.crosshair.setVisible(false);
-
-        }
-
-        let _player = this.incrementPlayerPos(this.player_id, move_vector);
-        if (!!_player) {
-            this.Client.sendMove(_player.x, _player.y, _player.body.velocity.x, _player.body.velocity.y);
-        }
-
+        this.Client.sendMove(_player.x, _player.y, _player.body.velocity.x, _player.body.velocity.y);
 
     }
     static ANIM_VEL_CUTOFF = 0.1;
@@ -662,11 +660,10 @@ export default class MainGame extends Phaser.Scene {
         let player = this.playerMap[p_id];
         if (!player) {
             console.log("Warning! Player is null");
-            return null;
+            return;
         }
         player.x += p_vector.x;
         player.y += p_vector.y;
-        return player;
     }
 
     setPlayerPos(p_id, p_x, p_y, lerp = false) {
