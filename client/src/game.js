@@ -91,15 +91,15 @@ export default class MainGame extends Phaser.Scene {
             self.Client.socket.emit('newplayer', { room: self.room_id, username: _name });
         };
 
-        this.Client.sendClick = function (x, y) {
-            self.Client.socket.emit('click', { x: x, y: y });
+        this.Client.sendClick = function (p_px, p_py, p_vx, p_vy) {
+            self.Client.socket.emit('click', { px: p_px, py: p_py, vx: p_vx, vy: p_vy });
         };
-        this.Client.sendMove = function (x, y) {
-            self.Client.socket.emit('move', { x: x, y: y });
+        this.Client.sendMove = function (p_px, p_py, p_vx, p_vy) {
+            self.Client.socket.emit('move', { px: p_px, py: p_py, vx: p_vx, vy: p_vy });
         };
 
         this.Client.socket.on('newplayer', function (data) {
-            self.addNewPlayer(data.id, data.x, data.y, data.sprite, data.uname);
+            self.addNewPlayer(data.id, data.px, data.py, data.vx, data.vy, data.sprite, data.uname);
         });
 
 
@@ -111,7 +111,7 @@ export default class MainGame extends Phaser.Scene {
                 console.log('My PeerJS ID is:', self.peer.id);
 
                 const _all = data.all;
-                for (var i = 0; i < _all.length; i++) {
+                for (let i = 0; i < _all.length; i++) {
                     if (_all[i].id != self.player_id)
                         call_player(_all[i].id);
                 }
@@ -120,7 +120,7 @@ export default class MainGame extends Phaser.Scene {
 
             self.peer.on('call', (call) => {
                 console.log("Answering player ");
-                var getUserMedia_ = (navigator.getUserMedia
+                let getUserMedia_ = (navigator.getUserMedia
                     || navigator.webkitGetUserMedia
                     || navigator.mozGetUserMedia
                     || navigator.msGetUserMedia);
@@ -128,17 +128,17 @@ export default class MainGame extends Phaser.Scene {
                     call.answer(stream); // Answer the call with an A/V stream.
                     call.on('stream', (remoteStream) => {
                         // Show stream in some <video> element.
-                        var peer_id = call.peer.toString();
+                        let peer_id = call.peer.toString();
                         console.log("Answered player " + peer_id);
                         const remoteVideo = document.getElementById("p" + peer_id);
                         if (remoteVideo) {
                             remoteVideo.srcObject = remoteStream;
                         } else {
-                            var video = document.createElement('video');
+                            let video = document.createElement('video');
                             video.srcObject = remoteStream;
                             video.autoplay = true;
                             video.id = "p" + peer_id;
-                            var element = document.getElementById("media-container");
+                            let element = document.getElementById("media-container");
                             element.appendChild(video);
                         }
                     });
@@ -149,7 +149,7 @@ export default class MainGame extends Phaser.Scene {
 
 
             const _all = data.all;
-            for (var i = 0; i < _all.length; i++) {
+            for (let i = 0; i < _all.length; i++) {
                 self.addNewPlayer(_all[i].id, _all[i].x, _all[i].y, _all[i].sprite, _all[i].uname);
             }
 
@@ -157,14 +157,14 @@ export default class MainGame extends Phaser.Scene {
             self.Client.socket.on('clicked', function (data) {
                 if (self.player_id != data.id) {
                     // console.log("player %s clicked. current player %s", data.id, self.player_id)
-                    self.movePlayerPhysics(data.id, data.x, data.y);
+                    self.updatePlayerPhysics(data.id, data.px, data.py, data.vx, data.py);
                 }
             });
 
             self.Client.socket.on('moved', function (data) {
                 if (self.player_id != data.id) {
                     // console.log("player %s moved. current player %s", data.id, self.player_id)
-                    self.setPlayerPos(data.id, data.x, data.y, true);
+                    self.updatePlayerPhysics(data.id, data.px, data.py, data.vx, data.py);
                 }
             });
 
@@ -187,7 +187,7 @@ export default class MainGame extends Phaser.Scene {
                 self.conn.send('Hello!');
             });
 
-            var getUserMedia_ = (navigator.getUserMedia
+            let getUserMedia_ = (navigator.getUserMedia
                 || navigator.webkitGetUserMedia
                 || navigator.mozGetUserMedia
                 || navigator.msGetUserMedia);
@@ -196,16 +196,16 @@ export default class MainGame extends Phaser.Scene {
                 const call = self.peer.call(p_id.toString(), stream);
                 call.on('stream', (remoteStream) => {
                     // Show stream in some <video> element.
-                    var peer_id = p_id.toString();
+                    let peer_id = p_id.toString();
                     const remoteVideo = document.getElementById("p" + peer_id);
                     if (remoteVideo) {
                         remoteVideo.srcObject = remoteStream;
                     } else {
-                        var video = document.createElement('video');
+                        let video = document.createElement('video');
                         video.srcObject = remoteStream;
                         video.autoplay = true;
                         video.id = "p" + peer_id;
-                        var element = document.getElementById("media-container");
+                        let element = document.getElementById("media-container");
                         element.appendChild(video);
                     }
                 });
@@ -230,8 +230,8 @@ export default class MainGame extends Phaser.Scene {
         this.load.spritesheet('slime', r_slime, { frameWidth: 24, frameHeight: 24 });
 
         try {
-            var url = 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexyoutubeplayerplugin.min.js';
-            // var url = 'js/rex-notes/dist/rexyoutubeplayerplugin.min.js';
+            let url = 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexyoutubeplayerplugin.min.js';
+            // let url = 'js/rex-notes/dist/rexyoutubeplayerplugin.min.js';
             this.load.plugin('rexyoutubeplayerplugin', url, true);
         } catch (error) {
             console.error("Erorr preloading yt plugin" + error);
@@ -364,15 +364,15 @@ export default class MainGame extends Phaser.Scene {
         this.physics.add.collider(this.player_group, this.ball_group, this.on_hit_ball);
 
 
-        // var testKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
-        var map = this.make.tilemap({ key: 'map', tileWidth: 32, tileHeight: 32 });
-        var map1 = this.make.tilemap({ key: 'map', tileWidth: 32, tileHeight: 32 });
-        var map2 = this.make.tilemap({ key: 'map', tileWidth: 32, tileHeight: 32 });
-        var map3 = this.make.tilemap({ key: 'map', tileWidth: 32, tileHeight: 32 });
-        var tileset = map.addTilesetImage('tilesheet');
+        // let testKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
+        let map = this.make.tilemap({ key: 'map', tileWidth: 32, tileHeight: 32 });
+        let map1 = this.make.tilemap({ key: 'map', tileWidth: 32, tileHeight: 32 });
+        let map2 = this.make.tilemap({ key: 'map', tileWidth: 32, tileHeight: 32 });
+        let map3 = this.make.tilemap({ key: 'map', tileWidth: 32, tileHeight: 32 });
+        let tileset = map.addTilesetImage('tilesheet');
 
-        var layer;
-        for (var i = 0; i < map.layers.length; i++) {
+        let layer;
+        for (let i = 0; i < map.layers.length; i++) {
             layer = map.createLayer(i, tileset);
             if (layer.layer.name == "collision") {
                 layer.setCollisionByProperty({ collides: true });
@@ -382,7 +382,7 @@ export default class MainGame extends Phaser.Scene {
                 layer.visible = false;
             }
         }
-        for (var i = 0; i < map1.layers.length; i++) {
+        for (let i = 0; i < map1.layers.length; i++) {
             layer = map1.createLayer(i, tileset, map.widthInPixels);
             if (layer.layer.name == "collision") {
                 layer.setCollisionByProperty({ collides: true });
@@ -392,7 +392,7 @@ export default class MainGame extends Phaser.Scene {
                 layer.visible = false;
             }
         }
-        for (var i = 0; i < map2.layers.length; i++) {
+        for (let i = 0; i < map2.layers.length; i++) {
             layer = map2.createLayer(i, tileset, 0, map.heightInPixels);
             if (layer.layer.name == "collision") {
                 layer.setCollisionByProperty({ collides: true });
@@ -402,7 +402,7 @@ export default class MainGame extends Phaser.Scene {
                 layer.visible = false;
             }
         }
-        for (var i = 0; i < map3.layers.length; i++) {
+        for (let i = 0; i < map3.layers.length; i++) {
             layer = map3.createLayer(i, tileset, map.widthInPixels, map.heightInPixels);
             if (layer.layer.name == "collision") {
                 layer.setCollisionByProperty({ collides: true });
@@ -456,10 +456,12 @@ export default class MainGame extends Phaser.Scene {
 
         this.input.on('pointerdown', function (pointer) {
             if (pointer.leftButtonDown()) {
-                var world_pointer = self.cameras.main.getWorldPoint(pointer.x, pointer.y);
+                let world_pointer = self.cameras.main.getWorldPoint(pointer.x, pointer.y);
                 // console.log("Pressed local: %s %s world: %s %s", pointer.x, pointer.y, world_pointer.x, world_pointer.y);
-                self.movePlayerPhysics(this.player_id, world_pointer.x, world_pointer.y);
-                self.Client.sendClick(world_pointer.x, world_pointer.y);
+                let _player = self.movePlayerToPosWithPhysics(self.player_id, world_pointer.x, world_pointer.y);
+                if (_player)
+                    self.Client.sendMove(_player.x, _player.y, _player.body.velocity.x, _player.body.velocity.y);
+
             }
 
         }, self);
@@ -491,7 +493,7 @@ export default class MainGame extends Phaser.Scene {
         this.handleVideo();
     }
     handleVideo() {
-        var _distance_vid = Phaser.Math.Distance.Between(
+        let _distance_vid = Phaser.Math.Distance.Between(
             this.youtubePlayer.x, this.youtubePlayer.y, this.current_player.x, this.current_player.y);
         this.youtubePlayer.setVolume(1 - MainGame.clamp(_distance_vid / (MainGame.MAX_HEAR_DISTANCE * 2), 0, 1));
         let _dist_y = this.youtubePlayer.y - this.current_player.y;
@@ -518,7 +520,7 @@ export default class MainGame extends Phaser.Scene {
             this.current_move_input.x = -1;
         }
 
-        var move_vector = this.current_move_input.scale(delta * MainGame.MOVE_SPEED);
+        let move_vector = this.current_move_input.scale(delta * MainGame.MOVE_SPEED);
         if (move_vector.lengthSq() == 0) {
             return null;
         }
@@ -529,9 +531,9 @@ export default class MainGame extends Phaser.Scene {
 
         }
 
-        var _player = this.incrementPlayerPos(this.player_id, move_vector);
+        let _player = this.incrementPlayerPos(this.player_id, move_vector);
         if (!!_player) {
-            this.Client.sendMove(_player.x, _player.y);
+            this.Client.sendMove(_player.x, _player.y, _player.body.velocity.x, _player.body.velocity.y);
         }
 
 
@@ -539,9 +541,9 @@ export default class MainGame extends Phaser.Scene {
     static ANIM_VEL_CUTOFF = 0.1;
     handle_player_anims() {
         this.players.forEach(p_id => {
-            var player = this.playerMap[p_id];
+            let player = this.playerMap[p_id];
             if (!!player) { // Animate based on velocity
-                var _p_vel = player.body.velocity;
+                let _p_vel = player.body.velocity;
                 if (Math.abs(_p_vel.x) >= Math.abs(_p_vel.y)) {
                     if (_p_vel.x > MainGame.ANIM_VEL_CUTOFF) {
                         if (!player.anims.isPlaying || !player.anims.currentAnim.key.startsWith("right"))
@@ -585,7 +587,7 @@ export default class MainGame extends Phaser.Scene {
 
     handle_voice_proxomity() {
         try {
-            var video_parent = document.querySelector('#media-container');
+            let video_parent = document.querySelector('#media-container');
             this.players.forEach(p_id => {
                 if (p_id == this.player_id) {
                     return;
@@ -593,16 +595,16 @@ export default class MainGame extends Phaser.Scene {
 
                 // TODO Need to profile this and make sure it's ok. 
                 // I can optimize this by storing the DOMS in a map.
-                var child_video = video_parent ? video_parent.querySelector('#p' + p_id) : null;
+                let child_video = video_parent ? video_parent.querySelector('#p' + p_id) : null;
                 if (!child_video) {
                     return;
                 }
-                var player = this.playerMap[p_id];
+                let player = this.playerMap[p_id];
                 if (!!player) {
-                    var _distance = Phaser.Math.Distance.Between(
+                    let _distance = Phaser.Math.Distance.Between(
                         player.x, player.y, this.current_player.x, this.current_player.y);
 
-                    var _volume = 1 - MainGame.clamp(_distance / MainGame.MAX_HEAR_DISTANCE, 0, 1);
+                    let _volume = 1 - MainGame.clamp(_distance / MainGame.MAX_HEAR_DISTANCE, 0, 1);
                     // TODO I can store the last volume separately if the getter here is costly
                     child_video.volume = _volume;
                 }
@@ -613,12 +615,30 @@ export default class MainGame extends Phaser.Scene {
         }
     }
 
+    handleSimulationSync(delta) {
+        this.players.forEach(p_id => {
+            if (p_id == this.player_id) {
+                return;
+            }
+            let player = this.playerMap[p_id];
+            if (!!player) {
+                // TODO Reduce allocations
+                let old_pos = new Phaser.Math.Vector2(player.x, player.y);
+                let new_pos = old_pos.lerp(player.sync_target, 0.1);
+                player.x = new_pos.x;
+                player.y = new_pos.y;
+            }
+        });
+    }
 
 
-    addNewPlayer(p_id, p_x, p_y, p_sprite_id, p_username) {
+
+    addNewPlayer(p_id, p_px, p_py, p_vx, p_vy, p_sprite_id, p_username) {
         console.log("Recieved player name %s ", p_username);
         this.players.push(p_id);
-        var _new_player = this.physics.add.sprite(p_x, p_y, 'char_' + p_sprite_id, 0);
+        let _new_player = this.physics.add.sprite(p_px, p_py, 'char_' + p_sprite_id, 0);
+        _new_player.body.velocity.x = p_vx;
+        _new_player.body.velocity.y = p_vy;
         // this.adaptive_layer.add(_new_player);
         this.playerMap[p_id] = _new_player;
         _new_player.scale = 3;
@@ -638,13 +658,13 @@ export default class MainGame extends Phaser.Scene {
         }
 
         // Add label
-        var style = { font: "14px Arial", fill: "#000000", wordWrap: false, wordWrapWidth: (_new_player.width * _new_player.scale), align: "center" };//, backgroundColor: "#ffff00" };
+        let style = { font: "14px Arial", fill: "#000000", wordWrap: false, wordWrapWidth: (_new_player.width * _new_player.scale), align: "center" };//, backgroundColor: "#ffff00" };
         _new_player.name_label = this.add.text(
             _new_player.x + (_new_player.width * _new_player.scale) / 2, _new_player.y + (_new_player.height * _new_player.scale) / 2, _new_player.username, style);
     };
 
     incrementPlayerPos(p_id, p_vector) {
-        var player = this.playerMap[p_id];
+        let player = this.playerMap[p_id];
         if (!player) {
             console.log("Warning! Player is null");
             return null;
@@ -655,7 +675,7 @@ export default class MainGame extends Phaser.Scene {
     }
 
     setPlayerPos(p_id, p_x, p_y, lerp = false) {
-        var player = this.playerMap[p_id];
+        let player = this.playerMap[p_id];
         if (!player) {
             console.log("Warning! Player is null");
             return;
@@ -664,9 +684,9 @@ export default class MainGame extends Phaser.Scene {
             this.tween_map[p_id].stop();
         }
         if (!!lerp) {
-            var distance = Phaser.Math.Distance.Between(player.x, player.y, p_x, p_y);
+            let distance = Phaser.Math.Distance.Between(player.x, player.y, p_x, p_y);
 
-            var _duration = distance / MainGame.MOVE_TWEEN_SPEED;
+            let _duration = distance / MainGame.MOVE_TWEEN_SPEED;
 
             this.tween_map[p_id] = this.tweens.add({
                 targets: player,
@@ -687,7 +707,7 @@ export default class MainGame extends Phaser.Scene {
     updatePlayerYSort() {
         const self = this;
         this.players.forEach(_index => {
-            var player = this.playerMap[_index];
+            let player = this.playerMap[_index];
             if (!!player) {
                 player.depth = player.y + (player.height * player.scale) / 2;
 
@@ -695,16 +715,16 @@ export default class MainGame extends Phaser.Scene {
                 player.name_label.x = Phaser.Math.Linear(player.name_label.x, player.x - + player.name_label.width / 2, 0.5);
                 player.name_label.y = Phaser.Math.Linear(player.name_label.y, player.y + (player.height * player.scale) / 2, 0.5);
 
-                if (player.body.speed > 0) {
-                    var distance = Phaser.Math.Distance.Between(player.x, player.y, player.current_target.x, player.current_target.y);
+                if (player.body.speed > 0 && !!player.current_target) {
+                    let distance = Phaser.Math.Distance.Between(player.x, player.y, player.current_target.x, player.current_target.y);
 
                     //  4 is our distance tolerance, i.e. how close the source can get to the target
                     //  before it is considered as being there. The faster it moves, the more tolerance is required.
                     if (distance < 10) {
                         player.body.reset(player.current_target.x, player.current_target.y);
+                        player.current_target = null;
                         if (_index == self.player_id) {
                             self.crosshair.setVisible(false);
-
                         }
                     }
                 }
@@ -715,43 +735,58 @@ export default class MainGame extends Phaser.Scene {
 
     }
 
-    movePlayerPhysics(p_id, p_x, p_y) {
-        const self = this;
+    updatePlayerPhysics(p_id, p_px, p_py, p_vx, p_vy) {
 
-        var player = this.playerMap[p_id];
+        let player = this.playerMap[p_id];
         if (!player) {
             console.log("Warning! Player is null");
             return;
         }
 
-        player.current_target = new Phaser.Math.Vector2(p_x, p_y);
+        player.sync_target = new Phaser.Math.Vector2(p_px, p_py);
+        player.setVelocity(p_vx, p_vy);
 
-        var distance = Phaser.Math.Distance.Between(player.x, player.y, p_x, p_y);
+    }
 
 
-        this.physics.moveToObject(player, player.current_target, null,
+    movePlayerToPosWithPhysics(p_id, p_px, p_py) {
+        const self = this;
+
+        let _player = this.playerMap[p_id];
+        if (!_player) {
+            console.log("Warning! Player is null");
+            return;
+        }
+
+        _player.current_target = new Phaser.Math.Vector2(p_px, p_py);
+
+        let distance = Phaser.Math.Distance.Between(_player.x, _player.y, p_px, p_py);
+
+
+        this.physics.moveToObject(_player, _player.current_target, null,
             distance / MainGame.MOVE_TWEEN_SPEED);
 
         if (this.player_id == p_id) {
-            this.crosshair.setPosition(p_x, p_y);
+            this.crosshair.setPosition(p_px, p_py);
             this.crosshair.setVisible(true);
         }
+        return _player;
     }
 
     movePlayerTo(p_id, p_x, p_y) {
         const self = this;
 
-        var player = this.playerMap[p_id];
+        let player = this.playerMap[p_id];
         if (!player) {
             console.log("Warning! Player is null");
             return;
         }
-        var distance = Phaser.Math.Distance.Between(player.x, player.y, p_x, p_y);
+        let distance = Phaser.Math.Distance.Between(player.x, player.y, p_x, p_y);
         if (distance <= 0) {
             console.log("Warning! Distance is 0. Move ignored.");
             return;
         }
-        var _duration = distance / MainGame.MOVE_TWEEN_SPEED;
+        let _duration = distance / MainGame.MOVE_TWEEN_SPEED;
 
         // this.physics.moveToObject(player, pointer, _duration);
 
@@ -781,7 +816,7 @@ export default class MainGame extends Phaser.Scene {
     };
 
     removePlayer(id) {
-        for (var i = 0; i < this.players.length; i++) {
+        for (let i = 0; i < this.players.length; i++) {
             if (this.players[i] == id) { this.players.splice(i, 1); }
         }
         this.playerMap[id].name_label.destroy();

@@ -15,9 +15,9 @@ if (fs.existsSync(cert_path)) {
 
     // var key = fs.readFileSync(__dirname + '/certs/server.key', 'utf8'); // Self signed
     // var cert = fs.readFileSync(__dirname + '/certs/server.cert', 'utf8');
-    var key = fs.readFileSync(cert_path + 'privkey.pem', 'utf8');
-    var cert = fs.readFileSync(cert_path + 'fullchain.pem', 'utf8');
-    var options = {
+    let key = fs.readFileSync(cert_path + 'privkey.pem', 'utf8');
+    let cert = fs.readFileSync(cert_path + 'fullchain.pem', 'utf8');
+    let options = {
         key: key,
         cert: cert
     };
@@ -91,8 +91,8 @@ io.on('connection', function (socket) {
             id: server.lastPlayderID,
             room: _room,
             sprite: server.lastPlayderID % CHARACTER_SPRITE_COUNT,
-            x: randomInt(100, 400),
-            y: randomInt(100, 400),
+            px: randomInt(100, 400),
+            py: randomInt(100, 400),
             uname: _name
         };
         // console.log("Room for %s is %s", socket.player.id, socket.player.room);
@@ -104,14 +104,18 @@ io.on('connection', function (socket) {
 
         socket.on('click', function (data) {
             // console.log('click to ' + data.x + ', ' + data.y);
-            socket.player.x = data.x;
-            socket.player.y = data.y;
+            socket.player.px = data.px;
+            socket.player.py = data.py;
+            socket.player.vx = data.vx;
+            socket.player.vy = data.vy;
             io.in(_room).emit('clicked', socket.player);
         });
         socket.on('move', function (data) {
             // console.log('move to ' + data.x + ', ' + data.y);
-            socket.player.x = data.x;
-            socket.player.y = data.y;
+            socket.player.px = data.px;
+            socket.player.py = data.py;
+            socket.player.vx = data.vx;
+            socket.player.vy = data.vy;
             io.in(_room).emit('moved', socket.player);
         });
 
@@ -128,15 +132,16 @@ io.on('connection', function (socket) {
 async function getAllPlayers(p_room) {
     // console.log("getAllPlayers in %s", p_room);
 
-    var players = [];
-    // var _sockets_ids = await io.sockets.allSockets();
-    var _sockets_ids = await io.in(p_room).allSockets();
+    let players = [];
+    // let _sockets_ids = await io.sockets.allSockets();
+    let _sockets_ids = await io.in(p_room).allSockets();
     for (const socket_id of _sockets_ids) {
         // console.log("Socket ID %s", (socket_id));
         let player_socket = io.of("/").sockets.get(socket_id);
-        var player = player_socket && player_socket.player;
+        let player = player_socket && player_socket.player;
         if (!!player) players.push(player);
     };
+    console.log("Sending players %s", JSON.stringify(players));
     return players;
 }
 
