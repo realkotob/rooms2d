@@ -1,6 +1,11 @@
 const COLOR_PRIMARY = 0x4e342e;
 const COLOR_LIGHT = 0x7b5e57;
 const COLOR_DARK = 0x260e04;
+import Phaser from 'phaser';
+
+import r_pixel from './assets/sprites/pixel.png';
+import r_tilesheet from './assets/map/tilesheet.png';
+import r_map from './assets/map/example_map.json';
 
 export default class Login extends Phaser.Scene {
   constructor() {
@@ -22,9 +27,9 @@ export default class Login extends Phaser.Scene {
       sceneKey: 'rexUI'
     });
 
-    this.load.tilemapTiledJSON('map', 'assets/map/example_map.json');
-    this.load.image('tilesheet', 'assets/map/tilesheet.png');
-    this.load.image('pixel', 'assets/pixel.png');
+    this.load.tilemapTiledJSON('map', r_map);
+    this.load.image('tilesheet', r_tilesheet);
+    this.load.image('pixel', r_pixel);
   }
 
   create() {
@@ -41,7 +46,7 @@ export default class Login extends Phaser.Scene {
     this.cameras.main.zoom = 1.5;
     this.bg_dim = this.add.tileSprite(
       map.widthInPixels / 2, map.heightInPixels / 2, map.widthInPixels, map.heightInPixels, 'pixel').setAlpha(0.2);
-     this.bg_dim.setTint(0x000000);
+    this.bg_dim.setTint(0x000000);
 
     var _room_name = "/r/ general";
     let pos = window.location.pathname.indexOf('/r/');

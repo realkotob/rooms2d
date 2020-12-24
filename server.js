@@ -41,9 +41,21 @@ const peerServer = ExpressPeerServer(server, {
 });
 
 app.use('*/peerjs', peerServer);
-app.use('*/css', express.static(__dirname + '/css'));
-app.use('*/js', express.static(__dirname + '/js'));
-app.use('*/assets', express.static(__dirname + '/assets'));
+
+const PRODUCTION = true;
+if (PRODUCTION) {
+    app.set('appPath', 'public');
+    app.use(express.static(__dirname + '/public'));
+    app.use('*/public', express.static(__dirname + '/public'));
+} else {
+    app.set('appPath', 'client/src');
+    app.use(express.static(__dirname + '/client/src'));
+    // app.use('*/client', express.static(__dirname + ' /client'));
+}
+
+// app.use('*/src', express.static(__dirname + '/client/src'));
+// app.use('*/client', express.static(__dirname + '/client'));
+// app.use('*/assets', express.static(__dirname + '/assets'));
 
 const FORCE_ROOM_IN_URL = true;
 const DEFAULT_ROOM = "general"
@@ -54,13 +66,12 @@ if (FORCE_ROOM_IN_URL) {
     });
 } else {
     app.get('/', function (req, res) {
-        res.sendFile(__dirname + '/index.html');
+        res.sendFile(app.get('appPath') + '/index.html');
     });
 }
 
-
 app.get('/r/:roomid', function (req, res) {
-    res.sendFile(__dirname + '/index.html');
+    res.sendFile(app.get('appPath') + '/index.html');
 });
 
 server.lastPlayderID = 0;

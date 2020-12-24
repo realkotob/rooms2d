@@ -1,6 +1,8 @@
 //noinspection JSCheckFunctionSignatures,JSCheckFunctionSignatures,JSCheckFunctionSignatures
 import MainGame from './game.js';
 import Login from './login.js';
+import Phaser from 'phaser';
+
 
 const config = {
   type: Phaser.AUTO,

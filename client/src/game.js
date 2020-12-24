@@ -1,4 +1,40 @@
+import { io } from 'socket.io-client';
+import Phaser from 'phaser';
+import Peer from 'peerjs';
 
+import r_pixel from './assets/sprites/pixel.png';
+import r_tilesheet from './assets/map/tilesheet.png';
+import r_map from './assets/map/example_map.json';
+import r_sprite from './assets/sprites/sprite.png';
+import r_ball from './assets/sprites/ball.png';
+import r_crosshair from './assets/sprites/crosshair.png';
+import r_characters from './assets/sprites/characters/other/All.png';
+import r_slime from './assets/sprites/slime_monster/slime_monster_spritesheet.png';
+
+import r_char_0 from './assets/sprites/characters/char_0.png';
+import r_char_1 from './assets/sprites/characters/char_1.png';
+import r_char_2 from './assets/sprites/characters/char_2.png';
+import r_char_3 from './assets/sprites/characters/char_3.png';
+import r_char_4 from './assets/sprites/characters/char_4.png';
+import r_char_5 from './assets/sprites/characters/char_5.png';
+import r_char_6 from './assets/sprites/characters/char_6.png';
+import r_char_7 from './assets/sprites/characters/char_7.png';
+import r_char_8 from './assets/sprites/characters/char_8.png';
+import r_char_9 from './assets/sprites/characters/char_9.png';
+import r_char_10 from './assets/sprites/characters/char_10.png';
+import r_char_11 from './assets/sprites/characters/char_11.png';
+import r_char_12 from './assets/sprites/characters/char_12.png';
+import r_char_13 from './assets/sprites/characters/char_13.png';
+import r_char_14 from './assets/sprites/characters/char_14.png';
+import r_char_15 from './assets/sprites/characters/char_15.png';
+import r_char_16 from './assets/sprites/characters/char_16.png';
+import r_char_17 from './assets/sprites/characters/char_17.png';
+import r_char_18 from './assets/sprites/characters/char_18.png';
+import r_char_19 from './assets/sprites/characters/char_19.png';
+import r_char_20 from './assets/sprites/characters/char_20.png';
+import r_char_21 from './assets/sprites/characters/char_21.png';
+import r_char_22 from './assets/sprites/characters/char_22.png';
+import r_char_23 from './assets/sprites/characters/char_23.png';
 
 export default class MainGame extends Phaser.Scene {
     static MAX_HEAR_DISTANCE = 400;
@@ -182,13 +218,16 @@ export default class MainGame extends Phaser.Scene {
 
     preload() {
         this.char_anims = {};
-        this.load.tilemapTiledJSON('map', 'assets/map/example_map.json');
-        this.load.image('tilesheet', 'assets/map/tilesheet.png');
-        this.load.image('sprite', 'assets/sprites/sprite.png');
-        this.load.image('ball', 'assets/sprites/ball.png');
-        this.load.image('crosshair', 'assets/sprites/crosshair.png');
-        this.load.spritesheet('characters', 'assets/sprites/characters/other/All.png', { frameWidth: 48, frameHeight: 51 });
-        this.load.spritesheet('slime', 'assets/sprites/slime_monster/slime_monster_spritesheet.png', { frameWidth: 24, frameHeight: 24 });
+
+        this.load.tilemapTiledJSON('map', r_map);
+        this.load.image('tilesheet', r_tilesheet);
+        this.load.image('pixel', r_pixel);
+
+        this.load.image('sprite', r_sprite);
+        this.load.image('ball', r_ball);
+        this.load.image('crosshair', r_crosshair);
+        this.load.spritesheet('characters', r_characters, { frameWidth: 48, frameHeight: 51 });
+        this.load.spritesheet('slime', r_slime, { frameWidth: 24, frameHeight: 24 });
 
         try {
             var url = 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexyoutubeplayerplugin.min.js';
@@ -197,18 +236,43 @@ export default class MainGame extends Phaser.Scene {
         } catch (error) {
             console.error("Erorr preloading yt plugin" + error);
         }
-        for (let i = 0; i < 24; i++) {
-            this.load_char_spritesheet(i);
-        }
-    };
-
-    load_char_spritesheet(char_id) {
-        // if (!this.char_sprites[char_id]) {
-        this.load.spritesheet('char_' + char_id, 'assets/sprites/characters/char_' + char_id + '.png', { frameWidth: 16, frameHeight: 17 });
-
+        // for (let i = 0; i < 24; i++) {
+        //     this.load_char_spritesheet(i);
         // }
 
-    }
+        this.load.spritesheet("char_0", r_char_0, { frameWidth: 16, frameHeight: 17 });
+        this.load.spritesheet("char_1", r_char_1, { frameWidth: 16, frameHeight: 17 });
+        this.load.spritesheet("char_2", r_char_2, { frameWidth: 16, frameHeight: 17 });
+        this.load.spritesheet("char_3", r_char_3, { frameWidth: 16, frameHeight: 17 });
+        this.load.spritesheet("char_4", r_char_4, { frameWidth: 16, frameHeight: 17 });
+        this.load.spritesheet("char_5", r_char_5, { frameWidth: 16, frameHeight: 17 });
+        this.load.spritesheet("char_6", r_char_6, { frameWidth: 16, frameHeight: 17 });
+        this.load.spritesheet("char_7", r_char_7, { frameWidth: 16, frameHeight: 17 });
+        this.load.spritesheet("char_8", r_char_8, { frameWidth: 16, frameHeight: 17 });
+        this.load.spritesheet("char_9", r_char_9, { frameWidth: 16, frameHeight: 17 });
+        this.load.spritesheet("char_10", r_char_10, { frameWidth: 16, frameHeight: 17 });
+        this.load.spritesheet("char_11", r_char_11, { frameWidth: 16, frameHeight: 17 });
+        this.load.spritesheet("char_12", r_char_12, { frameWidth: 16, frameHeight: 17 });
+        this.load.spritesheet("char_13", r_char_13, { frameWidth: 16, frameHeight: 17 });
+        this.load.spritesheet("char_14", r_char_14, { frameWidth: 16, frameHeight: 17 });
+        this.load.spritesheet("char_15", r_char_15, { frameWidth: 16, frameHeight: 17 });
+        this.load.spritesheet("char_16", r_char_16, { frameWidth: 16, frameHeight: 17 });
+        this.load.spritesheet("char_17", r_char_17, { frameWidth: 16, frameHeight: 17 });
+        this.load.spritesheet("char_18", r_char_18, { frameWidth: 16, frameHeight: 17 });
+        this.load.spritesheet("char_19", r_char_19, { frameWidth: 16, frameHeight: 17 });
+        this.load.spritesheet("char_20", r_char_20, { frameWidth: 16, frameHeight: 17 });
+        this.load.spritesheet("char_21", r_char_21, { frameWidth: 16, frameHeight: 17 });
+        this.load.spritesheet("char_22", r_char_22, { frameWidth: 16, frameHeight: 17 });
+        this.load.spritesheet("char_23", r_char_23, { frameWidth: 16, frameHeight: 17 });
+    };
+
+    // load_char_spritesheet(char_id) {
+    //     // if (!this.char_sprites[char_id]) {
+    //     this.load.spritesheet('char_' + char_id, './assets/sprites/characters/char_' + char_id + '.png', { frameWidth: 16, frameHeight: 17 });
+
+    //     // }
+
+    // }
     load_char_anims(char_id) {
         this.anims.create({
             key: 'down_' + char_id,
