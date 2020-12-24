@@ -38,8 +38,8 @@ import r_char_23 from './assets/sprites/characters/char_23.png';
 
 export default class MainGame extends Phaser.Scene {
     static MAX_HEAR_DISTANCE = 400;
-    static MOVE_TWEEN_SPEED = 0.25;
-    static MOVE_SPEED = 0.25;
+    static MOVE_CLICK_SPEED = 0.25; // pixels per frame
+    static MOVE_KB_SPEED = 60 / MainGame.MOVE_CLICK_SPEED;
     Client = {};
 
     constructor() {
@@ -450,7 +450,7 @@ export default class MainGame extends Phaser.Scene {
             if (pointer.leftButtonDown()) {
                 let world_pointer = self.cameras.main.getWorldPoint(pointer.x, pointer.y);
                 // console.log("Pressed local: %s %s world: %s %s", pointer.x, pointer.y, world_pointer.x, world_pointer.y);
-                let _player = self.movePlayerToPosWithPhysics(self.player_id, world_pointer.x, world_pointer.y);
+                let _player = self.movePlayerToPos(self.player_id, world_pointer.x, world_pointer.y);
                 if (_player)
                     self.Client.sendMove(_player.x, _player.y, _player.body.velocity.x, _player.body.velocity.y);
             }
@@ -480,9 +480,9 @@ export default class MainGame extends Phaser.Scene {
 
         }
         this.handle_player_controls(delta);
+        this.handleSimulationSync();
         this.handle_voice_proxomity();
         this.handleVideo();
-        this.handleSimulationSync();
     }
     handleVideo() {
         let _distance_vid = Phaser.Math.Distance.Between(
@@ -512,40 +512,38 @@ export default class MainGame extends Phaser.Scene {
             this.current_move_input.x = -1;
         }
 
-        let move_vector = this.current_move_input.scale(delta * MainGame.MOVE_SPEED);
-        let _player = this.playerMap[p_id];
+        let move_vector = this.current_move_input.scale(MainGame.MOVE_KB_SPEED);
         if (move_vector.lengthSq() > 0) {
-            // TODO Only need to send stop signal once no?
-            if (!!this.tween_map[this.player_id]) {
-                this.tween_map[this.player_id].stop();
-                this.crosshair.setVisible(false);
-
-            }
-
-            this.incrementPlayerPos(this.player_id, move_vector);
+            this.current_player.click_move_target = null;
+            this.crosshair.setVisible(false);
+            this.current_player.body.setVelocity(move_vector.x, move_vector.y);
+        } else {
+            if (!this.current_player.click_move_target)
+                this.current_player.body.setVelocity(move_vector.x, move_vector.y);
         }
 
-        this.Client.sendMove(_player.x, _player.y, _player.body.velocity.x, _player.body.velocity.y);
-
+        this.Client.sendMove(
+            this.current_player.x, this.current_player.y, this.current_player.body.velocity.x, this.current_player.body.velocity.y);
+        // TODO Send less data
     }
     static ANIM_VEL_CUTOFF = 0.1;
     handle_player_anims() {
         this.players.forEach(p_id => {
-            let player = this.playerMap[p_id];
-            if (!!player) { // Animate based on velocity
-                let _p_vel = player.body.velocity;
+            let tmp_player = this.playerMap[p_id];
+            if (!!tmp_player) { // Animate based on velocity
+                let _p_vel = tmp_player.body.velocity;
                 if (Math.abs(_p_vel.x) >= Math.abs(_p_vel.y)) {
                     if (_p_vel.x > MainGame.ANIM_VEL_CUTOFF) {
-                        if (!player.anims.isPlaying || !player.anims.currentAnim.key.startsWith("right"))
-                            player.play("right_" + player.sprite_id);
+                        if (!tmp_player.anims.isPlaying || !tmp_player.anims.currentAnim.key.startsWith("right"))
+                            tmp_player.play("right_" + tmp_player.sprite_id);
                     } else if (_p_vel.x < -MainGame.ANIM_VEL_CUTOFF) {
-                        if (!player.anims.isPlaying || !player.anims.currentAnim.key.startsWith("left"))
-                            player.play("left_" + player.sprite_id);
+                        if (!tmp_player.anims.isPlaying || !tmp_player.anims.currentAnim.key.startsWith("left"))
+                            tmp_player.play("left_" + tmp_player.sprite_id);
                     } else {
-                        if (!!player.anims.currentAnim) {
+                        if (!!tmp_player.anims.currentAnim) {
                             // console.log("Stop anim");
-                            let first_frame = player.anims.currentAnim.getFrameAt(0);
-                            player.anims.pause(first_frame);
+                            let first_frame = tmp_player.anims.currentAnim.getFrameAt(0);
+                            tmp_player.anims.pause(first_frame);
                             // player.anims.stopOnFrame(first_frame);
                         }
                         // player.anims.isPlaying = false;
@@ -554,16 +552,16 @@ export default class MainGame extends Phaser.Scene {
                     }
                 } else {
                     if (_p_vel.y > MainGame.ANIM_VEL_CUTOFF) {
-                        if (!player.anims.isPlaying || !player.anims.currentAnim.key.startsWith("down"))
-                            player.play("down_" + player.sprite_id);
+                        if (!tmp_player.anims.isPlaying || !tmp_player.anims.currentAnim.key.startsWith("down"))
+                            tmp_player.play("down_" + tmp_player.sprite_id);
                     } else if (_p_vel.y < -MainGame.ANIM_VEL_CUTOFF) {
-                        if (!player.anims.isPlaying || !player.anims.currentAnim.key.startsWith("up"))
-                            player.play("up_" + player.sprite_id);
+                        if (!tmp_player.anims.isPlaying || !tmp_player.anims.currentAnim.key.startsWith("up"))
+                            tmp_player.play("up_" + tmp_player.sprite_id);
                     } else {
-                        if (!!player.anims.currentAnim) {
+                        if (!!tmp_player.anims.currentAnim) {
                             // console.log("Stop anim");
-                            let first_frame = player.anims.currentAnim.getFrameAt(0);
-                            player.anims.pause(first_frame);
+                            let first_frame = tmp_player.anims.currentAnim.getFrameAt(0);
+                            tmp_player.anims.pause(first_frame);
                             // player.anims.stopOnFrame(first_frame);
                         }
                         // player.anims.repeat = 0;
@@ -589,10 +587,10 @@ export default class MainGame extends Phaser.Scene {
                 if (!child_video) {
                     return;
                 }
-                let player = this.playerMap[p_id];
-                if (!!player) {
+                let tmp_player = this.playerMap[p_id];
+                if (!!tmp_player) {
                     let _distance = Phaser.Math.Distance.Between(
-                        player.x, player.y, this.current_player.x, this.current_player.y);
+                        tmp_player.x, tmp_player.y, this.current_player.x, this.current_player.y);
 
                     let _volume = 1 - MainGame.clamp(_distance / MainGame.MAX_HEAR_DISTANCE, 0, 1);
                     // TODO I can store the last volume separately if the getter here is costly
@@ -607,19 +605,33 @@ export default class MainGame extends Phaser.Scene {
 
     handleSimulationSync(delta) {
         this.players.forEach(p_id => {
-            if (p_id == this.player_id) {
+            let tmp_player = this.playerMap[p_id];
+            if (!tmp_player) {
                 return;
             }
-            let _player = this.playerMap[p_id];
-            if (!!_player && !!_player.sync_target) {
-                // TODO Reduce allocations
+            if (p_id == this.player_id) {
+                if (tmp_player.body.speed > 0 && !!tmp_player.click_move_target) {
+                    let distance = Phaser.Math.Distance.Between(tmp_player.x, tmp_player.y, tmp_player.click_move_target.x, tmp_player.click_move_target.y);
 
-                // let _new_pos = Phaser.Math.Vector2.prototype.lerp.apply(_player, _player.sync_target, 0.1);
-                let _old_pos = new Phaser.Math.Vector2(_player.x, _player.y);
-                let _new_pos = _old_pos.lerp(_player.sync_target, 0.1);
+                    //  4 is our distance tolerance, i.e. how close the source can get to the target
+                    //  before it is considered as being there. The faster it moves, the more tolerance is required.
+                    if (distance < 10) {
+                        tmp_player.body.reset(tmp_player.click_move_target.x, tmp_player.click_move_target.y);
+                        tmp_player.click_move_target = null;
+                        this.crosshair.setVisible(false);
+                    }
+                }
+            } else {
+                if (!!tmp_player.sync_target) {
+                    // TODO Reduce allocations
 
-                _player.x = _new_pos.x;
-                _player.y = _new_pos.y;
+                    // let _new_pos = Phaser.Math.Vector2.prototype.lerp.apply(_player, _player.sync_target, 0.1);
+                    let _old_pos = new Phaser.Math.Vector2(tmp_player.x, tmp_player.y);
+                    let _new_pos = _old_pos.lerp(tmp_player.sync_target, 0.1);
+
+                    tmp_player.x = _new_pos.x;
+                    tmp_player.y = _new_pos.y;
+                }
             }
         });
     }
@@ -656,70 +668,18 @@ export default class MainGame extends Phaser.Scene {
             _new_player.x + (_new_player.width * _new_player.scale) / 2, _new_player.y + (_new_player.height * _new_player.scale) / 2, _new_player.username, style);
     };
 
-    incrementPlayerPos(p_id, p_vector) {
-        let player = this.playerMap[p_id];
-        if (!player) {
-            console.log("Warning! Player is null");
-            return;
-        }
-        player.x += p_vector.x;
-        player.y += p_vector.y;
-    }
-
-    setPlayerPos(p_id, p_x, p_y, lerp = false) {
-        let player = this.playerMap[p_id];
-        if (!player) {
-            console.log("Warning! Player is null");
-            return;
-        }
-        if (!!this.tween_map[p_id]) {
-            this.tween_map[p_id].stop();
-        }
-        if (!!lerp) {
-            let distance = Phaser.Math.Distance.Between(player.x, player.y, p_x, p_y);
-
-            let _duration = distance / MainGame.MOVE_TWEEN_SPEED;
-
-            this.tween_map[p_id] = this.tweens.add({
-                targets: player,
-                x: p_x,
-                y: p_y,
-                // ease: 'Sine.easeIn',
-                duration: _duration,
-                paused: false
-            });
-
-            // this.tween_map[p_id].play();
-        } else {
-            player.x = p_x;
-            player.y = p_y;
-        }
-    }
-
     updatePlayerYSort() {
         const self = this;
         this.players.forEach(_index => {
-            let player = this.playerMap[_index];
-            if (!!player) {
-                player.depth = player.y + (player.height * player.scale) / 2;
+            let tmp_player = this.playerMap[_index];
+            if (!!tmp_player) {
+                tmp_player.depth = tmp_player.y + (tmp_player.height * tmp_player.scale) / 2;
 
-                // console.log("Update label: %s", player.name_label.text);
-                player.name_label.x = Phaser.Math.Linear(player.name_label.x, player.x - + player.name_label.width / 2, 0.5);
-                player.name_label.y = Phaser.Math.Linear(player.name_label.y, player.y + (player.height * player.scale) / 2, 0.5);
+                // console.log("Update label: %s", t_player.name_label.text);
+                tmp_player.name_label.x = Phaser.Math.Linear(tmp_player.name_label.x, tmp_player.x - + tmp_player.name_label.width / 2, 0.5);
+                tmp_player.name_label.y = Phaser.Math.Linear(tmp_player.name_label.y, tmp_player.y + (tmp_player.height * tmp_player.scale) / 2, 0.5);
 
-                if (player.body.speed > 0 && !!player.current_target) {
-                    let distance = Phaser.Math.Distance.Between(player.x, player.y, player.current_target.x, player.current_target.y);
 
-                    //  4 is our distance tolerance, i.e. how close the source can get to the target
-                    //  before it is considered as being there. The faster it moves, the more tolerance is required.
-                    if (distance < 10) {
-                        player.body.reset(player.current_target.x, player.current_target.y);
-                        player.current_target = null;
-                        if (_index == self.player_id) {
-                            self.crosshair.setVisible(false);
-                        }
-                    }
-                }
             }
         });
         // if (!!this.crosshair)
@@ -729,83 +689,40 @@ export default class MainGame extends Phaser.Scene {
 
     updatePlayerPhysics(p_id, p_pos_x, p_pos_y, p_vel_x, p_vel_y) {
 
-        let _player = this.playerMap[p_id];
-        if (!_player) {
+        let tmp_player = this.playerMap[p_id];
+        if (!tmp_player) {
             console.log("Warning! Player is null");
             return;
         }
 
-        _player.sync_target.x = p_pos_x;
-        _player.sync_target.y = p_pos_y;
-        _player.setVelocity(p_vel_x, p_vel_y);
+        tmp_player.sync_target.x = p_pos_x;
+        tmp_player.sync_target.y = p_pos_y;
+        tmp_player.setVelocity(p_vel_x, p_vel_y);
     }
 
 
-    movePlayerToPosWithPhysics(p_id, p_pos_x, p_pos_y) {
-        const self = this;
+    movePlayerToPos(p_id, p_pos_x, p_pos_y) {
 
-        let _player = this.playerMap[p_id];
-        if (!_player) {
+        let tmp_player = this.playerMap[p_id];
+        if (!tmp_player) {
             console.log("Warning! Player is null");
             return;
         }
 
-        _player.current_target = new Phaser.Math.Vector2(p_pos_x, p_pos_y);
+        tmp_player.click_move_target = new Phaser.Math.Vector2(p_pos_x, p_pos_y);
 
-        let distance = Phaser.Math.Distance.Between(_player.x, _player.y, p_pos_x, p_pos_y);
+        let distance = Phaser.Math.Distance.Between(tmp_player.x, tmp_player.y, p_pos_x, p_pos_y);
 
 
-        this.physics.moveToObject(_player, _player.current_target, null,
-            distance / MainGame.MOVE_TWEEN_SPEED);
+        this.physics.moveToObject(tmp_player, tmp_player.click_move_target, null,
+            distance / MainGame.MOVE_CLICK_SPEED);
 
         if (this.player_id == p_id) {
             this.crosshair.setPosition(p_pos_x, p_pos_y);
             this.crosshair.setVisible(true);
         }
-        return _player;
+        return tmp_player;
     }
-
-    movePlayerTo(p_id, p_x, p_y) {
-        const self = this;
-
-        let player = this.playerMap[p_id];
-        if (!player) {
-            console.log("Warning! Player is null");
-            return;
-        }
-        let distance = Phaser.Math.Distance.Between(player.x, player.y, p_x, p_y);
-        if (distance <= 0) {
-            console.log("Warning! Distance is 0. Move ignored.");
-            return;
-        }
-        let _duration = distance / MainGame.MOVE_TWEEN_SPEED;
-
-        // this.physics.moveToObject(player, pointer, _duration);
-
-        if (!!this.tween_map[p_id]) {
-            this.tween_map[p_id].stop();
-        }
-
-        this.tween_map[p_id] = this.tweens.add({
-            targets: player,
-            x: p_x,
-            y: p_y,
-            // ease: 'Sine.easeIn',
-            duration: _duration,
-            paused: false,
-            onComplete: function () {
-                self.crosshair.setVisible(false);
-            },
-        });
-
-        if (this.player_id == p_id) {
-            this.crosshair.setPosition(p_x, p_y);
-            this.crosshair.setVisible(true);
-        }
-
-        // this.tween_map[p_id].play();
-
-    };
 
     removePlayer(id) {
         for (let i = 0; i < this.players.length; i++) {
