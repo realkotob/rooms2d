@@ -472,6 +472,8 @@ export default class MainGame extends Phaser.Scene {
         // this.gameScene = this.scene.get('GameScene');
     }
 
+    static COUNTER_DOM_UPDATE = 0;
+    static INTERVAL_DOM_UPDATE = 30;
     update(time, delta) {
         this.handle_player_anims();
         this.updatePlayerYSort();
@@ -481,8 +483,12 @@ export default class MainGame extends Phaser.Scene {
         }
         this.handle_player_controls(delta);
         this.handleSimulationSync();
-        this.handle_voice_proxomity();
-        this.handleVideo();
+        MainGame.COUNTER_DOM_UPDATE += 1;
+        if (MainGame.COUNTER_DOM_UPDATE >= MainGame.INTERVAL_DOM_UPDATE) {
+            MainGame.COUNTER_DOM_UPDATE = 0;
+            this.handle_voice_proxomity();
+            this.handleVideo();
+        }
     }
     handleVideo() {
         let _distance_vid = Phaser.Math.Distance.Between(
