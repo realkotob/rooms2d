@@ -504,21 +504,21 @@ export default class MainGame extends Phaser.Scene {
 
 
     handle_player_controls(delta) {
-        this.current_move_input.set(0, 0);
+        let current_move_input = new Phaser.Math.Vector2(0, 0);
         if (this.keys_arrows.up.isDown || this.keys_wasd.up.isDown) {
-            this.current_move_input.y = -1;
+            current_move_input.y = -1;
         }
         if (this.keys_arrows.down.isDown || this.keys_wasd.down.isDown) {
-            this.current_move_input.y = +1;
+            current_move_input.y = +1;
         }
         if (this.keys_arrows.right.isDown || this.keys_wasd.right.isDown) {
-            this.current_move_input.x = +1;
+            current_move_input.x = +1;
         }
         if (this.keys_arrows.left.isDown || this.keys_wasd.left.isDown) {
-            this.current_move_input.x = -1;
+            current_move_input.x = -1;
         }
 
-        let move_vector = this.current_move_input.scale(MainGame.MOVE_KB_SPEED);
+        let move_vector = current_move_input.scale(MainGame.MOVE_KB_SPEED);
         if (move_vector.lengthSq() > 0) {
             this.current_player.click_move_target = null;
             this.crosshair.setVisible(false);
@@ -528,9 +528,18 @@ export default class MainGame extends Phaser.Scene {
                 this.current_player.body.setVelocity(move_vector.x, move_vector.y);
         }
 
+        // TODO Send less data
+        // if (this.player_movement_changed(this.current_player.last_input, current_move_input)) {
         this.Client.sendMove(
             this.current_player.x, this.current_player.y, this.current_player.body.velocity.x, this.current_player.body.velocity.y);
-        // TODO Send less data
+        // }
+        // this.current_player.last_input = current_move_input;
+
+    }
+    player_movement_changed(p_old_input, p_new_input) {
+        if (!p_old_input)
+            return true;
+        return p_old_input.x != p_new_input.x || p_old_input.y != p_new_input.y;
     }
     static ANIM_VEL_CUTOFF = 0.1;
     handle_player_anims() {
@@ -616,7 +625,7 @@ export default class MainGame extends Phaser.Scene {
                 return;
             }
             if (p_id == this.player_id) {
-                if (tmp_player.body.speed > 0 && !!tmp_player.click_move_target) {
+                if (!!tmp_player.click_move_target) {
                     let distance = Phaser.Math.Distance.Between(tmp_player.x, tmp_player.y, tmp_player.click_move_target.x, tmp_player.click_move_target.y);
 
                     //  4 is our distance tolerance, i.e. how close the source can get to the target
@@ -628,16 +637,16 @@ export default class MainGame extends Phaser.Scene {
                     }
                 }
             } else {
-                if (!!tmp_player.sync_target) {
+                // if (!!tmp_player.sync_dirty) {
                     // TODO Reduce allocations
-
+                    // tmp_player.sync_dirty = false;
                     // let _new_pos = Phaser.Math.Vector2.prototype.lerp.apply(_player, _player.sync_target, 0.1);
                     let _old_pos = new Phaser.Math.Vector2(tmp_player.x, tmp_player.y);
                     let _new_pos = _old_pos.lerp(tmp_player.sync_target, 0.1);
 
                     tmp_player.x = _new_pos.x;
                     tmp_player.y = _new_pos.y;
-                }
+                // }
             }
         });
     }
@@ -656,6 +665,7 @@ export default class MainGame extends Phaser.Scene {
         _new_player.username = p_username;
         _new_player.setCircle(6);
         _new_player.sync_target = new Phaser.Math.Vector2(p_pos_x, p_pos_y);
+        _new_player.sync_dirty = false;
         if (p_id == this.player_id) {
             this.current_player = _new_player;
             _new_player.body.collideWorldBounds = true;
@@ -701,9 +711,10 @@ export default class MainGame extends Phaser.Scene {
             return;
         }
 
+        // tmp_player.sync_dirty = true;
         tmp_player.sync_target.x = p_pos_x;
         tmp_player.sync_target.y = p_pos_y;
-        tmp_player.setVelocity(p_vel_x, p_vel_y);
+        tmp_player.body.setVelocity(p_vel_x, p_vel_y);
     }
 
 
