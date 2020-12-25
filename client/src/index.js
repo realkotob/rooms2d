@@ -7,7 +7,7 @@ import Phaser from 'phaser';
 const config = {
   type: Phaser.AUTO,
   scale: {
-    parent: 'divId',
+    parent: 'game',
     mode: Phaser.Scale.FIT, // Tried to use Resize but it wasn't good enough, might be better if I can get this example to work https://github.com/photonstorm/phaser3-examples/blob/master/public/src/scalemanager/resize%20and%20fit.js
     autoCenter: Phaser.Scale.CENTER_BOTH,
     width: 1068,

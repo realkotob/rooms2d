@@ -337,6 +337,8 @@ export default class MainGame extends Phaser.Scene {
                 modestBranding: true,
                 loop: false,
                 autoPlay: false,
+                keyboardControl: false,
+                controls: true,
             }).on('ready', function () {
                 console.log("Video ready");
                 // self.youtubePlayer.setPosition(600, 300);
@@ -470,6 +472,8 @@ export default class MainGame extends Phaser.Scene {
         // this.scene.launch('GameScene');
 
         // this.gameScene = this.scene.get('GameScene');
+
+        this.setup_game_focus();
     }
 
     static COUNTER_DOM_UPDATE = 0;
@@ -490,6 +494,27 @@ export default class MainGame extends Phaser.Scene {
             MainGame.COUNTER_DOM_UPDATE = 0;
             this.handle_voice_proxomity();
             this.handle_video_proximity();
+            this.focus_game();
+        }
+    }
+
+    setup_game_focus() {
+        let game_dom = document.querySelector('#game');
+        game_dom = game_dom ? game_dom.querySelector('canvas') : null;
+        if (game_dom) {
+            game_dom.setAttribute("tabindex", "6");
+            console.log("Found element %s", game_dom);
+            game_dom.focus();
+            this.game_dom_canvas = game_dom;
+        }
+
+    }
+
+    focus_game() {
+        if (this.game_dom_canvas) {
+            this.game_dom_canvas.focus();
+        } else {
+            console.log("Dom canvas was not setup for focus");
         }
     }
     handle_video_proximity() {
