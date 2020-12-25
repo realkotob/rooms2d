@@ -98,7 +98,7 @@ export default class MainGame extends Phaser.Scene {
                 px: Math.round(p_pos_x), py: Math.round(p_pos_y), vx: Math.round(p_vel_x), vy: Math.round(p_vel_y)
             });
             // TODO Send empty object of the velocity is 0 and rounded positions are same as last frame
-            self.Client.socket.volatile.emit(
+            self.Client.socket.emit(
                 'move', Buffer.from(encoded.buffer, encoded.byteOffset, encoded.byteLength));
         };
 
