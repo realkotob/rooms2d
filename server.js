@@ -116,7 +116,7 @@ io.on('connection', function (socket) {
             socket.player.rt.vx = data.vx;
             socket.player.rt.vy = data.vy;
             const encoded = encode(socket.player.rt);
-            io.in(_room).emit('moved', Buffer.from(encoded.buffer, encoded.byteOffset, encoded.byteLength));
+            io.in(_room).volatile.emit('moved', Buffer.from(encoded.buffer, encoded.byteOffset, encoded.byteLength));
         });
 
         socket.on('disconnect', function () {
