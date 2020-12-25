@@ -1,7 +1,8 @@
 import { encode, decode } from "@msgpack/msgpack";
 import { io } from 'socket.io-client';
-import Phaser from 'phaser';
+import Phaser, { Utils } from 'phaser';
 import Peer from 'peerjs';
+import { Queue } from "./utils.js"
 
 import r_pixel from './assets/sprites/pixel.png';
 import r_tilesheet from './assets/map/tilesheet.png';
@@ -163,7 +164,7 @@ export default class MainGame extends Phaser.Scene {
                 const data = decode(p_data);
                 if (self.player_id != data.id) {
                     // console.log("player %s moved. current player %s", data.id, self.player_id)
-                    self.updatePlayerPhysics(data.id, data.px, data.py, data.vx, data.vy);
+                    self.updatePlayerPhysics(data.id, data);
                 }
             });
 
@@ -691,6 +692,22 @@ export default class MainGame extends Phaser.Scene {
                     }
                 }
             } else {
+                if (!tmp_player.enough_buffer) {
+                    if (tmp_player.received_frames.size > 20) {
+                        tmp_player.enough_buffer = true;
+                    } else {
+                        return;
+                    }
+                }
+
+                let next_frame_target = tmp_player.received_frames.dequeue();
+                if (!!next_frame_target) {
+                    // tmp_player.sync_dirty = true;
+                    tmp_player.sync_target.x = next_frame_target.px;
+                    tmp_player.sync_target.y = next_frame_target.py;
+                    tmp_player.body.setVelocity(next_frame_target.vx, next_frame_target.vy);
+                }
+
                 // if (!!tmp_player.sync_dirty) {
                 // TODO Reduce allocations
                 // tmp_player.sync_dirty = false;
@@ -720,6 +737,7 @@ export default class MainGame extends Phaser.Scene {
         _new_player.setCircle(6);
         _new_player.sync_target = new Phaser.Math.Vector2(p_pos_x, p_pos_y);
         _new_player.sync_dirty = false;
+        _new_player.received_frames = new Queue();
         if (p_id == this.player_id) {
             this.current_player = _new_player;
             _new_player.body.collideWorldBounds = true;
@@ -757,18 +775,14 @@ export default class MainGame extends Phaser.Scene {
 
     }
 
-    updatePlayerPhysics(p_id, p_pos_x, p_pos_y, p_vel_x, p_vel_y) {
+    updatePlayerPhysics(p_id, p_data) {
 
         let tmp_player = this.playerMap[p_id];
         if (!tmp_player) {
             console.log("Warning! Player is null");
             return;
         }
-
-        // tmp_player.sync_dirty = true;
-        tmp_player.sync_target.x = p_pos_x;
-        tmp_player.sync_target.y = p_pos_y;
-        tmp_player.body.setVelocity(p_vel_x, p_vel_y);
+        tmp_player.received_frames.enqueue(p_data);
     }
 
 
