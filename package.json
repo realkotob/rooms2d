@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
-    "buildAllAndStart": "cd client/ && npm run devbuild && cd .. && node server.js "
+    "buildAllAndStart": "cd client/ && npm run build && cd .. && node server.js ",
+    "devbuildAllAndStart": "cd client/ && npm run devbuild && cd .. && node server.js "
   },
   "repository": {
     "type": "git",

@@ -473,27 +473,34 @@ export default class MainGame extends Phaser.Scene {
     }
 
     static COUNTER_DOM_UPDATE = 0;
-    static INTERVAL_DOM_UPDATE = 30;
+    static INTERVAL_DOM_UPDATE = 10;
     update(time, delta) {
         this.handle_player_anims();
-        this.updatePlayerYSort();
-        if (!this.player_id || !this.current_player) {
-            return;
 
-        }
         this.handle_player_controls(delta);
         this.handleSimulationSync();
+        this.updatePlayerYSort();
+
+        if (!this.player_id || !this.current_player) {
+            return;
+        }
+        this.handleVideoPan();
         MainGame.COUNTER_DOM_UPDATE += 1;
         if (MainGame.COUNTER_DOM_UPDATE >= MainGame.INTERVAL_DOM_UPDATE) {
             MainGame.COUNTER_DOM_UPDATE = 0;
             this.handle_voice_proxomity();
-            this.handleVideo();
+            this.handle_video_proximity();
         }
     }
-    handleVideo() {
+    handle_video_proximity() {
         let _distance_vid = Phaser.Math.Distance.Between(
             this.youtubePlayer.x, this.youtubePlayer.y, this.current_player.x, this.current_player.y);
         this.youtubePlayer.setVolume(1 - MainGame.clamp(_distance_vid / (MainGame.MAX_HEAR_DISTANCE * 2), 0, 1));
+    }
+
+    handleVideoPan() {
+        let _distance_vid = Phaser.Math.Distance.Between(
+            this.youtubePlayer.x, this.youtubePlayer.y, this.current_player.x, this.current_player.y);
         let _dist_y = this.youtubePlayer.y - this.current_player.y;
         if (_distance_vid < MainGame.MAX_HEAR_DISTANCE * 0.75 && -_dist_y < MainGame.MAX_HEAR_DISTANCE / 2) {
             this.cameras.main.followOffset.y = Phaser.Math.Linear(this.cameras.main.followOffset.y, -_dist_y, 0.05);
@@ -504,6 +511,9 @@ export default class MainGame extends Phaser.Scene {
 
 
     handle_player_controls(delta) {
+        if (!this.player_id || !this.current_player) {
+            return;
+        }
         let current_move_input = new Phaser.Math.Vector2(0, 0);
         if (this.keys_arrows.up.isDown || this.keys_wasd.up.isDown) {
             current_move_input.y = -1;
@@ -518,7 +528,7 @@ export default class MainGame extends Phaser.Scene {
             current_move_input.x = -1;
         }
 
-        let move_vector = current_move_input.scale(MainGame.MOVE_KB_SPEED);
+        let move_vector = current_move_input.normalize().scale(MainGame.MOVE_KB_SPEED);
         if (move_vector.lengthSq() > 0) {
             this.current_player.click_move_target = null;
             this.crosshair.setVisible(false);
@@ -541,7 +551,7 @@ export default class MainGame extends Phaser.Scene {
             return true;
         return p_old_input.x != p_new_input.x || p_old_input.y != p_new_input.y;
     }
-    static ANIM_VEL_CUTOFF = 0.1;
+    static ANIM_VEL_CUTOFF = 0.01;
     handle_player_anims() {
         this.players.forEach(p_id => {
             let tmp_player = this.playerMap[p_id];
@@ -638,14 +648,14 @@ export default class MainGame extends Phaser.Scene {
                 }
             } else {
                 // if (!!tmp_player.sync_dirty) {
-                    // TODO Reduce allocations
-                    // tmp_player.sync_dirty = false;
-                    // let _new_pos = Phaser.Math.Vector2.prototype.lerp.apply(_player, _player.sync_target, 0.1);
-                    let _old_pos = new Phaser.Math.Vector2(tmp_player.x, tmp_player.y);
-                    let _new_pos = _old_pos.lerp(tmp_player.sync_target, 0.1);
+                // TODO Reduce allocations
+                // tmp_player.sync_dirty = false;
+                // let _new_pos = Phaser.Math.Vector2.prototype.lerp.apply(_player, _player.sync_target, 0.1);
+                let _old_pos = new Phaser.Math.Vector2(tmp_player.x, tmp_player.y);
+                let _new_pos = _old_pos.lerp(tmp_player.sync_target, 0.1);
 
-                    tmp_player.x = _new_pos.x;
-                    tmp_player.y = _new_pos.y;
+                tmp_player.x = _new_pos.x;
+                tmp_player.y = _new_pos.y;
                 // }
             }
         });

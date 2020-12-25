@@ -135,7 +135,7 @@ async function getAllPlayers(p_room) {
         let player = player_socket && player_socket.player;
         if (!!player) players.push(player);
     };
-    console.log("Sending players %s", JSON.stringify(players));
+    // console.log("Sending players %s", JSON.stringify(players));
     return players;
 }
 
