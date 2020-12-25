@@ -1,4 +1,6 @@
+const { encode, decode } = require("@msgpack/msgpack");
 var fs = require('fs');
+
 var https = require('https');
 var http = require('http');
 var express = require('express');
@@ -88,14 +90,16 @@ io.on('connection', function (socket) {
         let _name = p_data.username && p_data.username.length > 0 ? p_data.username : ("P" + server.lastPlayderID);
         // console.log("Player name is %s", _name);
         socket.player = {
-            id: server.lastPlayderID,
             room: _room,
             sprite: server.lastPlayderID % CHARACTER_SPRITE_COUNT,
-            px: randomInt(100, 400),
-            py: randomInt(100, 400),
-            vx: 0,
-            vy: 0,
-            uname: _name
+            uname: _name,
+            rt: {
+                id: server.lastPlayderID,
+                px: randomInt(100, 400),
+                py: randomInt(100, 400),
+                vx: 0,
+                vy: 0,
+            }
         };
         // console.log("Room for %s is %s", socket.player.id, socket.player.room);
 
@@ -104,17 +108,19 @@ io.on('connection', function (socket) {
         socket.emit('allplayers', { you: socket.player, all: await getAllPlayers(_room) });
         socket.to(_room).emit('newplayer', socket.player);
 
-        socket.on('move', function (data) {
+        socket.on('move', function (p_data) {
             // console.log('move to ' + data.x + ', ' + data.y);
-            socket.player.px = data.px;
-            socket.player.py = data.py;
-            socket.player.vx = data.vx;
-            socket.player.vy = data.vy;
-            io.in(_room).emit('moved', socket.player);
+            const data = decode(p_data);
+            socket.player.rt.px = data.px;
+            socket.player.rt.py = data.py;
+            socket.player.rt.vx = data.vx;
+            socket.player.rt.vy = data.vy;
+            const encoded = encode(socket.player.rt);
+            io.in(_room).emit('moved', Buffer.from(encoded.buffer, encoded.byteOffset, encoded.byteLength));
         });
 
         socket.on('disconnect', function () {
-            io.in(_room).emit('remove', socket.player.id);
+            io.in(_room).emit('remove', socket.player.rt.id);
         });
     });
 

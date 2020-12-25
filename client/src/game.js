@@ -1,3 +1,4 @@
+import { encode, decode } from "@msgpack/msgpack";
 import { io } from 'socket.io-client';
 import Phaser from 'phaser';
 import Peer from 'peerjs';
@@ -92,20 +93,22 @@ export default class MainGame extends Phaser.Scene {
         };
 
         this.Client.sendMove = function (p_pos_x, p_pos_y, p_vel_x, p_vel_y) {
-            self.Client.socket.emit(
-                'move', {
+            const encoded = encode({
                 px: Math.round(p_pos_x), py: Math.round(p_pos_y), vx: Math.round(p_vel_x), vy: Math.round(p_vel_y)
             });
+            // TODO Send empty object of the velocity is 0 and rounded positions are same as last frame
+            self.Client.socket.emit(
+                'move', Buffer.from(encoded.buffer, encoded.byteOffset, encoded.byteLength));
         };
 
         this.Client.socket.on('newplayer', function (data) {
             console.log("Recieved newplayer %s ", JSON.stringify(data));
-            self.addNewPlayer(data.id, data.px, data.py, data.sprite, data.uname);
+            self.addNewPlayer(data.rt.id, data.rt.px, data.rt.py, data.sprite, data.uname);
         });
 
 
         this.Client.socket.on('allplayers', function (data) {
-            self.player_id = data.you.id.toString();
+            self.player_id = data.you.rt.id.toString();
             console.log("My new player id is ", self.player_id);
             self.peer = new Peer(self.player_id);
             self.peer.on('open', function () {
@@ -113,8 +116,8 @@ export default class MainGame extends Phaser.Scene {
 
                 const _all = data.all;
                 for (let i = 0; i < _all.length; i++) {
-                    if (_all[i].id != self.player_id)
-                        call_player(_all[i].id);
+                    if (_all[i].rt.id != self.player_id)
+                        call_player(_all[i].rt.id);
                 }
             });
 
@@ -152,11 +155,12 @@ export default class MainGame extends Phaser.Scene {
             const _all = data.all;
             for (let i = 0; i < _all.length; i++) {
                 console.log("Recieved allplayers %s ", JSON.stringify(data));
-                self.addNewPlayer(_all[i].id, _all[i].x, _all[i].y, _all[i].sprite, _all[i].uname);
+                self.addNewPlayer(_all[i].rt.id, _all[i].rt.px, _all[i].rt.py, _all[i].sprite, _all[i].uname);
             }
 
 
-            self.Client.socket.on('moved', function (data) {
+            self.Client.socket.on('moved', function (p_data) {
+                const data = decode(p_data);
                 if (self.player_id != data.id) {
                     // console.log("player %s moved. current player %s", data.id, self.player_id)
                     self.updatePlayerPhysics(data.id, data.px, data.py, data.vx, data.vy);
