@@ -39,6 +39,7 @@ module.exports = {
       WEBGL_RENDERER: JSON.stringify(true)
     }),
     new HtmlWebpackPlugin({
+      favicon: "./favicon.png",
       template: "./index.html"
     })
   ]
