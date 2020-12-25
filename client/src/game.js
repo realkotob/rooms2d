@@ -6,7 +6,8 @@ import { Queue } from "./utils.js"
 
 import r_pixel from './assets/sprites/pixel.png';
 import r_tilesheet from './assets/map/tilesheet.png';
-import r_map from './assets/map/example_map.json';
+import r_example_map from './assets/map/example_map.json';
+import r_example_map_with_screen from './assets/map/example_map_with_screen.json';
 import r_sprite from './assets/sprites/sprite.png';
 import r_ball from './assets/sprites/ball.png';
 import r_crosshair from './assets/sprites/crosshair.png';
@@ -219,7 +220,8 @@ export default class MainGame extends Phaser.Scene {
     preload() {
         this.char_anims = {};
 
-        this.load.tilemapTiledJSON('map', r_map);
+        this.load.tilemapTiledJSON('map', r_example_map);
+        this.load.tilemapTiledJSON('map_screen', r_example_map_with_screen);
         this.load.image('tilesheet', r_tilesheet);
         this.load.image('pixel', r_pixel);
 
@@ -332,10 +334,10 @@ export default class MainGame extends Phaser.Scene {
         this.phaser_created = true;
 
         let yt_original_config = {
-            x: 1300,
-            y: 160,
-            width: 426,
-            height: 240
+            x: 1250,
+            y: 130,
+            width: 340,
+            height: 192
         }
 
         try {
@@ -368,7 +370,7 @@ export default class MainGame extends Phaser.Scene {
 
         // let testKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
         let map = this.make.tilemap({ key: 'map', tileWidth: 32, tileHeight: 32 });
-        let map1 = this.make.tilemap({ key: 'map', tileWidth: 32, tileHeight: 32 });
+        let map1 = this.make.tilemap({ key: 'map_screen', tileWidth: 32, tileHeight: 32 });
         let map2 = this.make.tilemap({ key: 'map', tileWidth: 32, tileHeight: 32 });
         let map3 = this.make.tilemap({ key: 'map', tileWidth: 32, tileHeight: 32 });
         let tileset = map.addTilesetImage('tilesheet');
@@ -385,7 +387,7 @@ export default class MainGame extends Phaser.Scene {
             }
         }
         for (let i = 0; i < map1.layers.length; i++) {
-            layer = map1.createLayer(i, tileset, map.widthInPixels);
+            layer = map1.createLayer(i, tileset, map1.widthInPixels);
             if (layer.layer.name == "collision") {
                 layer.setCollisionByProperty({ collides: true });
                 // layer.setCollisionBetween(22, 24);
@@ -395,7 +397,7 @@ export default class MainGame extends Phaser.Scene {
             }
         }
         for (let i = 0; i < map2.layers.length; i++) {
-            layer = map2.createLayer(i, tileset, 0, map.heightInPixels);
+            layer = map2.createLayer(i, tileset, 0, map2.heightInPixels);
             if (layer.layer.name == "collision") {
                 layer.setCollisionByProperty({ collides: true });
                 // layer.setCollisionBetween(22, 24);
@@ -405,7 +407,7 @@ export default class MainGame extends Phaser.Scene {
             }
         }
         for (let i = 0; i < map3.layers.length; i++) {
-            layer = map3.createLayer(i, tileset, map.widthInPixels, map.heightInPixels);
+            layer = map3.createLayer(i, tileset, map3.widthInPixels, map3.heightInPixels);
             if (layer.layer.name == "collision") {
                 layer.setCollisionByProperty({ collides: true });
                 // layer.setCollisionBetween(22, 24);
@@ -534,9 +536,9 @@ export default class MainGame extends Phaser.Scene {
     handleVideoPan() {
         let _distance_vid = Phaser.Math.Distance.Between(
             this.youtubePlayer.x, this.youtubePlayer.y, this.current_player.x, this.current_player.y);
-        let _dist_y = this.youtubePlayer.y - this.current_player.y;
-        if (_distance_vid < MainGame.MAX_HEAR_DISTANCE * 0.75 && -_dist_y < MainGame.MAX_HEAR_DISTANCE / 2) {
-            this.cameras.main.followOffset.y = Phaser.Math.Linear(this.cameras.main.followOffset.y, -_dist_y, 0.05);
+        let _dist_y = this.current_player.y - this.youtubePlayer.y - 20;
+        if (_distance_vid < MainGame.MAX_HEAR_DISTANCE * 0.75 && _dist_y < (MainGame.MAX_HEAR_DISTANCE / 2)) {
+            this.cameras.main.followOffset.y = Phaser.Math.Linear(this.cameras.main.followOffset.y, _dist_y, 0.05);
         } else {
             this.cameras.main.followOffset.y = Phaser.Math.Linear(this.cameras.main.followOffset.y, 0, 0.05);
         }
