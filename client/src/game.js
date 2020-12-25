@@ -373,6 +373,8 @@ export default class MainGame extends Phaser.Scene {
         let map1 = this.make.tilemap({ key: 'map_screen', tileWidth: 32, tileHeight: 32 });
         let map2 = this.make.tilemap({ key: 'map', tileWidth: 32, tileHeight: 32 });
         let map3 = this.make.tilemap({ key: 'map', tileWidth: 32, tileHeight: 32 });
+        let map4 = this.make.tilemap({ key: 'map', tileWidth: 32, tileHeight: 32 });
+        let map5 = this.make.tilemap({ key: 'map', tileWidth: 32, tileHeight: 32 });
         let tileset = map.addTilesetImage('tilesheet');
 
         let layer;
@@ -416,12 +418,32 @@ export default class MainGame extends Phaser.Scene {
                 layer.visible = false;
             }
         }
+        for (let i = 0; i < map3.layers.length; i++) {
+            layer = map4.createLayer(i, tileset, map4.widthInPixels * 2, 0);
+            if (layer.layer.name == "collision") {
+                layer.setCollisionByProperty({ collides: true });
+                // layer.setCollisionBetween(22, 24);
+                this.physics.add.collider(this.player_group, layer);
+                this.physics.add.collider(this.ball_group, layer);
+                layer.visible = false;
+            }
+        }
+        for (let i = 0; i < map3.layers.length; i++) {
+            layer = map5.createLayer(i, tileset, map5.widthInPixels * 2, map5.heightInPixels);
+            if (layer.layer.name == "collision") {
+                layer.setCollisionByProperty({ collides: true });
+                // layer.setCollisionBetween(22, 24);
+                this.physics.add.collider(this.player_group, layer);
+                this.physics.add.collider(this.ball_group, layer);
+                layer.visible = false;
+            }
+        }
 
         // this.adaptive_layer.add(map);
 
         //  Set the camera and physics bounds to be the size of 4x4 bg images
-        this.cameras.main.setBounds(0, 0, map.widthInPixels * 2, map.heightInPixels * 2);
-        this.physics.world.setBounds(0, 0, map.widthInPixels * 2, map.heightInPixels * 2);
+        this.cameras.main.setBounds(0, 0, map.widthInPixels * 3, map.heightInPixels * 2);
+        this.physics.world.setBounds(0, 0, map.widthInPixels * 3, map.heightInPixels * 2);
         this.cameras.main.zoom = 1.5;
         this.youtubePlayer.original_config.zoom = this.cameras.main.zoom;
 
@@ -533,22 +555,43 @@ export default class MainGame extends Phaser.Scene {
         this.youtubePlayer.setVolume(1 - MainGame.clamp(_distance_vid / (MainGame.MAX_HEAR_DISTANCE * 2), 0, 1));
     }
 
+    static WHY_IS_VIDEO_NOT_CENTERED_X = 45;
+    // The pan range needs to be proportional to the MAX_HEAR_DISTANCE but since the video positioing is mysterious I would rather have the flexibility of fine-tunining
+    static VIDEO_PAN_RANGE_X = 400;
+    static VIDEO_PAN_RANGE_Y = 240;
     handleVideoPan() {
-        let _distance_vid = Phaser.Math.Distance.Between(
-            this.youtubePlayer.x, this.youtubePlayer.y, this.current_player.x, this.current_player.y);
-        let _dist_y = this.current_player.y - this.youtubePlayer.y - 20;
+        // let _distance_vid = Phaser.Math.Distance.Between(
+        //     this.youtubePlayer.x, this.youtubePlayer.y, this.current_player.x, this.current_player.y);
         let _dist_x = this.current_player.x - this.youtubePlayer.x;
+        let _dist_y = this.current_player.y - this.youtubePlayer.y;
+        // NOTE All these numbers below are trial and error, I don't know where the actual center position of the video player is.
 
-        if (Math.abs(_dist_x) < (MainGame.MAX_HEAR_DISTANCE / 1.0) && _dist_y < (MainGame.MAX_HEAR_DISTANCE / 2)) {
-            // this.cameras.main.stopFollow();
-            // this.cameras.main.startFollow(this.youtubePlayer, false, 1, 1);
-            this.cameras.main.followOffset.x = Phaser.Math.Linear(this.cameras.main.followOffset.x, _dist_x, 0.09);
-            this.cameras.main.followOffset.y = Phaser.Math.Linear(this.cameras.main.followOffset.y, _dist_y, 0.05);
+        if (Math.abs(_dist_x) < MainGame.VIDEO_PAN_RANGE_X && _dist_y < MainGame.VIDEO_PAN_RANGE_Y) {
+            if (!!this.cameras.main.following_player) {
+                this.cameras.main.following_player = false;
+                this.cameras.main.stopFollow();
+                this.cameras.main.startFollow(this.youtubePlayer, false, 0.05, 0.05, -_dist_x + (this.cameras.main.followOffset.x * 1), -_dist_y + (this.cameras.main.followOffset.y * 1));
+            } else {
+
+                // this.cameras.main.followOffset.x = 0;
+                // this.cameras.main.followOffset.y = 0;
+
+                this.cameras.main.followOffset.x = Phaser.Math.Linear(this.cameras.main.followOffset.x, MainGame.WHY_IS_VIDEO_NOT_CENTERED_X, 0.05);
+                this.cameras.main.followOffset.y = Phaser.Math.Linear(this.cameras.main.followOffset.y, 0, 0.05);
+            }
         } else {
-            this.cameras.main.followOffset.x = Phaser.Math.Linear(this.cameras.main.followOffset.x, 0, 0.09);
-            this.cameras.main.followOffset.y = Phaser.Math.Linear(this.cameras.main.followOffset.y, 0, 0.05);
-            // this.cameras.main.stopFollow();
-            // this.cameras.main.startFollow(this.current_player, false, 1, 1);
+            if (!this.cameras.main.following_player) {
+                this.cameras.main.following_player = true;
+                this.cameras.main.stopFollow();
+                this.cameras.main.startFollow(
+                    this.current_player, false, 1, 1, _dist_x + (this.cameras.main.followOffset.x * 1), _dist_y + (this.cameras.main.followOffset.y * 1)
+                );
+            } else {
+
+
+                this.cameras.main.followOffset.x = Phaser.Math.Linear(this.cameras.main.followOffset.x, 0, 0.05);
+                this.cameras.main.followOffset.y = Phaser.Math.Linear(this.cameras.main.followOffset.y, 0, 0.05);
+            }
         }
     }
 
@@ -755,6 +798,7 @@ export default class MainGame extends Phaser.Scene {
             _new_player.setImmovable(true);
             _new_player.setBounce(0);
             this.cameras.main.startFollow(_new_player, false, 1, 1);
+            this.cameras.main.following_player = true;
             // NOTE Second parameter of startFollow is for rounding pixel jitter. 
             // Setting it to true will fix the jitter of world tiles but add jitter for the player sprite.
             this.player_group.add(_new_player);
