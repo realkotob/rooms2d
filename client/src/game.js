@@ -92,7 +92,10 @@ export default class MainGame extends Phaser.Scene {
         };
 
         this.Client.sendMove = function (p_pos_x, p_pos_y, p_vel_x, p_vel_y) {
-            self.Client.socket.emit('move', { px: p_pos_x, py: p_pos_y, vx: p_vel_x, vy: p_vel_y });
+            self.Client.socket.emit(
+                'move', {
+                px: Math.round(p_pos_x), py: Math.round(p_pos_y), vx: Math.round(p_vel_x), vy: Math.round(p_vel_y)
+            });
         };
 
         this.Client.socket.on('newplayer', function (data) {
@@ -554,13 +557,25 @@ export default class MainGame extends Phaser.Scene {
         }
 
         let move_vector = current_move_input.normalize().scale(MainGame.MOVE_KB_SPEED);
+        // let just_stopped_input = false;
         if (move_vector.lengthSq() > 0) {
+            // this.doing_input = true;
             this.current_player.click_move_target = null;
             this.crosshair.setVisible(false);
             this.current_player.body.setVelocity(move_vector.x, move_vector.y);
         } else {
-            if (!this.current_player.click_move_target)
+            // if (this.doing_input) {
+            //     just_stopped_input = true;
+            // }
+            // this.doing_input = false;
+            if (!this.current_player.click_move_target) {
+                // Only stop player movement when both input AND point-click input is not active
                 this.current_player.body.setVelocity(move_vector.x, move_vector.y);
+                // if (!just_stopped_input) {
+                //     // Don't send empty data when player is not using keyboard or mouse
+                //     return;
+                // }
+            }
         }
 
         // TODO Send less data
