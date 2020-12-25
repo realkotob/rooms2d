@@ -564,7 +564,6 @@ export default class MainGame extends Phaser.Scene {
         //     this.youtubePlayer.x, this.youtubePlayer.y, this.current_player.x, this.current_player.y);
         let _dist_x = this.current_player.x - this.youtubePlayer.x;
         let _dist_y = this.current_player.y - this.youtubePlayer.y;
-        // NOTE All these numbers below are trial and error, I don't know where the actual center position of the video player is.
 
         if (Math.abs(_dist_x + MainGame.WHY_IS_VIDEO_NOT_CENTERED_X) < MainGame.VIDEO_PAN_RANGE_X && _dist_y < MainGame.VIDEO_PAN_RANGE_Y) {
             if (!!this.cameras.main.following_player) {
@@ -572,10 +571,6 @@ export default class MainGame extends Phaser.Scene {
                 this.cameras.main.stopFollow();
                 this.cameras.main.startFollow(this.youtubePlayer, false, 0.05, 0.05, -_dist_x + (this.cameras.main.followOffset.x * 1), -_dist_y + (this.cameras.main.followOffset.y * 1));
             } else {
-
-                // this.cameras.main.followOffset.x = 0;
-                // this.cameras.main.followOffset.y = 0;
-
                 this.cameras.main.followOffset.x = Phaser.Math.Linear(this.cameras.main.followOffset.x, MainGame.WHY_IS_VIDEO_NOT_CENTERED_X, 0.05);
                 this.cameras.main.followOffset.y = Phaser.Math.Linear(this.cameras.main.followOffset.y, 0, 0.05);
             }
@@ -587,8 +582,6 @@ export default class MainGame extends Phaser.Scene {
                     this.current_player, false, 1, 1, _dist_x + (this.cameras.main.followOffset.x * 1), _dist_y + (this.cameras.main.followOffset.y * 1)
                 );
             } else {
-
-
                 this.cameras.main.followOffset.x = Phaser.Math.Linear(this.cameras.main.followOffset.x, 0, 0.05);
                 this.cameras.main.followOffset.y = Phaser.Math.Linear(this.cameras.main.followOffset.y, 0, 0.05);
             }
