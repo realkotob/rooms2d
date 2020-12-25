@@ -692,13 +692,13 @@ export default class MainGame extends Phaser.Scene {
                     }
                 }
             } else {
-                if (!tmp_player.enough_buffer) {
-                    if (tmp_player.received_frames.size > 5) {
-                        tmp_player.enough_buffer = true;
-                    } else {
-                        return;
-                    }
-                }
+                // if (!tmp_player.enough_buffer) {
+                //     if (tmp_player.received_frames.size > 5) {
+                //         tmp_player.enough_buffer = true;
+                //     } else {
+                //         return;
+                //     }
+                // }
 
                 let next_frame_target = tmp_player.received_frames.dequeue();
                 if (!!next_frame_target) {
