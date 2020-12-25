@@ -334,7 +334,7 @@ export default class MainGame extends Phaser.Scene {
         this.phaser_created = true;
 
         let yt_original_config = {
-            x: 1150,
+            x: 1230,
             y: 130,
             width: 340,
             height: 192
@@ -537,10 +537,18 @@ export default class MainGame extends Phaser.Scene {
         let _distance_vid = Phaser.Math.Distance.Between(
             this.youtubePlayer.x, this.youtubePlayer.y, this.current_player.x, this.current_player.y);
         let _dist_y = this.current_player.y - this.youtubePlayer.y - 20;
-        if (_distance_vid < MainGame.MAX_HEAR_DISTANCE * 0.75 && _dist_y < (MainGame.MAX_HEAR_DISTANCE / 2)) {
+        let _dist_x = this.current_player.x - this.youtubePlayer.x;
+
+        if (Math.abs(_dist_x) < (MainGame.MAX_HEAR_DISTANCE / 1.0) && _dist_y < (MainGame.MAX_HEAR_DISTANCE / 2)) {
+            // this.cameras.main.stopFollow();
+            // this.cameras.main.startFollow(this.youtubePlayer, false, 1, 1);
+            this.cameras.main.followOffset.x = Phaser.Math.Linear(this.cameras.main.followOffset.x, _dist_x, 0.09);
             this.cameras.main.followOffset.y = Phaser.Math.Linear(this.cameras.main.followOffset.y, _dist_y, 0.05);
         } else {
+            this.cameras.main.followOffset.x = Phaser.Math.Linear(this.cameras.main.followOffset.x, 0, 0.09);
             this.cameras.main.followOffset.y = Phaser.Math.Linear(this.cameras.main.followOffset.y, 0, 0.05);
+            // this.cameras.main.stopFollow();
+            // this.cameras.main.startFollow(this.current_player, false, 1, 1);
         }
     }
 
