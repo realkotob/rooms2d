@@ -783,6 +783,9 @@ export default class MainGame extends Phaser.Scene {
             return;
         }
         tmp_player.received_frames.enqueue(p_data);
+        while (tmp_player.received_frames.size() > 10) {
+            tmp_player.received_frames.dequeue();
+        }
     }
 
 
