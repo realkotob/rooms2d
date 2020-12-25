@@ -557,7 +557,7 @@ export default class MainGame extends Phaser.Scene {
 
     static WHY_IS_VIDEO_NOT_CENTERED_X = 45;
     // The pan range needs to be proportional to the MAX_HEAR_DISTANCE but since the video positioing is mysterious I would rather have the flexibility of fine-tunining
-    static VIDEO_PAN_RANGE_X = 400;
+    static VIDEO_PAN_RANGE_X = 350;
     static VIDEO_PAN_RANGE_Y = 240;
     handleVideoPan() {
         // let _distance_vid = Phaser.Math.Distance.Between(
@@ -566,7 +566,7 @@ export default class MainGame extends Phaser.Scene {
         let _dist_y = this.current_player.y - this.youtubePlayer.y;
         // NOTE All these numbers below are trial and error, I don't know where the actual center position of the video player is.
 
-        if (Math.abs(_dist_x) < MainGame.VIDEO_PAN_RANGE_X && _dist_y < MainGame.VIDEO_PAN_RANGE_Y) {
+        if (Math.abs(_dist_x + MainGame.WHY_IS_VIDEO_NOT_CENTERED_X) < MainGame.VIDEO_PAN_RANGE_X && _dist_y < MainGame.VIDEO_PAN_RANGE_Y) {
             if (!!this.cameras.main.following_player) {
                 this.cameras.main.following_player = false;
                 this.cameras.main.stopFollow();
