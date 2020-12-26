@@ -46,13 +46,20 @@ export default class Login extends Phaser.Scene {
     let title_dom = document.querySelector('#formtitle');
     title_dom.innerHTML = _room_display_name;
 
+
+    let existing_username = localStorage.getItem("username");
+    if (!!existing_username && existing_username.length > 0) {
+      document.querySelector('#username').value = existing_username;
+    }
+
+
     form_element.addListener('click');
     form_element.setPerspective(800);
     form_element.on('click', function (event) {
 
       if (event.target.name === 'loginButton') {
-        var inputUsername = this.getChildByName('username');
-        var inputPassword = this.getChildByName('password');
+        let inputUsername = this.getChildByName('username');
+        let inputPassword = this.getChildByName('password');
 
         //  Have they entered anything?
         if (inputUsername.value !== '') { //&& inputPassword.value !== '') {
@@ -73,7 +80,8 @@ export default class Login extends Phaser.Scene {
           //  Populate the text with whatever they typed in as the username!
           // text.setText('Welcome ' + inputUsername.value);
           localStorage.setItem("username", inputUsername.value);
-          localStorage.setItem("password", inputPassword.value);
+          if (inputPassword)
+            localStorage.setItem("password", inputPassword.value);
           console.log('Welcome ' + inputUsername.value);
         }
         else {
