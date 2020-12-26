@@ -24,7 +24,7 @@ var express = require('express');
 var app = express();
 
 var PORT = 8081;
-const cert_path = '/etc/letsencrypt/live/testing.backend.groovyantoid.com/';
+const cert_path = '/etc/letsencrypt/live/mossylogs.com/';
 
 
 var server;
