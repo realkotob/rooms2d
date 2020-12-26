@@ -6,8 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js ",
-    "buildAllAndStart": "cd client/ && npm run build && cd .. && mkdir logs && node server.js | pino-tee warn ./logs/warn.log >> ./logs/all.log",
-    "devbuildAllAndStart": "cd client/ && npm run devbuild && cd .. && mkdir logs && node server.js | pino-tee warn ./logs/warn-dev.log >> ./logs/all-dev.log"
+    "buildAllAndStart": "cd client/ && npm run build && cd .. && mkdir -p logs && node server.js | pino-tee warn ./logs/warn.log >> ./logs/all.log",
+    "devbuildAllAndStart": "cd client/ && npm run devbuild && cd .. && mkdir -p logs && node server.js | pino-tee warn ./logs/warn-dev.log >> ./logs/all-dev.log"
   },
   "repository": {
     "type": "git",
