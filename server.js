@@ -114,7 +114,7 @@ app.get('/r/:roomid', function (req, res) {
 
 server.lastPlayderID = 0;
 
-const wsServer = new ws.Server({ port: 8080 });
+const wsServer = new ws.Server({ server: server });
 
 const CHARACTER_SPRITE_COUNT = 24;
 let room_sockets = new Map();

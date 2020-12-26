@@ -64,7 +64,7 @@ export default class MainGame extends Phaser.Scene {
         const self = this;
 
 
-        this.Client.socket = new WebSocket(`ws://localhost:8080`);
+        this.Client.socket = new WebSocket(`ws://${window.location.host}`);
         this.Client.socket.binaryType = 'arraybuffer';
 
         // this.Client.socket.on('connected', function () {
