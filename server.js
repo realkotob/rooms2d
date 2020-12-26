@@ -124,23 +124,22 @@ wsServer.on('connection', socket => {
         try {
             const decoded_data = decode(p_data);
             const msg_key = decoded_data.k;
-            logger.info(`Received data with key ${msg_key}`);
             const data = decoded_data.d;
-            if (msg_key === "req_newplayer") {
 
-                let _room = DEFAULT_ROOM;
+            let tmp_room = DEFAULT_ROOM;
+            if (msg_key === "req_newplayer") {
                 if (!!p_data && !!p_data.room && !(/[^\w.]/.test(p_data.room))) {  // only allow certain characters in room names
                     // to prevent messing with socket.io internal rooms  from https://stackoverflow.com/a/46125634
-                    _room = p_data.room;
+                    tmp_room = p_data.room;
                 }
                 // (newplayer_data && newplayer_data.room) || DEFAULT_ROOM);
-                add_socket_to_room(socket, _room);
+                add_socket_to_room(socket, tmp_room);
 
                 server.lastPlayderID += 1;
                 let _name = p_data.username && p_data.username.length > 0 ? p_data.username : ("P" + server.lastPlayderID);
                 // console.log("Player name is %s", _name);
                 socket.player = {
-                    room: _room,
+                    room: tmp_room,
                     sprite: server.lastPlayderID % CHARACTER_SPRITE_COUNT,
                     uname: _name,
                     rt: {
@@ -155,13 +154,13 @@ wsServer.on('connection', socket => {
 
                 // console.log(socket.rooms); // Set { <socket.id>, "room1" }
 
-                send_message_to_socket(socket, "allplayers", { you: socket.player, all: get_all_players_in_room(_room) });
-                send_to_room(_room, "newplayer", socket.player);
+                send_message_to_socket(socket, "allplayers", { you: socket.player, all: get_all_players_in_room(tmp_room) });
+                send_to_room(socket.player.room, "newplayer", socket.player, [socket]);
 
                 socket.on('close', function close() {
                     try {
-                        remove_socket_from_room(socket, _room);
-                        send_to_room(socket.player.rt.room, "remove", socket.player.rt.id);
+                        remove_socket_from_room(socket, tmp_room);
+                        send_to_room(socket.player.room, "remove", socket.player.rt.id, [socket]);
                         console.log('disconnected');
                     } catch (error) {
                         logger.error(`error in socket on disconnect ${error}`);
@@ -173,7 +172,7 @@ wsServer.on('connection', socket => {
                 socket.player.rt.py = data.py;
                 socket.player.rt.vx = data.vx;
                 socket.player.rt.vy = data.vy;
-                send_to_room(_room, "moved", socket.player.rt);
+                send_to_room(tmp_room, "moved", socket.player.rt, [socket]);
             }
             else if (msg_key === "test") {
                 console.log('test received');
@@ -207,7 +206,7 @@ function send_message_to_socket(p_socket, p_msg_id, p_data) {
     try {
         const encoded = encode({ k: p_msg_id, d: p_data });
 
-        p_socket.send(Buffer.from(encoded.buffer, encoded.byteOffset, encoded.byteLength));
+        p_socket.send(Buffer.from(encoded.buffer, encoded.byteOffset, encoded.byteLength), { binary: true, mask: true });
     } catch (error) {
         logger.error(`error in send_message_to_socket ${error}`);
     }
@@ -239,12 +238,12 @@ function remove_socket_from_room(p_socket, p_room_id) {
         logger.error(`error in remove_socket_from_room ${error}`);
     }
 }
-function send_to_room(p_room_id, p_msg_id, p_data) {
+function send_to_room(p_room_id, p_msg_id, p_data, p_exceptions = []) {
     try {
         let room_array = room_sockets.get(p_room_id);
         if (!!room_array) {
             room_array.forEach(p_socket => {
-                if (p_socket.readyState === ws.OPEN) { // Add extra param to check client !== socket for not pinging user back
+                if (p_socket.readyState === ws.OPEN && p_exceptions.indexOf(p_socket) == -1) { // Add extra param to check client !== socket for not pinging user back
                     send_message_to_socket(p_socket, p_msg_id, p_data);
                 }
             });
@@ -252,11 +251,7 @@ function send_to_room(p_room_id, p_msg_id, p_data) {
     } catch (error) {
         logger.error(`error in send_to_room ${error}`);
     }
-    // wsServer.clients.forEach(function each(client) {
-    //     if (client !== socket && client.readyState === WebSocket.OPEN) {
-    //         client.send(data);
-    //     }
-    // });
+
 }
 
 function get_all_players_in_room(p_room_id) {

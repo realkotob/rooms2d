@@ -65,6 +65,7 @@ export default class MainGame extends Phaser.Scene {
 
 
         this.Client.socket = new WebSocket(`ws://localhost:8080`);
+        this.Client.socket.binaryType = 'arraybuffer';
 
         // this.Client.socket.on('connected', function () {
         //     // get path from current URL
@@ -111,7 +112,7 @@ export default class MainGame extends Phaser.Scene {
             }
             // console.log("Room ID %s", self.room_id);
             let _name = localStorage.getItem("username");
-            console.log("Selected name %s", _name);
+            // console.log("Selected name %s", _name);
             self.Client.send_message('req_newplayer', { room: self.room_id, username: _name });
         };
 
@@ -124,13 +125,13 @@ export default class MainGame extends Phaser.Scene {
         };
 
         this.Client.socket.onmessage = function (event) {
-            console.log("Received event ", event);
+            // console.log("Received event ", event);
             const decoded = decode(event.data);
             // console.log(event.decoded);
             const msg_id = decoded.k;
             const data = decoded.d;
             if (msg_id === "newplayer") {
-                console.log("Recieved newplayer %s ", JSON.stringify(data));
+                // console.log("Recieved newplayer %s ", JSON.stringify(data));
                 self.addNewPlayer(data.rt.id, data.rt.px, data.rt.py, data.sprite, data.uname);
             } else if (msg_id === "allplayers") {
                 self.player_id = data.you.rt.id.toString();
@@ -179,7 +180,7 @@ export default class MainGame extends Phaser.Scene {
 
                 const _all = data.all;
                 for (let i = 0; i < _all.length; i++) {
-                    console.log("Recieved allplayers %s ", JSON.stringify(data));
+                    // console.log("Recieved allplayers %s ", JSON.stringify(data));
                     self.addNewPlayer(_all[i].rt.id, _all[i].rt.px, _all[i].rt.py, _all[i].sprite, _all[i].uname);
                 }
 
@@ -556,7 +557,7 @@ export default class MainGame extends Phaser.Scene {
         game_dom = game_dom ? game_dom.querySelector('canvas') : null;
         if (game_dom) {
             game_dom.setAttribute("tabindex", "6");
-            console.log("Found element %s", game_dom);
+            // console.log("Found element %s", game_dom);
             game_dom.focus();
             this.game_dom_canvas = game_dom;
         }
