@@ -17,7 +17,7 @@
     display: block;
     height: 43px;
     font: 600 14px/1 'Open Sans', sans-serif;
-    padding-top: 14px;
+    padding-top: 4px;
     margin: 0;
     text-align: center;
     /* text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 #fff; */
@@ -33,7 +33,7 @@
     box-sizing: border-box;
     color: #FFFFFF;
     height: 39px;
-    margin: 31px 0 0 29px;
+    margin: 15px 0 0 29px;
     padding-left: 37px;
     transition: box-shadow 0.3s;
     width: 240px;
@@ -77,6 +77,15 @@
     background-position: 0 -16px
   }
 
+  .formtitle {
+    color: #FFFFFF;
+    margin: 20px 0 0 0;
+    position: relative;
+    font-family: Arial, "Helvetica", sans-serif;
+    font-size: 16px;
+    text-align: center;
+  }
+
   .forgot {
     color: #7f7f7f;
     display: inline-block;
@@ -106,7 +115,7 @@
     text-align: center;
     /* text-shadow: 1px 1px 0px #37a69b; */
     padding-top: 0px;
-    margin: 29px 0 0 29px;
+    margin: 15px 0 0 29px;
     position: relative;
     cursor: pointer;
     border: none;
@@ -136,6 +145,7 @@
 </style>
 
 <div class="login">
+  <p class="formtitle" id="formtitle">/r/ general</p>
   <input type="text" placeholder="Nickname?" id="username" name="username">
   <!-- <input type="password" placeholder="password" id="password" name="password"> -->
   <!-- <a href="#" class="forgot">forgot password?</a> -->

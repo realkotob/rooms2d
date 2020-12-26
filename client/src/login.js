@@ -32,15 +32,20 @@ export default class Login extends Phaser.Scene {
 
     this.add_map_bg();
 
-    let _room_name = "/r/ general";
+    let _room_display_name = "/r/ general";
     let pos = window.location.pathname.indexOf('/r/');
     if (pos !== -1) {
       let subname = window.location.pathname.slice(pos + 3);
-      _room_name = subname ? '/r/ ' + subname : _room_name;
+      _room_display_name = subname ? '/r/ ' + subname : _room_display_name;
     }
 
 
+
     let form_element = this.add.dom(450, 800).createFromHTML(login_form);
+
+    let title_dom = document.querySelector('#formtitle');
+    title_dom.innerHTML = _room_display_name;
+
     form_element.addListener('click');
     form_element.setPerspective(800);
     form_element.on('click', function (event) {
