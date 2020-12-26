@@ -28,8 +28,11 @@ const cert_path = '/etc/letsencrypt/live/testing.backend.groovyantoid.com/';
 
 
 var server;
+var SSL_FOUND = false;
+var httpServer = http.Server(app);
 if (fs.existsSync(cert_path)) {
     PORT = 443;
+    SSL_FOUND = true;
     logger.info("cert_path found, starting with SSL.");
 
     // var key = fs.readFileSync(__dirname + '/certs/server.key', 'utf8'); // Self signed
@@ -44,18 +47,26 @@ if (fs.existsSync(cert_path)) {
     server = https.Server(options, app);
 
     // Reroute to https internally. It's better to use nginx for this later 
+    // See https://stackoverflow.com/a/24015460
     // See https://developer.ibm.com/languages/node-js/tutorials/make-https-the-defacto-standard/
-    var httpServer = http.Server(app);
-    httpServer.listen(80);
-    app.use(function (request, response) {
-        if (!request.secure) {
-            response.redirect("https://" + request.headers.host + request.url);
-        }
-    });
+    app.all('*', ensureSecure); // at top of routing calls
+
+    function ensureSecure(req, res, next) {
+        if (req.secure) {
+            // OK, continue
+            return next();
+        };
+        // handle port numbers if you need non defaults
+        // res.redirect('https://' + req.host + req.url); // express 3.x
+        res.redirect('https://' + req.hostname + req.url); // express 4.x
+    }
+
+
 } else {
     logger.warn("cert_path not found, starting unsecure http.");
-    server = http.Server(app);
+    server = httpServer;
 }
+
 
 
 var io = require('socket.io')(server,
@@ -111,6 +122,9 @@ server.listen(process.env.PORT || PORT, function () {
     // console.log('Listening on http://localhost:' + server.address().port);
     console.log(`Server running at: http://localhost:${PORT}/`);
 });
+if (SSL_FOUND) {
+    httpServer.listen(80);
+}
 
 
 const CHARACTER_SPRITE_COUNT = 24;
