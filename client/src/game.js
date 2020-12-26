@@ -149,7 +149,7 @@ export default class MainGame extends Phaser.Scene {
 
 
                 self.peer.on('call', (call) => {
-                    console.log("Answering player ");
+                    // console.log("Answering player ");
                     let getUserMedia_ = (navigator.getUserMedia
                         || navigator.webkitGetUserMedia
                         || navigator.mozGetUserMedia
