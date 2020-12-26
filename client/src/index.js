@@ -23,7 +23,11 @@ const config = {
   dom: {
     createContainer: true
   },
-  pixelArt: true // from https://www.html5gamedevs.com/topic/36343-disable-antialias-in-phaser-3/
+  render: {
+    // antialias: false,
+    // roundPixels: true
+    pixelArt: true // from https://www.html5gamedevs.com/topic/36343-disable-antialias-in-phaser-3/
+  }
 };
 
 let game = new Phaser.Game(config);

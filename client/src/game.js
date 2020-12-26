@@ -801,6 +801,8 @@ export default class MainGame extends Phaser.Scene {
         let style = { font: "14px Arial", fill: "#000000", wordWrap: false, wordWrapWidth: (_new_player.width * _new_player.scale), align: "center" };//, backgroundColor: "#ffff00" };
         _new_player.name_label = this.add.text(
             _new_player.x + (_new_player.width * _new_player.scale) / 2, _new_player.y + (_new_player.height * _new_player.scale) / 2, _new_player.username, style);
+        _new_player.name_label.texture.setFilter(0);
+
     };
 
     updatePlayerYSort() {
@@ -811,8 +813,8 @@ export default class MainGame extends Phaser.Scene {
                 tmp_player.depth = tmp_player.y + (tmp_player.height * tmp_player.scale) / 2;
 
                 // console.log("Update label: %s", t_player.name_label.text);
-                tmp_player.name_label.x = Phaser.Math.Linear(tmp_player.name_label.x, tmp_player.x - + tmp_player.name_label.width / 2, 0.5);
-                tmp_player.name_label.y = Phaser.Math.Linear(tmp_player.name_label.y, tmp_player.y + (tmp_player.height * tmp_player.scale) / 2, 0.5);
+                tmp_player.name_label.x = Phaser.Math.Linear(tmp_player.name_label.x, tmp_player.x - + tmp_player.name_label.width / 2, 0.9);
+                tmp_player.name_label.y = Phaser.Math.Linear(tmp_player.name_label.y, tmp_player.y + (tmp_player.height * tmp_player.scale) / 2, 0.9);
 
 
             }

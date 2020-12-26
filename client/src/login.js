@@ -7,14 +7,34 @@ import r_pixel from './assets/sprites/pixel.png';
 import r_tilesheet from './assets/map/tilesheet.png';
 import r_map from './assets/map/example_map.json';
 
+var sceneConfig = {
+  // ....
+  pack: {
+    files: [{
+      type: 'plugin',
+      key: 'rexwebfontloaderplugin',
+      url: 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexwebfontloaderplugin.min.js',
+      start: true
+    }]
+  }
+};
+
 export default class Login extends Phaser.Scene {
   constructor() {
-    super({
-      key: 'examples'
-    })
+    super(sceneConfig);
   }
 
   preload() {
+    this.plugins.get('rexwebfontloaderplugin').addToScene(this);
+
+    this.load.rexWebFont({
+      google: {
+        families: ['VT323']
+      },
+      // testString: undefined,
+      // testInterval: 20,
+    });
+
     this.load.image('user', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/assets/images/person.png');
     this.load.image('password', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/assets/images/key.png');
     // this.load.image('user', 'js/rex-notes/assets/images/person.png');
@@ -88,14 +108,37 @@ var CreateLoginDialog = function (scene, config, onSubmit) {
   let height = GetValue(config, 'height', undefined);
 
   let first_print = true;
+  let font_fam = 'VT323';
+  // let font_fam = 'Arial';
 
   let background = scene.rexUI.add.roundRectangle(0, 0, 10, 10, 10, COLOR_PRIMARY);
-  let titleField = scene.add.text(0, 0, title);
+  // let titleField = scene.add.text(0, 0, title, { fontSize: 30, valign: 'center', fontFamily: font_fam });
+  let titleField = scene.add.text(0, 0, title, { valign: 'center', fontFamily: font_fam });
+  let user_image = scene.add.image(0, 0, 'user');
+  let bbcode_obj = scene.rexUI.add.BBCodeText(0, 0, username || "Enter nickname", {
+    fixedWidth: 150, fixedHeight: 36, fontFamily: font_fam, valign: 'center'
+  });
+
+  // user_image.texture.setFilter(0);
+  // titleField.texture.setFilter(0);
+  // bbcode_obj.texture.setFilter(0);
+
+  let resolution_factor = scene.sys.game.scale.displaySize.width / scene.sys.game.scale.gameSize.width;
+
+  titleField.setResolution(1);
+  bbcode_obj.setResolution(1);
+  console.log("Game size %s", scene.sys.game.scale.gameSize);
+  console.log("Base size %s", scene.sys.game.scale.baseSize);
+  console.log("Display size %s", scene.sys.game.scale.displaySize);
+  console.log("resolution_factor %s", resolution_factor);
+  // titleField.texture.setFilter(0);
+  // bbcode_obj.texture.setFilter(0);
+
   let userNameField = scene.rexUI.add.label({
     orientation: 'x',
     background: scene.rexUI.add.roundRectangle(0, 0, 10, 10, 10).setStrokeStyle(2, COLOR_LIGHT),
-    icon: scene.add.image(0, 0, 'user'),
-    text: scene.rexUI.add.BBCodeText(0, 0, username || "Enter nickname", { fixedWidth: 150, fixedHeight: 36, valign: 'center' }),
+    icon: user_image,
+    text: bbcode_obj,
     space: { top: 5, bottom: 5, left: 5, right: 5, icon: 10, }
   })
     .setInteractive()
@@ -136,7 +179,7 @@ var CreateLoginDialog = function (scene, config, onSubmit) {
   let loginButton = scene.rexUI.add.label({
     orientation: 'x',
     background: scene.rexUI.add.roundRectangle(0, 0, 10, 10, 10, COLOR_LIGHT),
-    text: scene.add.text(0, 0, 'Join'),
+    text: scene.add.text(0, 0, 'Join', { fontFamily: font_fam }),
     space: { top: 8, bottom: 8, left: 8, right: 8 }
   })
     .setInteractive()
