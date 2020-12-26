@@ -67,12 +67,8 @@ if (fs.existsSync(cert_path)) {
     server = httpServer;
 }
 
+const ws = require('ws');
 
-
-var io = require('socket.io')(server,
-    {
-        cookie: false // from https://github.com/socketio/socket.io/issues/2276
-    });
 const { ExpressPeerServer } = require('peer');
 
 const peerServer = ExpressPeerServer(server, {
@@ -118,99 +114,144 @@ app.get('/r/:roomid', function (req, res) {
 
 server.lastPlayderID = 0;
 
-server.listen(process.env.PORT || PORT, function () {
-    // console.log('Listening on http://localhost:' + server.address().port);
-    console.log(`Server running at: http://localhost:${PORT}/`);
-});
-if (SSL_FOUND) {
-    httpServer.listen(80);
-}
-
+const wsServer = new ws.Server({ server });
 
 const CHARACTER_SPRITE_COUNT = 24;
-io.on('connection', function (socket) {
+let room_sockets = {};
+wsServer.on('connection', socket => {
 
-    socket.on('newplayer', async function (p_data) {
+    socket.on('message', function incoming(p_data) {
         try {
-            let _room = DEFAULT_ROOM;
-            if (!!p_data && !!p_data.room && !(/[^\w.]/.test(p_data.room))) {  // from https://stackoverflow.com/a/46125634
-                _room = p_data.room;
+            const decoded_data = decode(p_data);
+            const msg_key = decoded_data.k;
+            const data = decoded_data.d;
+            if (msg_key === "new_player") {
+
+                let _room = DEFAULT_ROOM;
+                if (!!p_data && !!p_data.room && !(/[^\w.]/.test(p_data.room))) {  // only allow certain characters in room names
+                    // to prevent messing with socket.io internal rooms  from https://stackoverflow.com/a/46125634
+                    _room = p_data.room;
+                }
+                // (newplayer_data && newplayer_data.room) || DEFAULT_ROOM);
+                add_socket_to_room(socket, _room);
+
+                server.lastPlayderID += 1;
+                let _name = p_data.username && p_data.username.length > 0 ? p_data.username : ("P" + server.lastPlayderID);
+                // console.log("Player name is %s", _name);
+                socket.player = {
+                    room: _room,
+                    sprite: server.lastPlayderID % CHARACTER_SPRITE_COUNT,
+                    uname: _name,
+                    rt: {
+                        id: server.lastPlayderID,
+                        px: randomInt(100, 400),
+                        py: randomInt(100, 400),
+                        vx: 0,
+                        vy: 0,
+                    }
+                };
+                // console.log("Room for %s is %s", socket.player.id, socket.player.room);
+
+                // console.log(socket.rooms); // Set { <socket.id>, "room1" }
+
+                send_message_to_socket(socket, "allplayers", { you: socket.player, all: get_all_players_in_room(_room) });
+                send_to_room(_room, newplayer, socket.player);
+
+                socket.on('close', function close() {
+                    try {
+                        remove_socket_from_room(socket, _room);
+                        send_to_room(socket.player.rt.room, "remove", socket.player.rt.id);
+                        console.log('disconnected');
+                    } catch (error) {
+                        logger.error(`error in socket on disconnect ${error}`);
+                    }
+                });
             }
-            // (newplayer_data && newplayer_data.room) || DEFAULT_ROOM);
+            else if (msg_key === "move") {
+                socket.player.rt.px = data.px;
+                socket.player.rt.py = data.py;
+                socket.player.rt.vx = data.vx;
+                socket.player.rt.vy = data.vy;
+                send_to_room(_room, "moved", socket.player.rt);
+            }
+            else if (msg_key === "test") {
+                console.log('test received');
+            }
 
-            await socket.join(_room);
-
-            server.lastPlayderID += 1;
-            let _name = p_data.username && p_data.username.length > 0 ? p_data.username : ("P" + server.lastPlayderID);
-            // console.log("Player name is %s", _name);
-            socket.player = {
-                room: _room,
-                sprite: server.lastPlayderID % CHARACTER_SPRITE_COUNT,
-                uname: _name,
-                rt: {
-                    id: server.lastPlayderID,
-                    px: randomInt(100, 400),
-                    py: randomInt(100, 400),
-                    vx: 0,
-                    vy: 0,
-                }
-            };
-            // console.log("Room for %s is %s", socket.player.id, socket.player.room);
-
-            // console.log(socket.rooms); // Set { <socket.id>, "room1" }
-
-            socket.emit('allplayers', { you: socket.player, all: await getAllPlayers(_room) });
-            socket.to(_room).emit('newplayer', socket.player);
-
-            socket.on('move', function (p_data) {
-                try {
-                    // console.log('move to ' + data.x + ', ' + data.y);
-                    const data = decode(p_data);
-                    socket.player.rt.px = data.px;
-                    socket.player.rt.py = data.py;
-                    socket.player.rt.vx = data.vx;
-                    socket.player.rt.vy = data.vy;
-                    const encoded = encode(socket.player.rt);
-                    io.in(_room).emit('moved', Buffer.from(encoded.buffer, encoded.byteOffset, encoded.byteLength));
-                } catch (error) {
-                    logger.error(`error in socket on move ${error}`);
-                }
-            });
-
-            socket.on('disconnect', function () {
-                try {
-                    io.in(_room).emit('remove', socket.player.rt.id);
-                } catch (error) {
-                    logger.error(`error in socket on disconnect ${error}`);
-                }
-            });
         } catch (error) {
             logger.error(`error in socket on newplayer ${error}`);
         }
 
     });
 
-    socket.on('test', function () {
-        console.log('test received');
-    });
+
 });
 
-async function getAllPlayers(p_room) {
+server.listen(process.env.PORT || PORT, function () {
+    // console.log('Listening on http://localhost:' + server.address().port);
+    console.log(`Server running at: http://localhost:${PORT}/`);
+});
+// server.on('upgrade', (request, socket, head) => {
+//     wsServer.handleUpgrade(request, socket, head, socket => {
+//         wsServer.emit('connection', socket, request);
+//     });
+// });
+if (SSL_FOUND) {
+    httpServer.listen(80);
+}
+
+function send_message_to_socket(p_socket, p_msg_id, p_data) {
+    const encoded = encode({ k: p_msg_id, d: p_data });
+
+    p_socket.send(Buffer.from(encoded.buffer, encoded.byteOffset, encoded.byteLength));
+}
+
+function add_socket_to_room(p_socket, p_room_id) {
+    let room_array = room_sockets[p_room_id];
+    if (!room_array) {
+        room_sockets[p_room_id] = [p_socket];
+    } else {
+        room_sockets[p_room_id].push(socket);
+    }
+}
+function remove_socket_from_room(p_socket, p_room_id) {
+    let room_array = room_sockets[p_room_id];
+    if (!!room_array) {
+        let temp_index = room_array.indexOf(p_socket);
+        if (temp_index != -1) {
+            room_sockets[p_room_id].splice(temp_index, 1);
+        }
+    }
+}
+function send_to_room(p_room_id, p_msg_id, p_data) {
+    let room_array = room_sockets[p_room_id];
+    if (!!room_array) {
+        room_array.forEach(p_socket => {
+            if (p_socket.readyState === WebSocket.OPEN) { // Add extra param to check client !== socket for not pinging user back
+                send_message_to_socket(p_socket, p_msg_id, p_data);
+            }
+        });
+    }
+
+    // wsServer.clients.forEach(function each(client) {
+    //     if (client !== socket && client.readyState === WebSocket.OPEN) {
+    //         client.send(data);
+    //     }
+    // });
+}
+
+function get_all_players_in_room(p_room_id) {
     let players = [];
     try {
-        // console.log("getAllPlayers in %s", p_room);
-
-        // let _sockets_ids = await io.sockets.allSockets();
-        let _sockets_ids = await io.in(p_room).allSockets();
-        for (const socket_id of _sockets_ids) {
-            // console.log("Socket ID %s", (socket_id));
-            let player_socket = io.of("/").sockets.get(socket_id);
-            let player = player_socket && player_socket.player;
-            if (!!player) players.push(player);
-        };
-        // console.log("Sending players %s", JSON.stringify(players));
+        let room_array = room_sockets[p_room_id];
+        array.forEach(p_socket => {
+            if (!!p_socket.player) {
+                // TODO Maybe check if socket is still connected? :shrug:
+                players.push(p_socket.player);
+            }
+        });
     } catch (error) {
-        logger.error(`error in getAllPlayers ${error}`);
+        logger.error(`error in get_all_players_in_room ${error}`);
     }
     return players;
 }

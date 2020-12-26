@@ -1,5 +1,4 @@
 import { encode, decode } from "@msgpack/msgpack";
-import { io } from 'socket.io-client';
 import Phaser, { Utils } from 'phaser';
 import Peer from 'peerjs';
 import { Queue } from "./utils.js"
@@ -65,7 +64,7 @@ export default class MainGame extends Phaser.Scene {
         const self = this;
 
 
-        this.Client.socket = io.connect();
+        this.Client.socket = new WebSocket('ws://' + window.location.host + '/');
 
         // this.Client.socket.on('connected', function () {
         //     // get path from current URL
@@ -78,9 +77,15 @@ export default class MainGame extends Phaser.Scene {
         //     self.room_id = room;
         // });
 
+        this.Client.send_message = function (p_msg_id, p_data) {
+            const encoded = encode({ k: p_msg_id, d: p_data });
+
+            self.Client.socket.send(Buffer.from(encoded.buffer, encoded.byteOffset, encoded.byteLength));
+        };
+
         this.Client.sendTest = function () {
+            self.Client.send_message('test', "whatup");
             console.log("test sent");
-            self.Client.socket.emit('test');
         };
 
         this.Client.askNewPlayer = function () {
@@ -91,88 +96,87 @@ export default class MainGame extends Phaser.Scene {
             // console.log("Room ID %s", self.room_id);
             let _name = localStorage.getItem("username");
             console.log("Selected name %s", _name);
-            self.Client.socket.emit('newplayer', { room: self.room_id, username: _name });
+            self.Client.send_message('newplayer', { room: self.room_id, username: _name });
         };
 
         this.Client.sendMove = function (p_pos_x, p_pos_y, p_vel_x, p_vel_y) {
-            const encoded = encode({
+            // TODO Send empty object of the velocity is 0 and rounded positions are same as last frame
+            self.Client.send_message(
+                'move', {
                 px: Math.round(p_pos_x), py: Math.round(p_pos_y), vx: Math.round(p_vel_x), vy: Math.round(p_vel_y)
             });
-            // TODO Send empty object of the velocity is 0 and rounded positions are same as last frame
-            self.Client.socket.emit(
-                'move', Buffer.from(encoded.buffer, encoded.byteOffset, encoded.byteLength));
         };
 
-        this.Client.socket.on('newplayer', function (data) {
-            console.log("Recieved newplayer %s ", JSON.stringify(data));
-            self.addNewPlayer(data.rt.id, data.rt.px, data.rt.py, data.sprite, data.uname);
-        });
+        this.Client.socket.onmessage = function (event) {
+            const decoded = decode(event.data);
+            // console.log(event.decoded);
+            const msg_id = decoded.k;
+            const data = decoded.d;
+            if (msg_id === "newplayer") {
+                console.log("Recieved newplayer %s ", JSON.stringify(data));
+                self.addNewPlayer(data.rt.id, data.rt.px, data.rt.py, data.sprite, data.uname);
+            } else if (msg_id === "allplayers") {
+                self.player_id = data.you.rt.id.toString();
+                console.log("My new player id is ", self.player_id);
+                self.peer = new Peer(self.player_id);
+                self.peer.on('open', function () {
+                    console.log('My PeerJS ID is:', self.peer.id);
+
+                    const _all = data.all;
+                    for (let i = 0; i < _all.length; i++) {
+                        if (_all[i].rt.id != self.player_id)
+                            call_player(_all[i].rt.id);
+                    }
+                });
 
 
-        this.Client.socket.on('allplayers', function (data) {
-            self.player_id = data.you.rt.id.toString();
-            console.log("My new player id is ", self.player_id);
-            self.peer = new Peer(self.player_id);
-            self.peer.on('open', function () {
-                console.log('My PeerJS ID is:', self.peer.id);
+                self.peer.on('call', (call) => {
+                    console.log("Answering player ");
+                    let getUserMedia_ = (navigator.getUserMedia
+                        || navigator.webkitGetUserMedia
+                        || navigator.mozGetUserMedia
+                        || navigator.msGetUserMedia);
+                    getUserMedia_({ video: false, audio: true }, (stream) => {
+                        call.answer(stream); // Answer the call with an A/V stream.
+                        call.on('stream', (remoteStream) => {
+                            // Show stream in some <video> element.
+                            let peer_id = call.peer.toString();
+                            console.log("Answered player " + peer_id);
+                            const remoteVideo = document.getElementById("p" + peer_id);
+                            if (remoteVideo) {
+                                remoteVideo.srcObject = remoteStream;
+                            } else {
+                                let video = document.createElement('video');
+                                video.srcObject = remoteStream;
+                                video.autoplay = true;
+                                video.id = "p" + peer_id;
+                                let element = document.getElementById("media-container");
+                                element.appendChild(video);
+                            }
+                        });
+                    }, (err) => {
+                        console.error('Failed to get local stream', err);
+                    });
+                });
+
 
                 const _all = data.all;
                 for (let i = 0; i < _all.length; i++) {
-                    if (_all[i].rt.id != self.player_id)
-                        call_player(_all[i].rt.id);
+                    console.log("Recieved allplayers %s ", JSON.stringify(data));
+                    self.addNewPlayer(_all[i].rt.id, _all[i].rt.px, _all[i].rt.py, _all[i].sprite, _all[i].uname);
                 }
-            });
 
-
-            self.peer.on('call', (call) => {
-                console.log("Answering player ");
-                let getUserMedia_ = (navigator.getUserMedia
-                    || navigator.webkitGetUserMedia
-                    || navigator.mozGetUserMedia
-                    || navigator.msGetUserMedia);
-                getUserMedia_({ video: false, audio: true }, (stream) => {
-                    call.answer(stream); // Answer the call with an A/V stream.
-                    call.on('stream', (remoteStream) => {
-                        // Show stream in some <video> element.
-                        let peer_id = call.peer.toString();
-                        console.log("Answered player " + peer_id);
-                        const remoteVideo = document.getElementById("p" + peer_id);
-                        if (remoteVideo) {
-                            remoteVideo.srcObject = remoteStream;
-                        } else {
-                            let video = document.createElement('video');
-                            video.srcObject = remoteStream;
-                            video.autoplay = true;
-                            video.id = "p" + peer_id;
-                            let element = document.getElementById("media-container");
-                            element.appendChild(video);
-                        }
-                    });
-                }, (err) => {
-                    console.error('Failed to get local stream', err);
-                });
-            });
-
-
-            const _all = data.all;
-            for (let i = 0; i < _all.length; i++) {
-                console.log("Recieved allplayers %s ", JSON.stringify(data));
-                self.addNewPlayer(_all[i].rt.id, _all[i].rt.px, _all[i].rt.py, _all[i].sprite, _all[i].uname);
-            }
-
-
-            self.Client.socket.on('moved', function (p_data) {
-                const data = decode(p_data);
+            } else if (msg_id === "moved") {
                 if (self.player_id != data.id) {
                     // console.log("player %s moved. current player %s", data.id, self.player_id)
                     self.updatePlayerPhysics(data.id, data);
                 }
-            });
+            } else if (msg_id === "remove") {
+                self.removePlayer(data.id);
 
-            self.Client.socket.on('remove', function (id) {
-                self.removePlayer(id);
-            });
-        });
+            }
+
+        }
 
         function call_player(p_id) {
             console.log("Calling player ", p_id);
