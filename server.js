@@ -27,9 +27,9 @@ var PORT = 8081;
 const cert_path = '/etc/letsencrypt/live/mossylogs.com/';
 
 
-var server;
 var SSL_FOUND = false;
 var httpServer = http.Server(app);
+var server = httpServer;
 if (fs.existsSync(cert_path)) {
     PORT = 443;
     SSL_FOUND = true;
@@ -114,7 +114,8 @@ app.get('/r/:roomid', function (req, res) {
 
 server.lastPlayderID = 0;
 
-const wsServer = new ws.Server({ server: server });
+// let WS_PORT = 8080;
+const wsServer = new ws.Server({ port: 8080 });
 
 const CHARACTER_SPRITE_COUNT = 24;
 let room_sockets = new Map();
@@ -175,7 +176,7 @@ wsServer.on('connection', socket => {
                 send_to_room(tmp_room, "moved", socket.player.rt, [socket]);
             }
             else if (msg_key === "test") {
-                console.log('test received');
+                logger.info('test received');
             } else {
                 logger.info("Received message with unknown id");
             }
@@ -276,7 +277,8 @@ function randomInt(low, high) {
     return Math.floor(Math.random() * (high - low) + low);
 }
 
-// const client = new ws(`ws://localhost:${PORT}`);
+// const client = new ws(`ws://localhost:${WS_PORT}`);
+// client.binaryType = "arraybuffer";
 
 // client.on('open', () => {
 //     logger.info("Connected to self websocket!")
