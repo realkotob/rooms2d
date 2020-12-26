@@ -43,10 +43,14 @@ if (fs.existsSync(cert_path)) {
 
     server = https.Server(options, app);
 
+    // Reroute to https internally. It's better to use nginx for this later 
+    // See https://developer.ibm.com/languages/node-js/tutorials/make-https-the-defacto-standard/
     var httpServer = http.Server(app);
     httpServer.listen(80);
-    httpServer.get('*', (request, response) => {
-        response.redirect('https://' + request.headers.host + request.url);
+    app.use(function (request, response) {
+        if (!request.secure) {
+            response.redirect("https://" + request.headers.host + request.url);
+        }
     });
 } else {
     logger.warn("cert_path not found, starting unsecure http.");
