@@ -114,7 +114,7 @@ app.get('/r/:roomid', function (req, res) {
 
 server.lastPlayderID = 0;
 
-const wsServer = new ws.Server({ server });
+const wsServer = new ws.Server({ noServer: true });
 
 const CHARACTER_SPRITE_COUNT = 24;
 let room_sockets = {};
@@ -191,11 +191,11 @@ server.listen(process.env.PORT || PORT, function () {
     // console.log('Listening on http://localhost:' + server.address().port);
     console.log(`Server running at: http://localhost:${PORT}/`);
 });
-// server.on('upgrade', (request, socket, head) => {
-//     wsServer.handleUpgrade(request, socket, head, socket => {
-//         wsServer.emit('connection', socket, request);
-//     });
-// });
+server.on('upgrade', function upgrade(request, socket, head) {
+    wsServer.handleUpgrade(request, socket, head, socket => {
+        wsServer.emit('connection', socket, request);
+    });
+});
 if (SSL_FOUND) {
     httpServer.listen(80);
 }
@@ -259,3 +259,12 @@ function get_all_players_in_room(p_room_id) {
 function randomInt(low, high) {
     return Math.floor(Math.random() * (high - low) + low);
 }
+
+const client = new ws('ws://127.0.0.1:8081');
+
+client.on('open', () => {
+    logger.info("Connected to self websocket!")
+    // Causes the server to print "Hello"
+    // client.send('Hello');
+    send_message_to_socket(client, "test", "whatever");
+});

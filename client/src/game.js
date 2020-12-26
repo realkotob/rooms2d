@@ -64,7 +64,7 @@ export default class MainGame extends Phaser.Scene {
         const self = this;
 
 
-        this.Client.socket = new WebSocket('ws://' + window.location.host + '/');
+        this.Client.socket = new WebSocket(`ws://${location.host}`);
 
         // this.Client.socket.on('connected', function () {
         //     // get path from current URL
@@ -77,7 +77,23 @@ export default class MainGame extends Phaser.Scene {
         //     self.room_id = room;
         // });
 
+        this.Client.socket.onerror = function () {
+            console.log('WebSocket error');
+        };
+
+        this.Client.socket.onopen = function () {
+            console.log('WebSocket connection established');
+        };
+        this.Client.socket.onclose = function () {
+            console.log('WebSocket connection closed');
+            self.Client.socket = null;
+        };
+
         this.Client.send_message = function (p_msg_id, p_data) {
+            if (!self.Client.socket) {
+                console.log("No websocket connection. Ignoring send.");
+                return;
+            }
             const encoded = encode({ k: p_msg_id, d: p_data });
 
             self.Client.socket.send(Buffer.from(encoded.buffer, encoded.byteOffset, encoded.byteLength));
