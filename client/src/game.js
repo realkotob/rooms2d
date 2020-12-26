@@ -135,10 +135,10 @@ export default class MainGame extends Phaser.Scene {
                 self.addNewPlayer(data.rt.id, data.rt.px, data.rt.py, data.sprite, data.uname);
             } else if (msg_id === "allplayers") {
                 self.player_id = data.you.rt.id.toString();
-                console.log("My new player id is ", self.player_id);
+                // console.log("My new player id is ", self.player_id);
                 self.peer = new Peer(self.player_id);
                 self.peer.on('open', function () {
-                    console.log('My PeerJS ID is:', self.peer.id);
+                    // console.log('My PeerJS ID is:', self.peer.id); // self.peer.id is equal to self.player_id
 
                     const _all = data.all;
                     for (let i = 0; i < _all.length; i++) {
