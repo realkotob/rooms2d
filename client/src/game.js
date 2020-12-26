@@ -64,7 +64,7 @@ export default class MainGame extends Phaser.Scene {
         const self = this;
 
 
-        this.Client.socket = new WebSocket(`ws://${location.host}`);
+        this.Client.socket = new WebSocket(`ws://localhost:8080`);
 
         // this.Client.socket.on('connected', function () {
         //     // get path from current URL
@@ -112,7 +112,7 @@ export default class MainGame extends Phaser.Scene {
             // console.log("Room ID %s", self.room_id);
             let _name = localStorage.getItem("username");
             console.log("Selected name %s", _name);
-            self.Client.send_message('newplayer', { room: self.room_id, username: _name });
+            self.Client.send_message('req_newplayer', { room: self.room_id, username: _name });
         };
 
         this.Client.sendMove = function (p_pos_x, p_pos_y, p_vel_x, p_vel_y) {
