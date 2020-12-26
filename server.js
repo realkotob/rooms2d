@@ -124,6 +124,7 @@ wsServer.on('connection', socket => {
         try {
             const decoded_data = decode(p_data);
             const msg_key = decoded_data.k;
+            logger.info(`Received data with key ${msg_key}`);
             const data = decoded_data.d;
             if (msg_key === "req_newplayer") {
 

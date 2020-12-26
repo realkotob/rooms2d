@@ -124,6 +124,7 @@ export default class MainGame extends Phaser.Scene {
         };
 
         this.Client.socket.onmessage = function (event) {
+            console.log("Received event ", event);
             const decoded = decode(event.data);
             // console.log(event.decoded);
             const msg_id = decoded.k;
