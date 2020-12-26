@@ -115,7 +115,8 @@ app.get('/r/:roomid', function (req, res) {
 server.lastPlayderID = 0;
 
 // let WS_PORT = 8080;
-const wsServer = new ws.Server({ server: server, path: "/ws" });
+// const wsServer = new ws.Server({ port: 8080, path: "/ws" });
+const wsServer = new ws.Server({ noServer: true });
 
 const CHARACTER_SPRITE_COUNT = 24;
 let room_sockets = new Map();
@@ -190,15 +191,16 @@ wsServer.on('connection', socket => {
 
 });
 
+
+server.on('upgrade', function upgrade(request, socket, head) {
+    wsServer.handleUpgrade(request, socket, head, socket => {
+        wsServer.emit('connection', socket, request);
+    });
+});
 server.listen(process.env.PORT || PORT, function () {
     // console.log('Listening on http://localhost:' + server.address().port);
     console.log(`Server running at: http://localhost:${PORT}/`);
 });
-// server.on('upgrade', function upgrade(request, socket, head) {
-//     wsServer.handleUpgrade(request, socket, head, socket => {
-//         wsServer.emit('connection', socket, request);
-//     });
-// });
 if (SSL_FOUND) {
     httpServer.listen(80);
 }
