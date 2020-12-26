@@ -3,49 +3,24 @@ const COLOR_LIGHT = 0x7b5e57;
 const COLOR_DARK = 0x260e04;
 import Phaser from 'phaser';
 
+import login_form from './assets/html/loginform.html';
 import r_pixel from './assets/sprites/pixel.png';
 import r_tilesheet from './assets/map/tilesheet.png';
 import r_map from './assets/map/example_map.json';
 
-var sceneConfig = {
-  // ....
-  pack: {
-    files: [{
-      type: 'plugin',
-      key: 'rexwebfontloaderplugin',
-      url: 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexwebfontloaderplugin.min.js',
-      start: true
-    }]
-  }
-};
-
 export default class Login extends Phaser.Scene {
   constructor() {
-    super(sceneConfig);
+    super();
   }
 
   preload() {
-    this.plugins.get('rexwebfontloaderplugin').addToScene(this);
-
-    this.load.rexWebFont({
-      google: {
-        families: ['VT323']
-      },
-      // testString: undefined,
-      // testInterval: 20,
-    });
+    // console.log("Login form HTML %s", login_form);
+    // this.load.html('nameform', login_form);
 
     this.load.image('user', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/assets/images/person.png');
     this.load.image('password', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/assets/images/key.png');
     // this.load.image('user', 'js/rex-notes/assets/images/person.png');
     // this.load.image('password', 'js/rex-notes/assets/images/key.png');
-
-    this.load.scenePlugin({
-      key: 'rexuiplugin',
-      url: 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexuiplugin.min.js',
-      // url: 'js/rex-notes/dist/rexuiplugin.min.js',
-      sceneKey: 'rexUI'
-    });
 
     this.load.tilemapTiledJSON('map', r_map);
     this.load.image('tilesheet', r_tilesheet);
@@ -53,6 +28,90 @@ export default class Login extends Phaser.Scene {
   }
 
   create() {
+    const self = this;
+
+    this.add_map_bg();
+
+    let _room_name = "/r/ general";
+    let pos = window.location.pathname.indexOf('/r/');
+    if (pos !== -1) {
+      let subname = window.location.pathname.slice(pos + 3);
+      _room_name = subname ? '/r/ ' + subname : _room_name;
+    }
+
+
+    let form_element = this.add.dom(450, 800).createFromHTML(login_form);
+    form_element.addListener('click');
+    form_element.setPerspective(800);
+    form_element.on('click', function (event) {
+
+      if (event.target.name === 'loginButton') {
+        var inputUsername = this.getChildByName('username');
+        var inputPassword = this.getChildByName('password');
+
+        //  Have they entered anything?
+        if (inputUsername.value !== '') { //&& inputPassword.value !== '') {
+          //  Turn off the click events
+          this.removeListener('click');
+
+          //  Tween the login form out
+          this.scene.tweens.add({ targets: form_element.rotate3d, x: 1, w: 90, duration: 500, ease: 'Power3' });
+
+          this.scene.tweens.add({
+            targets: form_element, scaleX: 2, scaleY: 2, y: 0, duration: 500, ease: 'Power3',
+            onComplete: function () {
+              form_element.setVisible(false);
+              self.scene.switch('MainGame');
+            }
+          });
+
+          //  Populate the text with whatever they typed in as the username!
+          // text.setText('Welcome ' + inputUsername.value);
+          localStorage.setItem("username", inputUsername.value);
+          localStorage.setItem("password", inputPassword.value);
+          console.log('Welcome ' + inputUsername.value);
+        }
+        else {
+          //  Flash the prompt
+          this.scene.tweens.add({ targets: text, alpha: 0.1, duration: 200, ease: 'Power3', yoyo: true });
+        }
+      }
+
+    });
+
+    this.tweens.add({
+      targets: form_element,
+      y: 330,
+      duration: 500,
+      ease: 'Power3'
+    });
+
+
+
+    // let print = this.add.text(0, 0, '');
+
+    // let loginDialog = CreateLoginDialog(this, {
+    //   x: 400,
+    //   y: 300,
+    //   title: _room_name,
+    //   default_username: localStorage.getItem("username"),
+    //   default_password: '',
+    // })
+    //   .on('login', function (username, password) {
+    //     print.text += `${username}:${password}\n`;
+    //   })
+    //   //.drawBounds(this.add.graphics(), 0xff0000);
+    //   .popUp(500);
+
+    // this.add.text(0, 560, 'Click user name or password field to edit it\nClick Login button to show user name and password');
+
+
+  }
+
+  update() { }
+
+
+  add_map_bg() {
     let map = this.make.tilemap({ key: 'map', tileWidth: 32, tileHeight: 32 });
     let tileset = map.addTilesetImage('tilesheet');
     let layer;
@@ -62,39 +121,14 @@ export default class Login extends Phaser.Scene {
         layer.visible = false;
       }
     }
+
     this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
     this.cameras.main.zoom = 1.5;
     this.bg_dim = this.add.tileSprite(
       map.widthInPixels / 2, map.heightInPixels / 2, map.widthInPixels, map.heightInPixels, 'pixel').setAlpha(0.2);
     this.bg_dim.setTint(0x000000);
-
-    let _room_name = "/r/ general";
-    let pos = window.location.pathname.indexOf('/r/');
-    if (pos !== -1) {
-      let subname = window.location.pathname.slice(pos + 3);
-      _room_name = subname ? '/r/ ' + subname : _room_name;
-    }
-    let print = this.add.text(0, 0, '');
-
-    let loginDialog = CreateLoginDialog(this, {
-      x: 400,
-      y: 300,
-      title: _room_name,
-      default_username: localStorage.getItem("username"),
-      default_password: '',
-    })
-      .on('login', function (username, password) {
-        print.text += `${username}:${password}\n`;
-      })
-      //.drawBounds(this.add.graphics(), 0xff0000);
-      .popUp(500);
-
-    // this.add.text(0, 560, 'Click user name or password field to edit it\nClick Login button to show user name and password');
-
-
   }
 
-  update() { }
 }
 
 const GetValue = Phaser.Utils.Objects.GetValue;
@@ -153,7 +187,7 @@ var CreateLoginDialog = function (scene, config, onSubmit) {
           textObject.text = text;
         }
       }
-      scene.rexUI.edit(userNameField.getElement('text'), config);
+      scene.rexUI.edit(userNameField.getform_element('text'), config);
     });
 
   let passwordField = scene.rexUI.add.label({
@@ -173,7 +207,7 @@ var CreateLoginDialog = function (scene, config, onSubmit) {
           textObject.text = markPassword(password);
         }
       };
-      scene.rexUI.edit(passwordField.getElement('text'), config);
+      scene.rexUI.edit(passwordField.getform_element('text'), config);
     });
 
   let loginButton = scene.rexUI.add.label({

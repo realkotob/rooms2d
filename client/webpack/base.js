@@ -5,6 +5,9 @@ const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 
 module.exports = {
   mode: "development",
+  cache: {
+    type: 'filesystem'
+  },
   devtool: "eval-source-map",
   output: {
     path: path.resolve(__dirname, "../../public/"),
@@ -27,6 +30,10 @@ module.exports = {
       {
         test: /\.(gif|png|jpe?g|svg|xml)$/i,
         use: "file-loader"
+      },
+      {
+        test: /\.html$/i,
+        loader: 'html-loader',
       }
     ]
   },
