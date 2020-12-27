@@ -340,22 +340,19 @@ export default class MainGame extends Phaser.Scene {
             height: 192
         }
 
-        try {
-            this.youtubePlayer = this.add.rexYoutubePlayer(
-                yt_original_config.x, yt_original_config.y, yt_original_config.width, yt_original_config.height, {
-                videoId: 'euhtxlDs0TU',
-                modestBranding: true,
-                loop: false,
-                autoPlay: false,
-                keyboardControl: false,
-                controls: true,
-            }).on('ready', function () {
-                console.log("Video ready");
-                // self.youtubePlayer.setPosition(600, 300);
-            });
-        } catch (error) {
-            console.error("Erorr starting yt plugin" + error);
-        }
+        this.youtubePlayer = this.add.rexYoutubePlayer(
+            yt_original_config.x, yt_original_config.y, yt_original_config.width, yt_original_config.height, {
+            videoId: 'euhtxlDs0TU',
+            modestBranding: true,
+            loop: false,
+            autoPlay: false,
+            keyboardControl: false,
+            controls: true,
+        }).on('ready', function () {
+            console.log("Video ready");
+            // self.youtubePlayer.setPosition(600, 300);
+        });
+
 
 
 
