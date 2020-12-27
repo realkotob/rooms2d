@@ -1,14 +1,24 @@
 <style>
-  .login {
+  /* This centers the element */
+  .screen_controls_popup_parent {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    min-height: 100vh;
+  }
+
+  .screen_controls_popup {
     background: #23272A;
     border: 1px solid #23272A;
     border-radius: 6px;
-    height: 257px;
-    margin: 20px auto 0;
-    width: 298px;
+    height: 185px;
+    /* margin: 20px auto 0; */
+    width: 500px;
   }
 
-  .login h1 {
+  .screen_controls_popup h1 {
     background-image: linear-gradient(top, #f1f3f3, #d4dae0);
     border-bottom: 1px solid #a6abaf;
     border-radius: 6px 6px 0 0;
@@ -36,7 +46,8 @@
     margin: 15px 0 0 29px;
     padding-left: 37px;
     transition: box-shadow 0.3s;
-    width: 240px;
+    /* width: 240px; */
+    width: 90%;
   }
 
   input[type="password"]:focus,
@@ -102,23 +113,32 @@
     color: #3b3b3b
   }
 
+  table.center {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
   input[type="submit"] {
-    width: 240px;
+    /* width: 50%; */
+    width: 100px;
     height: 35px;
     display: block;
     font-family: Arial, "Helvetica", sans-serif;
     font-size: 16px;
     font-weight: bold;
     color: #fff;
+    /* float: right; */
     text-decoration: none;
     text-transform: uppercase;
     text-align: center;
     /* text-shadow: 1px 1px 0px #37a69b; */
     padding-top: 0px;
-    margin: 15px 0 0 29px;
+    /* margin: 15px 0 0 29px; */
     position: relative;
     cursor: pointer;
     border: none;
+    margin-left: auto;
+    margin-right: auto;
     background-color: #7289DA;
     background-image: linear-gradient(top, #7289DA, #3111);
     border-top-left-radius: 5px;
@@ -128,15 +148,18 @@
     /* box-shadow: inset 0px 1px 0px #7289DA, 0px 5px 0px 0px #7289DA, 0px 10px 5px #7289DA; */
   }
 
+  .cancelButton {
+    background-color: #FF7F7F;
+    background-image: linear-gradient(top, #FF7F7F, #3111);
+  }
+
   .shadow {
     background: #000;
     border-radius: 12px 12px 4px 4px;
     box-shadow: 0 0 20px 10px #000;
     height: 8px;
-    /* margin: 30px auto; */
-    margin: 0px auto 0;
     opacity: 0.2;
-    width: 298px;
+    width: 500px;
   }
 
   input[type="submit"]:active {
@@ -145,11 +168,19 @@
   }
 </style>
 
-<div class="login" id="login">
-  <p class="formtitle" id="formtitle">/r/ general</p>
-  <input type="text" placeholder="Nickname?" id="username" name="username">
-  <!-- <input type="password" placeholder="password" id="password" name="password"> -->
-  <!-- <a href="#" class="forgot">forgot password?</a> -->
-  <input type="submit" value="Join!" name="loginButton">
+<div class="screen_controls_popup_parent" id="screen_controls_popup_parent">
+  <div class="screen_controls_popup" id="screen_controls_popup">
+    <p class="formtitle" id="formtitle">📺 Screen Controls 🍿</p>
+    <input type="text" placeholder="Enter Link to Video" id="videolink" name="videolink">
+    <!-- <input type="password" placeholder="password" id="password" name="password"> -->
+    <!-- <a href="#" class="forgot">forgot password?</a> -->
+    <table style="width: 90%; text-align: center;  padding-top:20px;padding-bottom:15px;" class="center">
+      <tr style="text-align: center;">
+        <td><input type="submit" value="Change" class="applyButton"></td>
+        <td><input type="submit" value="Cancel" class="cancelButton" style="background-color: #FF7F7F;
+    background-image: linear-gradient(top,#FF7F7F, #3111);"></td>
+      </tr>
+    </table>
+  </div>
+  <div class="shadow"></div>
 </div>
-<div class="shadow"></div>
