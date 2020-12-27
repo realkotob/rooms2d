@@ -17,8 +17,8 @@ const config = {
   // scene: [Boot, Preloader, MainMenu, MainGame],
   scene: [Login, MainGame],
   physics: {
-    default: 'matter',
-    matter: { debug: false }
+    default: 'arcade',
+    arcade: { debug: false }
   },
   dom: {
     createContainer: true

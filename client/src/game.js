@@ -359,11 +359,11 @@ export default class MainGame extends Phaser.Scene {
 
         this.youtubePlayer.original_config = yt_original_config;
 
-        // this.player_group = this.matter.add.group();
-        // this.ball_group = this.matter.add.group();
+        this.player_group = this.physics.add.group();
+        this.ball_group = this.physics.add.group();
 
 
-        // this.matter.add.collider(this.player_group, this.ball_group, this.on_hit_ball);
+        this.physics.add.collider(this.player_group, this.ball_group, this.on_hit_ball);
 
 
         // let testKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
@@ -381,8 +381,8 @@ export default class MainGame extends Phaser.Scene {
             if (layer.layer.name == "collision") {
                 layer.setCollisionByProperty({ collides: true });
                 // layer.setCollisionBetween(22, 24);
-                // this.matter.add.collider(this.player_group, layer);
-                // this.matter.add.collider(this.ball_group, layer);
+                this.physics.add.collider(this.player_group, layer);
+                this.physics.add.collider(this.ball_group, layer);
                 layer.visible = false;
             }
         }
@@ -391,8 +391,8 @@ export default class MainGame extends Phaser.Scene {
             if (layer.layer.name == "collision") {
                 layer.setCollisionByProperty({ collides: true });
                 // layer.setCollisionBetween(22, 24);
-                // this.matter.add.collider(this.player_group, layer);
-                // this.matter.add.collider(this.ball_group, layer);
+                this.physics.add.collider(this.player_group, layer);
+                this.physics.add.collider(this.ball_group, layer);
                 layer.visible = false;
             }
         }
@@ -401,8 +401,8 @@ export default class MainGame extends Phaser.Scene {
             if (layer.layer.name == "collision") {
                 layer.setCollisionByProperty({ collides: true });
                 // layer.setCollisionBetween(22, 24);
-                // this.matter.add.collider(this.player_group, layer);
-                // this.matter.add.collider(this.ball_group, layer);
+                this.physics.add.collider(this.player_group, layer);
+                this.physics.add.collider(this.ball_group, layer);
                 layer.visible = false;
             }
         }
@@ -411,8 +411,8 @@ export default class MainGame extends Phaser.Scene {
             if (layer.layer.name == "collision") {
                 layer.setCollisionByProperty({ collides: true });
                 // layer.setCollisionBetween(22, 24);
-                // this.matter.add.collider(this.player_group, layer);
-                // this.matter.add.collider(this.ball_group, layer);
+                this.physics.add.collider(this.player_group, layer);
+                this.physics.add.collider(this.ball_group, layer);
                 layer.visible = false;
             }
         }
@@ -421,8 +421,8 @@ export default class MainGame extends Phaser.Scene {
             if (layer.layer.name == "collision") {
                 layer.setCollisionByProperty({ collides: true });
                 // layer.setCollisionBetween(22, 24);
-                // this.matter.add.collider(this.player_group, layer);
-                // this.matter.add.collider(this.ball_group, layer);
+                this.physics.add.collider(this.player_group, layer);
+                this.physics.add.collider(this.ball_group, layer);
                 layer.visible = false;
             }
         }
@@ -431,8 +431,8 @@ export default class MainGame extends Phaser.Scene {
             if (layer.layer.name == "collision") {
                 layer.setCollisionByProperty({ collides: true });
                 // layer.setCollisionBetween(22, 24);
-                // this.matter.add.collider(this.player_group, layer);
-                // this.matter.add.collider(this.ball_group, layer);
+                this.physics.add.collider(this.player_group, layer);
+                this.physics.add.collider(this.ball_group, layer);
                 layer.visible = false;
             }
         }
@@ -441,7 +441,7 @@ export default class MainGame extends Phaser.Scene {
 
         //  Set the camera and physics bounds to be the size of 4x4 bg images
         this.cameras.main.setBounds(0, 0, map.widthInPixels * 3, map.heightInPixels * 2);
-        this.matter.world.setBounds(0, 0, map.widthInPixels * 3, map.heightInPixels * 2);
+        this.physics.world.setBounds(0, 0, map.widthInPixels * 3, map.heightInPixels * 2);
         this.cameras.main.zoom = 1.5;
         this.youtubePlayer.original_config.zoom = this.cameras.main.zoom;
 
@@ -463,7 +463,7 @@ export default class MainGame extends Phaser.Scene {
         // this.adaptive_layer.add(this.crosshair);
 
 
-        this.ball = this.matter.add.sprite(300, 400, 'slime', 6);
+        this.ball = this.physics.add.sprite(300, 400, 'slime', 6);
         this.ball.scale = 2;
         // this.ball.body.bounce = new Phaser.Math.Vector2(1, 1);
         this.ball.body.setVelocity(100, 100);
@@ -474,7 +474,7 @@ export default class MainGame extends Phaser.Scene {
         this.ball.setPushable(true);
         this.ball.setDrag(40);
         this.ball.setMaxVelocity(1000);
-        // this.ball_group.add(this.ball);
+        this.ball_group.add(this.ball);
 
         this.input.mouse.disableContextMenu();
 
@@ -770,7 +770,7 @@ export default class MainGame extends Phaser.Scene {
 
     addNewPlayer(p_id, p_pos_x, p_pos_y, p_sprite_id, p_username) {
         this.players.push(p_id);
-        let _new_player = this.matter.add.sprite(p_pos_x, p_pos_y, 'char_' + p_sprite_id, 0);
+        let _new_player = this.physics.add.sprite(p_pos_x, p_pos_y, 'char_' + p_sprite_id, 0);
         // _new_player.body.velocity.x = p_vel_x;
         // _new_player.body.velocity.y = p_vel_y;
         // this.adaptive_layer.add(_new_player);
@@ -792,7 +792,7 @@ export default class MainGame extends Phaser.Scene {
             this.cameras.main.following_player = true;
             // NOTE Second parameter of startFollow is for rounding pixel jitter. 
             // Setting it to true will fix the jitter of world tiles but add jitter for the player sprite.
-            // this.player_group.add(_new_player);
+            this.player_group.add(_new_player);
         }
 
         // Add label
@@ -849,7 +849,7 @@ export default class MainGame extends Phaser.Scene {
         let distance = Phaser.Math.Distance.Between(tmp_player.x, tmp_player.y, p_pos_x, p_pos_y);
 
 
-        this.matter.moveToObject(tmp_player, tmp_player.click_move_target, null,
+        this.physics.moveToObject(tmp_player, tmp_player.click_move_target, null,
             distance / MainGame.MOVE_CLICK_SPEED);
 
         if (this.player_id == p_id) {
