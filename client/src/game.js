@@ -389,7 +389,7 @@ export default class MainGame extends Phaser.Scene {
             // self.youtubePlayer.setPosition(600, 300);
         });
 
-
+        self.youtubePlayer.node.origin = location.host;
 
 
         this.youtubePlayer.original_config = yt_original_config;
