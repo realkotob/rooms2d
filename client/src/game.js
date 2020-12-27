@@ -92,7 +92,7 @@ export default class MainGame extends Phaser.Scene {
             self.Client.socket = null;
         };
 
-        this.Client.send_message = async function (p_msg_id, p_data) {
+        this.Client.send_message = function (p_msg_id, p_data) {
             if (!self.Client.socket) {
                 console.log("No websocket connection. Ignoring send.");
                 return;
