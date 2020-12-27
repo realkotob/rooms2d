@@ -94,22 +94,7 @@ const peerServer = ExpressPeerServer(server, {
     path: '/myapp'
 });
 
-app.use(
-    helmet.referrerPolicy({
-        policy: ["origin", "unsafe-url"],
-    })
-);
-app.use(
-    helmet({
-        contentSecurityPolicy: false,
-    })
-);
-
-app.use(
-    helmet.permittedCrossDomainPolicies({
-        permittedPolicies: "all",
-    })
-);
+app.use(helmet());
 
 app.use('*/peerjs', peerServer);
 
