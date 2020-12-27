@@ -112,28 +112,34 @@ export default class MainGame extends Phaser.Scene {
 
             // TODO Send empty object of the velocity is 0 and rounded positions are same as last frame
             self.Client.socket.emit(
-                'yt_url', p_new_v_id);
+                'yt_url', { p: self.player_id, v: p_new_v_id });
         };
 
         this.Client.sendYoutubeState = function (p_new_state) {
             // TODO Send empty object of the velocity is 0 and rounded positions are same as last frame
             self.Client.socket.emit(
-                'yt_state', p_new_state);
+                'yt_state', { p: self.player_id, s: p_new_state });
         };
 
-        this.Client.socket.on('yt_url', function (p_v_id) {
-            console.log("Recieved yt video ID %s ", p_v_id);
-            if (self.current_video_id != p_v_id) {
-                self.youtubePlayer.load(p_v_id);
+        this.Client.socket.on('yt_url', function (p_data) {
+            if (self.player_id == p_data.p) {
+                return;
+            }
+            console.log("Recieved yt video ID %s ", p_data);
+            if (self.current_video_id != p_data.v) {
+                self.youtubePlayer.load(p_data.v);
             }
         });
 
-        this.Client.socket.on('yt_state', function (p_state) {
-            console.log("Recieved yt video state %s ", p_state);
-            if (self.youtubePlayer.videoStateString != p_state) { // Not sure if this is the best check I can do
-                if (p_state == "pause") {
+        this.Client.socket.on('yt_state', function (p_data) {
+            if (self.player_id == p_data.p) {
+                return;
+            }
+            console.log("Recieved yt video state %s ", p_data);
+            if (self.youtubePlayer.videoStateString != p_data.s) { // Not sure if this is the best check I can do
+                if (p_data.s == "pause") {
                     self.youtubePlayer.pause();
-                } else if (p_state == "playing") {
+                } else if (p_data.s == "playing") {
                     self.youtubePlayer.play();
                 }
             }
