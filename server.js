@@ -94,7 +94,10 @@ const peerServer = ExpressPeerServer(server, {
     path: '/myapp'
 });
 
-app.use(helmet());
+// See https://www.npmjs.com/package/helmet
+app.use(helmet.expectCt());
+app.use(helmet.hsts());
+app.use(helmet.hidePoweredBy());
 
 app.use('*/peerjs', peerServer);
 
