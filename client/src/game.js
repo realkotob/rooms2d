@@ -255,13 +255,10 @@ export default class MainGame extends Phaser.Scene {
         this.load.spritesheet('characters', r_characters, { frameWidth: 48, frameHeight: 51 });
         this.load.spritesheet('slime', r_slime, { frameWidth: 24, frameHeight: 24 });
 
-        try {
-            let url = 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexyoutubeplayerplugin.min.js';
-            // let url = 'js/rex-notes/dist/rexyoutubeplayerplugin.min.js';
-            this.load.plugin('rexyoutubeplayerplugin', url, true);
-        } catch (error) {
-            console.error("Erorr preloading yt plugin" + error);
-        }
+        let url = 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexyoutubeplayerplugin.min.js';
+        // let url = 'js/rex-notes/dist/rexyoutubeplayerplugin.min.js';
+        this.load.plugin('rexyoutubeplayerplugin', url, true);
+
         // for (let i = 0; i < 24; i++) {
         //     this.load_char_spritesheet(i);
         // }
@@ -364,22 +361,19 @@ export default class MainGame extends Phaser.Scene {
             height: 192
         }
 
-        try {
-            this.youtubePlayer = this.add.rexYoutubePlayer(
-                yt_original_config.x, yt_original_config.y, yt_original_config.width, yt_original_config.height, {
-                videoId: 'OkQlrIQhUMQ',
-                modestBranding: true,
-                loop: false,
-                autoPlay: false,
-                keyboardControl: false,
-                controls: true,
-            }).on('ready', function () {
-                console.log("Video ready");
-                // self.youtubePlayer.setPosition(600, 300);
-            });
-        } catch (error) {
-            console.error("Erorr starting yt plugin" + error);
-        }
+        self.youtubePlayer = self.add.rexYoutubePlayer(
+            yt_original_config.x, yt_original_config.y, yt_original_config.width, yt_original_config.height, {
+            videoId: 'OkQlrIQhUMQ',
+            modestBranding: true,
+            loop: false,
+            autoPlay: false,
+            keyboardControl: false,
+            controls: true,
+        }).on('ready', function () {
+            console.log("Video ready");
+            // self.youtubePlayer.setPosition(600, 300);
+        });
+
 
 
 
