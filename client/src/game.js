@@ -5,6 +5,10 @@ import Peer from 'peerjs';
 import { Queue } from "./utils.js"
 import rexYoutubePlayerURL from "../../rex-notes/plugins/youtubeplayer-plugin.js"
 
+import screen_controls_hint_html from './assets/html/screen_controls_hint.html';
+import screen_controls_html from './assets/html/screen_controls.html';
+
+
 import r_pixel from './assets/sprites/pixel.png';
 import r_tilesheet from './assets/map/tilesheet.png';
 import r_example_map from './assets/map/example_map.json';
@@ -340,10 +344,13 @@ export default class MainGame extends Phaser.Scene {
             width: 340,
             height: 192
         }
+        this.current_video_id = 'euhtxlDs0TU';
+
+
 
         this.youtubePlayer = this.add.rexYoutubePlayer(
             yt_original_config.x, yt_original_config.y, yt_original_config.width, yt_original_config.height, {
-            videoId: 'euhtxlDs0TU',
+            videoId: this.current_video_id,
             modestBranding: true,
             loop: false,
             autoPlay: false,
@@ -351,13 +358,14 @@ export default class MainGame extends Phaser.Scene {
             controls: true,
         }).on('ready', function () {
             console.log("Youtube Video ready");
+            self.load_screen_controls();
+
             // self.youtubePlayer.setPosition(600, 300);
         });
 
-
-
-
         this.youtubePlayer.original_config = yt_original_config;
+
+
 
         this.player_group = this.physics.add.group();
         this.ball_group = this.physics.add.group();
@@ -541,10 +549,9 @@ export default class MainGame extends Phaser.Scene {
     }
 
     focus_game() {
-        if (this.game_dom_canvas) {
+        // TESTME This needs to be disabled when other UI is shown
+        if (this.game_dom_canvas && !this.showing_focused_ui) {
             this.game_dom_canvas.focus();
-        } else {
-            console.log("Dom canvas was not setup for focus");
         }
     }
     handle_video_proximity() {
@@ -591,6 +598,13 @@ export default class MainGame extends Phaser.Scene {
         if (!this.player_id || !this.current_player) {
             return;
         }
+
+
+        if (Phaser.Input.Keyboard.JustDown(this.keys_arrows.space)) {
+            console.log("Pressed space");
+            this.show_video_controls();
+        }
+
         let current_move_input = new Phaser.Math.Vector2(0, 0);
         if (this.keys_arrows.up.isDown || this.keys_wasd.up.isDown) {
             current_move_input.y = -1;
@@ -868,7 +882,77 @@ export default class MainGame extends Phaser.Scene {
         delete this.playerMap[id];
     };
 
+    load_screen_controls() {
+        // TODO Maybe animate alpha for this
+        this.screen_controls_hint = this.add.dom(1455, 70).createFromHTML(screen_controls_hint_html);
+
+        this.screen_controls = this.add.dom(1230, 300).createFromHTML(screen_controls_html);
+
+        this.screen_controls.node.style.visibility = "hidden";
+
+        this.videolink = this.screen_controls.getChildByID('videolink');
+        this.videolink.value = `https://www.youtube.com/watch?v=${this.current_video_id}`;
+
+
+
+    }
+
+    show_video_controls() {
+        if (!this.screen_controls)
+            return;
+
+        const self = this;
+        this.showing_focused_ui = true;
+        this.screen_controls.node.style.visibility = "visible";
+
+        let string_before_open = self.videolink.value;
+
+        this.screen_controls.addListener('click');
+        // this.screen_controls.setPerspective(800);
+        this.screen_controls.on('click', function (event) {
+
+            if (event.target.name === 'applyButton') {
+                self.screen_controls.node.style.visibility = "hidden";
+                this.removeListener('click');
+                self.showing_focused_ui = false;
+
+                let new_entered = self.videolink.value;
+                if (new_entered !== '') {
+                    // From https://stackoverflow.com/questions/6903823/regex-for-youtube-id
+                    // and https://stackoverflow.com/questions/2936467/parse-youtube-video-id-using-preg-match/6382259#6382259
+
+                    let videoId = get_yt_id_from_link(new_entered);
+                    if (!!videoId) {
+                        // console.log("Matched video ID %s", videoId);
+                        self.current_video_id = videoId;
+                        self.youtubePlayer.load(videoId);
+                        // TODO Network this to everyone in the room
+                    } else {
+                        console.log("Did not match video IDs");
+                    }
+                }
+
+            }
+            else if (event.target.name === 'cancelButton') {
+                self.screen_controls.node.style.visibility = "hidden";
+                this.removeListener('click');
+                self.showing_focused_ui = false;
+
+                self.videolink.value = string_before_open; //`https://www.youtube.com/watch?v=${self.current_video_id}`;
+
+                // self.scene.tweens.add({ targets: text, alpha: 0.1, duration: 200, ease: 'Power3', yoyo: true });
+            }
+
+        });
+    }
+
 
 }
 
-
+// var regexep_youtube = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/gi;
+var regexep_youtube = /youtu(?:.*\/v\/|.*v\=|\.be\/)([A-Za-z0-9_\-]{11})/;
+var get_yt_id_from_link = function (url) {
+    // console.log("Regexing url %s", url);
+    var code = url.match(regexep_youtube);
+    return (!!code && (typeof code[1] == 'string')) ? code[1] : false;
+}
