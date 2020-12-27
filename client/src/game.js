@@ -62,10 +62,15 @@ export default class MainGame extends Phaser.Scene {
         // game.stage.disableVisibilityChange = true;
 
         const self = this;
-        this.Client = {};
+        this.Client = { finished_connecting: false, finish_preload: false, asked_for_player: false };
 
         // this.Client.socket = new WebSocket(`ws://${location.host.split(":")[0]}:8080/ws`);
-        this.Client.socket = new WebSocket(`wss://${location.host}/ws`);
+        let baseurl = location.host.split(":")[0];
+        if (baseurl === "localhost") {
+            this.Client.socket = new WebSocket(`ws://${baseurl}:8080/ws`);
+        } else {
+            this.Client.socket = new WebSocket(`wss://${baseurl}/ws`);
+        }
         this.Client.socket.binaryType = 'arraybuffer';
 
         // this.Client.socket.on('connected', function () {
@@ -84,7 +89,10 @@ export default class MainGame extends Phaser.Scene {
         };
 
         this.Client.socket.onopen = function () {
-            self.Client.askNewPlayer();
+            self.Client.finished_connecting = true;
+            if (self.Client.finish_preload) {
+                self.Client.askNewPlayer();
+            }
             console.log('WebSocket connection established');
         };
         this.Client.socket.onclose = function () {
@@ -108,6 +116,10 @@ export default class MainGame extends Phaser.Scene {
         };
 
         this.Client.askNewPlayer = function () {
+            if (!!self.Client.asked_for_player) {
+                return;
+            }
+            self.Client.asked_for_player = true;
             let pos = window.location.pathname.indexOf('/r/');
             if (pos !== -1) {
                 self.room_id = window.location.pathname.slice(pos + 3);
@@ -524,6 +536,11 @@ export default class MainGame extends Phaser.Scene {
         // this.gameScene = this.scene.get('GameScene');
 
         this.setup_game_focus();
+
+        self.Client.finish_preload = true;
+        if (self.Client.finished_connecting) {
+            self.Client.askNewPlayer();
+        }
     }
 
     static COUNTER_DOM_UPDATE = 0;
