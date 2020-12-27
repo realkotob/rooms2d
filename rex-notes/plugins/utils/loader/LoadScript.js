@@ -15,6 +15,7 @@ var LoadScript = function (url, onload) {
     if (onload) {
         newScriptTag.onload = onload;
     }
+    console.log("Set src with new script in LoadScript.");
 
     document.head.appendChild(newScriptTag);
 };

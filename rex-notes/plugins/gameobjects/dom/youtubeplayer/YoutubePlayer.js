@@ -47,6 +47,7 @@ class YoutubePlayer extends DOMElement {
             modestbranding: GetValue(config, 'modestBranding', false) ? 1 : 0,
         };
         var onLoad = (function () {
+            console.log("Calling youtube onLoad");
             var youtubePlayer = new YT.Player(
                 elementId,
                 {

@@ -3,6 +3,7 @@ import LoadScript from '../../../utils/loader/LoadScript.js';
 var IsAPIReady = false;
 var LoadAPI = function (onLoaded) {
     if (IsAPIReady) {
+        console.log("YT Api already ready.");
         onLoaded();
     } else {
         if (!window.onYouTubeIframeAPIReady) {

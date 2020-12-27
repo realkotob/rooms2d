@@ -3,6 +3,7 @@ import { io } from 'socket.io-client';
 import Phaser, { Utils } from 'phaser';
 import Peer from 'peerjs';
 import { Queue } from "./utils.js"
+import rexYoutubePlayerURL from "../../rex-notes/plugins/youtubeplayer-plugin.js"
 
 import r_pixel from './assets/sprites/pixel.png';
 import r_tilesheet from './assets/map/tilesheet.png';
@@ -232,9 +233,9 @@ export default class MainGame extends Phaser.Scene {
         this.load.spritesheet('slime', r_slime, { frameWidth: 24, frameHeight: 24 });
 
         try {
-            let url = 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexyoutubeplayerplugin.min.js';
+            // let url = 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexyoutubeplayerplugin.min.js';
             // let url = 'js/rex-notes/dist/rexyoutubeplayerplugin.min.js';
-            this.load.plugin('rexyoutubeplayerplugin', url, true);
+            this.load.plugin('rexyoutubeplayerplugin', rexYoutubePlayerURL, true);
         } catch (error) {
             console.error("Erorr preloading yt plugin" + error);
         }
