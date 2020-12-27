@@ -82,7 +82,7 @@ export default class Login extends Phaser.Scene {
           localStorage.setItem("username", inputUsername.value);
           if (inputPassword)
             localStorage.setItem("password", inputPassword.value);
-          // console.log('Welcome ' + inputUsername.value);
+          console.log('Welcome ' + inputUsername.value);
         }
         else {
           //  Flash the prompt

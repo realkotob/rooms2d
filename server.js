@@ -27,10 +27,10 @@ var PORT = 8081;
 const cert_path = '/etc/letsencrypt/live/mossylogs.com/';
 
 
+var server;
 var SSL_FOUND = false;
 var httpServer = http.Server(app);
-var server = httpServer;
-if (false) { //fs.existsSync(cert_path)) {
+if (fs.existsSync(cert_path)) {
     PORT = 443;
     SSL_FOUND = true;
     logger.info("cert_path found, starting with SSL.");
@@ -67,8 +67,12 @@ if (false) { //fs.existsSync(cert_path)) {
     server = httpServer;
 }
 
-const ws = require('ws');
 
+
+var io = require('socket.io')(server,
+    {
+        cookie: false // from https://github.com/socketio/socket.io/issues/2276
+    });
 const { ExpressPeerServer } = require('peer');
 
 const peerServer = ExpressPeerServer(server, {
@@ -114,89 +118,6 @@ app.get('/r/:roomid', function (req, res) {
 
 server.lastPlayderID = 0;
 
-// let WS_PORT = 8080;
-// const wsServer = new ws.Server({ port: 8080, path: "/ws" });
-const wsServer = new ws.Server({ port: 8080 });
-
-const CHARACTER_SPRITE_COUNT = 24;
-let room_sockets = new Map();
-wsServer.on('connection', socket => {
-
-    socket.on('message', function incoming(p_data) {
-        try {
-            const decoded_data = decode(p_data);
-            const msg_key = decoded_data.k;
-            const data = decoded_data.d;
-
-            let tmp_room = DEFAULT_ROOM;
-            if (msg_key === "req_newplayer") {
-                if (!!p_data && !!p_data.room && !(/[^\w.]/.test(p_data.room))) {  // only allow certain characters in room names
-                    // to prevent messing with socket.io internal rooms  from https://stackoverflow.com/a/46125634
-                    tmp_room = p_data.room;
-                }
-                // (newplayer_data && newplayer_data.room) || DEFAULT_ROOM);
-                add_socket_to_room(socket, tmp_room);
-
-                server.lastPlayderID += 1;
-                let _name = p_data.username && p_data.username.length > 0 ? p_data.username : ("P" + server.lastPlayderID);
-                // console.log("Player name is %s", _name);
-                socket.player = {
-                    room: tmp_room,
-                    sprite: server.lastPlayderID % CHARACTER_SPRITE_COUNT,
-                    uname: _name,
-                    rt: {
-                        id: server.lastPlayderID,
-                        px: randomInt(100, 400),
-                        py: randomInt(100, 400),
-                        vx: 0,
-                        vy: 0,
-                    }
-                };
-                // console.log("Room for %s is %s", socket.player.id, socket.player.room);
-
-                // console.log(socket.rooms); // Set { <socket.id>, "room1" }
-
-                send_message_to_socket(socket, "allplayers", { you: socket.player, all: get_all_players_in_room(tmp_room) });
-                send_to_room(socket.player.room, "newplayer", socket.player, [socket]);
-
-                socket.on('close', function close() {
-                    try {
-                        remove_socket_from_room(socket, tmp_room);
-                        send_to_room(socket.player.room, "remove", socket.player.rt.id, [socket]);
-                        console.log('disconnected');
-                    } catch (error) {
-                        logger.error(`error in socket on disconnect ${error}`);
-                    }
-                });
-            }
-            else if (msg_key === "move") {
-                socket.player.rt.px = data.px;
-                socket.player.rt.py = data.py;
-                socket.player.rt.vx = data.vx;
-                socket.player.rt.vy = data.vy;
-                send_to_room(tmp_room, "moved", socket.player.rt, [socket]);
-            }
-            else if (msg_key === "test") {
-                logger.info('test received');
-            } else {
-                logger.info("Received message with unknown id");
-            }
-
-        } catch (error) {
-            logger.error(`error in socket ${error}`);
-        }
-
-    });
-
-
-});
-
-
-// server.on('upgrade', function upgrade(request, socket, head) {
-//     wsServer.handleUpgrade(request, socket, head, socket => {
-//         wsServer.emit('connection', socket, request);
-//     });
-// });
 server.listen(process.env.PORT || PORT, function () {
     // console.log('Listening on http://localhost:' + server.address().port);
     console.log(`Server running at: http://localhost:${PORT}/`);
@@ -205,72 +126,91 @@ if (SSL_FOUND) {
     httpServer.listen(80);
 }
 
-function send_message_to_socket(p_socket, p_msg_id, p_data) {
-    try {
-        const encoded = encode({ k: p_msg_id, d: p_data });
 
-        p_socket.send(Buffer.from(encoded.buffer, encoded.byteOffset, encoded.byteLength), { binary: true, mask: false });
-    } catch (error) {
-        logger.error(`error in send_message_to_socket ${error}`);
-    }
-}
+const CHARACTER_SPRITE_COUNT = 24;
+io.on('connection', function (socket) {
 
-function add_socket_to_room(p_socket, p_room_id) {
-    try {
-        let room_array = room_sockets.get(p_room_id);
-        if (!room_array) {
-            room_sockets.set(p_room_id, [p_socket]);
-        } else {
-            room_array.push(p_socket);
-        }
-    } catch (error) {
-        logger.error(`error in add_socket_to_room ${error}`);
-    }
-}
-function remove_socket_from_room(p_socket, p_room_id) {
-    try {
-
-        let room_array = room_sockets.get(p_room_id);
-        if (!!room_array) {
-            let temp_index = room_array.indexOf(p_socket);
-            if (temp_index != -1) {
-                room_array.splice(temp_index, 1);
+    socket.on('newplayer', async function (p_data) {
+        try {
+            let _room = DEFAULT_ROOM;
+            if (!!p_data && !!p_data.room && !(/[^\w.]/.test(p_data.room))) {  // from https://stackoverflow.com/a/46125634
+                _room = p_data.room;
             }
-        }
-    } catch (error) {
-        logger.error(`error in remove_socket_from_room ${error}`);
-    }
-}
-function send_to_room(p_room_id, p_msg_id, p_data, p_exceptions = []) {
-    try {
-        let room_array = room_sockets.get(p_room_id);
-        if (!!room_array) {
-            room_array.forEach(p_socket => {
-                if (p_socket.readyState === ws.OPEN && p_exceptions.indexOf(p_socket) == -1) { // Add extra param to check client !== socket for not pinging user back
-                    send_message_to_socket(p_socket, p_msg_id, p_data);
+            // (newplayer_data && newplayer_data.room) || DEFAULT_ROOM);
+
+            await socket.join(_room);
+
+            server.lastPlayderID += 1;
+            let _name = p_data.username && p_data.username.length > 0 ? p_data.username : ("P" + server.lastPlayderID);
+            // console.log("Player name is %s", _name);
+            socket.player = {
+                room: _room,
+                sprite: server.lastPlayderID % CHARACTER_SPRITE_COUNT,
+                uname: _name,
+                rt: {
+                    id: server.lastPlayderID,
+                    px: randomInt(100, 400),
+                    py: randomInt(100, 400),
+                    vx: 0,
+                    vy: 0,
+                }
+            };
+            // console.log("Room for %s is %s", socket.player.id, socket.player.room);
+
+            // console.log(socket.rooms); // Set { <socket.id>, "room1" }
+
+            socket.emit('allplayers', { you: socket.player, all: await getAllPlayers(_room) });
+            socket.to(_room).emit('newplayer', socket.player);
+
+            socket.on('move', function (p_data) {
+                try {
+                    // console.log('move to ' + data.x + ', ' + data.y);
+                    const data = decode(p_data);
+                    socket.player.rt.px = data.px;
+                    socket.player.rt.py = data.py;
+                    socket.player.rt.vx = data.vx;
+                    socket.player.rt.vy = data.vy;
+                    const encoded = encode(socket.player.rt);
+                    io.in(_room).emit('moved', Buffer.from(encoded.buffer, encoded.byteOffset, encoded.byteLength));
+                } catch (error) {
+                    logger.error(`error in socket on move ${error}`);
                 }
             });
+
+            socket.on('disconnect', function () {
+                try {
+                    io.in(_room).emit('remove', socket.player.rt.id);
+                } catch (error) {
+                    logger.error(`error in socket on disconnect ${error}`);
+                }
+            });
+        } catch (error) {
+            logger.error(`error in socket on newplayer ${error}`);
         }
-    } catch (error) {
-        logger.error(`error in send_to_room ${error}`);
-    }
 
-}
+    });
 
-function get_all_players_in_room(p_room_id) {
+    socket.on('test', function () {
+        console.log('test received');
+    });
+});
+
+async function getAllPlayers(p_room) {
     let players = [];
     try {
-        let room_array = room_sockets.get(p_room_id);
-        if (!!room_array) {
-            room_array.forEach(p_socket => {
-                if (!!p_socket.player) {
-                    // TODO Maybe check if socket is still connected? :shrug:
-                    players.push(p_socket.player);
-                }
-            });
-        }
+        // console.log("getAllPlayers in %s", p_room);
+
+        // let _sockets_ids = await io.sockets.allSockets();
+        let _sockets_ids = await io.in(p_room).allSockets();
+        for (const socket_id of _sockets_ids) {
+            // console.log("Socket ID %s", (socket_id));
+            let player_socket = io.of("/").sockets.get(socket_id);
+            let player = player_socket && player_socket.player;
+            if (!!player) players.push(player);
+        };
+        // console.log("Sending players %s", JSON.stringify(players));
     } catch (error) {
-        logger.error(`error in get_all_players_in_room ${error}`);
+        logger.error(`error in getAllPlayers ${error}`);
     }
     return players;
 }
@@ -278,13 +218,3 @@ function get_all_players_in_room(p_room_id) {
 function randomInt(low, high) {
     return Math.floor(Math.random() * (high - low) + low);
 }
-
-// const client = new ws(`ws://localhost:${WS_PORT}`);
-// client.binaryType = "arraybuffer";
-
-// client.on('open', () => {
-//     logger.info("Connected to self websocket!")
-//     // Causes the server to print "Hello"
-//     // client.send('Hello');
-//     send_message_to_socket(client, "test", "whatever");
-// });

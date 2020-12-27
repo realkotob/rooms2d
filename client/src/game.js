@@ -1,4 +1,5 @@
 import { encode, decode } from "@msgpack/msgpack";
+import { io } from 'socket.io-client';
 import Phaser, { Utils } from 'phaser';
 import Peer from 'peerjs';
 import { Queue } from "./utils.js"
@@ -12,9 +13,6 @@ import r_ball from './assets/sprites/ball.png';
 import r_crosshair from './assets/sprites/crosshair.png';
 import r_characters from './assets/sprites/characters/other/All.png';
 import r_slime from './assets/sprites/slime_monster/slime_monster_spritesheet.png';
-
-import rexyoutubeplayerplugin from './plugins/rexyoutubeplayerplugin.min.js';
-
 
 import r_char_0 from './assets/sprites/characters/char_0.png';
 import r_char_1 from './assets/sprites/characters/char_1.png';
@@ -65,16 +63,9 @@ export default class MainGame extends Phaser.Scene {
         // game.stage.disableVisibilityChange = true;
 
         const self = this;
-        this.Client = { finished_connecting: false, finish_preload: false, asked_for_player: false };
 
-        // this.Client.socket = new WebSocket(`ws://${location.host.split(":")[0]}:8080/ws`);
-        let baseurl = location.host.split(":")[0];
-        if (baseurl === "localhost") {
-            this.Client.socket = new WebSocket(`ws://${baseurl}:8080/ws`);
-        } else {
-            this.Client.socket = new WebSocket(`wss://${baseurl}/ws`);
-        }
-        this.Client.socket.binaryType = 'arraybuffer';
+
+        this.Client.socket = io.connect();
 
         // this.Client.socket.on('connected', function () {
         //     // get path from current URL
@@ -87,131 +78,101 @@ export default class MainGame extends Phaser.Scene {
         //     self.room_id = room;
         // });
 
-        this.Client.socket.onerror = function () {
-            console.log('WebSocket error');
-        };
-
-        this.Client.socket.onopen = function () {
-            self.Client.finished_connecting = true;
-            if (self.Client.finish_preload) {
-                self.Client.askNewPlayer();
-            }
-            console.log('WebSocket connection established');
-        };
-        this.Client.socket.onclose = function () {
-            console.log('WebSocket connection closed');
-            self.Client.socket = null;
-        };
-
-        this.Client.send_message = function (p_msg_id, p_data) {
-            if (!self.Client.socket) {
-                console.log("No websocket connection. Ignoring send.");
-                return;
-            }
-            const encoded = encode({ k: p_msg_id, d: p_data });
-
-            self.Client.socket.send(Buffer.from(encoded.buffer, encoded.byteOffset, encoded.byteLength));
-        };
-
         this.Client.sendTest = function () {
-            self.Client.send_message('test', "whatup");
             console.log("test sent");
+            self.Client.socket.emit('test');
         };
 
         this.Client.askNewPlayer = function () {
-            if (!!self.Client.asked_for_player) {
-                return;
-            }
-            self.Client.asked_for_player = true;
             let pos = window.location.pathname.indexOf('/r/');
             if (pos !== -1) {
                 self.room_id = window.location.pathname.slice(pos + 3);
             }
             // console.log("Room ID %s", self.room_id);
             let _name = localStorage.getItem("username");
-            // console.log("Selected name %s", _name);
-            self.Client.send_message('req_newplayer', { room: self.room_id, username: _name });
+            console.log("Selected name %s", _name);
+            self.Client.socket.emit('newplayer', { room: self.room_id, username: _name });
         };
 
         this.Client.sendMove = function (p_pos_x, p_pos_y, p_vel_x, p_vel_y) {
-            // TODO Send empty object of the velocity is 0 and rounded positions are same as last frame
-            self.Client.send_message(
-                'move', {
+            const encoded = encode({
                 px: Math.round(p_pos_x), py: Math.round(p_pos_y), vx: Math.round(p_vel_x), vy: Math.round(p_vel_y)
             });
+            // TODO Send empty object of the velocity is 0 and rounded positions are same as last frame
+            self.Client.socket.emit(
+                'move', Buffer.from(encoded.buffer, encoded.byteOffset, encoded.byteLength));
         };
 
-        this.Client.socket.onmessage = function (event) {
-            // console.log("Received event ", event);
-            const decoded = decode(event.data);
-            // console.log(event.decoded);
-            const msg_id = decoded.k;
-            const data = decoded.d;
-            if (msg_id === "newplayer") {
-                // console.log("Recieved newplayer %s ", JSON.stringify(data));
-                self.addNewPlayer(data.rt.id, data.rt.px, data.rt.py, data.sprite, data.uname);
-            } else if (msg_id === "allplayers") {
-                self.player_id = data.you.rt.id.toString();
-                // console.log("My new player id is ", self.player_id);
-                self.peer = new Peer(self.player_id);
-                self.peer.on('open', function () {
-                    // console.log('My PeerJS ID is:', self.peer.id); // self.peer.id is equal to self.player_id
-
-                    const _all = data.all;
-                    for (let i = 0; i < _all.length; i++) {
-                        if (_all[i].rt.id != self.player_id)
-                            call_player(_all[i].rt.id);
-                    }
-                });
+        this.Client.socket.on('newplayer', function (data) {
+            console.log("Recieved newplayer %s ", JSON.stringify(data));
+            self.addNewPlayer(data.rt.id, data.rt.px, data.rt.py, data.sprite, data.uname);
+        });
 
 
-                self.peer.on('call', (call) => {
-                    // console.log("Answering player ");
-                    let getUserMedia_ = (navigator.getUserMedia
-                        || navigator.webkitGetUserMedia
-                        || navigator.mozGetUserMedia
-                        || navigator.msGetUserMedia);
-                    getUserMedia_({ video: false, audio: true }, (stream) => {
-                        call.answer(stream); // Answer the call with an A/V stream.
-                        call.on('stream', (remoteStream) => {
-                            // Show stream in some <video> element.
-                            let peer_id = call.peer.toString();
-                            console.log("Answered player " + peer_id);
-                            const remoteVideo = document.getElementById("p" + peer_id);
-                            if (remoteVideo) {
-                                remoteVideo.srcObject = remoteStream;
-                            } else {
-                                let video = document.createElement('video');
-                                video.srcObject = remoteStream;
-                                video.autoplay = true;
-                                video.id = "p" + peer_id;
-                                let element = document.getElementById("media-container");
-                                element.appendChild(video);
-                            }
-                        });
-                    }, (err) => {
-                        console.error('Failed to get local stream', err);
-                    });
-                });
-
+        this.Client.socket.on('allplayers', function (data) {
+            self.player_id = data.you.rt.id.toString();
+            console.log("My new player id is ", self.player_id);
+            self.peer = new Peer(self.player_id);
+            self.peer.on('open', function () {
+                console.log('My PeerJS ID is:', self.peer.id);
 
                 const _all = data.all;
                 for (let i = 0; i < _all.length; i++) {
-                    // console.log("Recieved allplayers %s ", JSON.stringify(data));
-                    self.addNewPlayer(_all[i].rt.id, _all[i].rt.px, _all[i].rt.py, _all[i].sprite, _all[i].uname);
+                    if (_all[i].rt.id != self.player_id)
+                        call_player(_all[i].rt.id);
                 }
+            });
 
-            } else if (msg_id === "moved") {
+
+            self.peer.on('call', (call) => {
+                console.log("Answering player ");
+                let getUserMedia_ = (navigator.getUserMedia
+                    || navigator.webkitGetUserMedia
+                    || navigator.mozGetUserMedia
+                    || navigator.msGetUserMedia);
+                getUserMedia_({ video: false, audio: true }, (stream) => {
+                    call.answer(stream); // Answer the call with an A/V stream.
+                    call.on('stream', (remoteStream) => {
+                        // Show stream in some <video> element.
+                        let peer_id = call.peer.toString();
+                        console.log("Answered player " + peer_id);
+                        const remoteVideo = document.getElementById("p" + peer_id);
+                        if (remoteVideo) {
+                            remoteVideo.srcObject = remoteStream;
+                        } else {
+                            let video = document.createElement('video');
+                            video.srcObject = remoteStream;
+                            video.autoplay = true;
+                            video.id = "p" + peer_id;
+                            let element = document.getElementById("media-container");
+                            element.appendChild(video);
+                        }
+                    });
+                }, (err) => {
+                    console.error('Failed to get local stream', err);
+                });
+            });
+
+
+            const _all = data.all;
+            for (let i = 0; i < _all.length; i++) {
+                console.log("Recieved allplayers %s ", JSON.stringify(data));
+                self.addNewPlayer(_all[i].rt.id, _all[i].rt.px, _all[i].rt.py, _all[i].sprite, _all[i].uname);
+            }
+
+
+            self.Client.socket.on('moved', function (p_data) {
+                const data = decode(p_data);
                 if (self.player_id != data.id) {
                     // console.log("player %s moved. current player %s", data.id, self.player_id)
                     self.updatePlayerPhysics(data.id, data);
                 }
-            } else if (msg_id === "remove") {
-                self.removePlayer(data.id);
+            });
 
-            }
-
-        }
+            self.Client.socket.on('remove', function (id) {
+                self.removePlayer(id);
+            });
+        });
 
         function call_player(p_id) {
             console.log("Calling player ", p_id);
@@ -270,10 +231,13 @@ export default class MainGame extends Phaser.Scene {
         this.load.spritesheet('characters', r_characters, { frameWidth: 48, frameHeight: 51 });
         this.load.spritesheet('slime', r_slime, { frameWidth: 24, frameHeight: 24 });
 
-        // let url = 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexyoutubeplayerplugin.min.js';
-        // let url = 'js/rex-notes/dist/rexyoutubeplayerplugin.min.js';
-        this.load.plugin('rexyoutubeplayerplugin', rexyoutubeplayerplugin, true);
-
+        try {
+            let url = 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexyoutubeplayerplugin.min.js';
+            // let url = 'js/rex-notes/dist/rexyoutubeplayerplugin.min.js';
+            this.load.plugin('rexyoutubeplayerplugin', url, true);
+        } catch (error) {
+            console.error("Erorr preloading yt plugin" + error);
+        }
         // for (let i = 0; i < 24; i++) {
         //     this.load_char_spritesheet(i);
         // }
@@ -375,24 +339,25 @@ export default class MainGame extends Phaser.Scene {
             width: 340,
             height: 192
         }
-        let VID_ID = 'OkQlrIQhUMQ';
 
-        self.youtubePlayer = self.add.rexYoutubePlayer(
-            yt_original_config.x, yt_original_config.y, yt_original_config.width, yt_original_config.height, {
-            videoId: VID_ID,
-            modestBranding: true,
-            loop: false,
-            autoPlay: false,
-            keyboardControl: false,
-            controls: true,
-        }).on('ready', function () {
-            console.log("Video ready");
-            // self.youtubePlayer.setPosition(600, 300);
-        });
+        try {
+            this.youtubePlayer = this.add.rexYoutubePlayer(
+                yt_original_config.x, yt_original_config.y, yt_original_config.width, yt_original_config.height, {
+                videoId: 'OkQlrIQhUMQ',
+                modestBranding: true,
+                loop: false,
+                autoPlay: false,
+                keyboardControl: false,
+                controls: true,
+            }).on('ready', function () {
+                console.log("Video ready");
+                // self.youtubePlayer.setPosition(600, 300);
+            });
+        } catch (error) {
+            console.error("Erorr starting yt plugin" + error);
+        }
 
-        // VID_ID = "mZX6YKpJKGk";
 
-        // self.youtubePlayer.node.src = `https://www.youtube.com/embed/${VID_ID}?modestbranding=1&playsinline=0&showinfo=0&enablejsapi=1&origin=https%3A%2F%2F${location.host}&widgetid=1`;
 
         this.youtubePlayer.original_config = yt_original_config;
 
@@ -493,7 +458,7 @@ export default class MainGame extends Phaser.Scene {
 
 
         // layer.inputEnabled = true; // Allows clicking on the map ; it's enough to do it on the last layer
-        // this.Client.askNewPlayer();
+        this.Client.askNewPlayer();
 
         this.crosshair = this.add.sprite(-100, -100, 'crosshair');
         this.crosshair.setVisible(false);
@@ -541,11 +506,6 @@ export default class MainGame extends Phaser.Scene {
         // this.gameScene = this.scene.get('GameScene');
 
         this.setup_game_focus();
-
-        self.Client.finish_preload = true;
-        if (self.Client.finished_connecting) {
-            self.Client.askNewPlayer();
-        }
     }
 
     static COUNTER_DOM_UPDATE = 0;
@@ -575,7 +535,7 @@ export default class MainGame extends Phaser.Scene {
         game_dom = game_dom ? game_dom.querySelector('canvas') : null;
         if (game_dom) {
             game_dom.setAttribute("tabindex", "6");
-            // console.log("Found element %s", game_dom);
+            console.log("Found element %s", game_dom);
             game_dom.focus();
             this.game_dom_canvas = game_dom;
         }
@@ -902,19 +862,12 @@ export default class MainGame extends Phaser.Scene {
     }
 
     removePlayer(id) {
-        try {
-            for (let i = 0; i < this.players.length; i++) {
-                if (this.players[i] == id) { this.players.splice(i, 1); }
-            }
-            if (!!this.playerMap[id]) {
-                if (!!this.playerMap[id].name_label)
-                    this.playerMap[id].name_label.destroy();
-                this.playerMap[id].destroy();
-                delete this.playerMap[id];
-            }
-        } catch (error) {
-            console.error("Error in removePlayer", error);
+        for (let i = 0; i < this.players.length; i++) {
+            if (this.players[i] == id) { this.players.splice(i, 1); }
         }
+        this.playerMap[id].name_label.destroy();
+        this.playerMap[id].destroy();
+        delete this.playerMap[id];
     };
 
 
