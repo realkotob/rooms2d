@@ -350,7 +350,7 @@ export default class MainGame extends Phaser.Scene {
             keyboardControl: false,
             controls: true,
         }).on('ready', function () {
-            console.log("Video ready");
+            console.log("Youtube Video ready");
             // self.youtubePlayer.setPosition(600, 300);
         });
 

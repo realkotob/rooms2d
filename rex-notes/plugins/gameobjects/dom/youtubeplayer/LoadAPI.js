@@ -14,12 +14,7 @@ var LoadAPI = function (onLoaded) {
             }
             CallbackQueue = undefined;
         };
-        console.log("Try call LoadScript");
         LoadScript('https://www.youtube.com/iframe_api');
-        //     // Function onYouTubeIframeAPIReady() should be defined before loading 
-        // } else {
-        //     console.log("window.onYouTubeIframeAPIReady already defined");
-        // }
         CallbackQueue.push(onLoaded);
     }
 }
