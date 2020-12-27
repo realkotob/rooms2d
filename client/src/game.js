@@ -91,7 +91,7 @@ export default class MainGame extends Phaser.Scene {
             self.Client.socket = null;
         };
 
-        this.Client.send_message = function (p_msg_id, p_data) {
+        this.Client.send_message = async function (p_msg_id, p_data) {
             while (this.readyState === 0) {
                 await sleep(200);
             }
