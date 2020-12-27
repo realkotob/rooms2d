@@ -647,8 +647,11 @@ export default class MainGame extends Phaser.Scene {
 
 
         if (Phaser.Input.Keyboard.JustDown(this.keys_arrows.space)) {
-            console.log("Pressed space");
-            this.show_video_controls();
+            if (!this.cameras.main.following_player) { // The camera is following the player at all times except when in range of a video
+                // This if check is a temporary hack until the desk collisions are added
+                console.log("Open video controls");
+                this.show_video_controls();
+            }
         }
 
         let current_move_input = new Phaser.Math.Vector2(0, 0);
