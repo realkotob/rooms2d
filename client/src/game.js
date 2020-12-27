@@ -482,7 +482,7 @@ export default class MainGame extends Phaser.Scene {
 
 
         // layer.inputEnabled = true; // Allows clicking on the map ; it's enough to do it on the last layer
-        this.Client.askNewPlayer();
+        // this.Client.askNewPlayer();
 
         this.crosshair = this.add.sprite(-100, -100, 'crosshair');
         this.crosshair.setVisible(false);
