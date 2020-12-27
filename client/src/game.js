@@ -62,7 +62,7 @@ export default class MainGame extends Phaser.Scene {
         // game.stage.disableVisibilityChange = true;
 
         const self = this;
-
+        this.Client = {};
 
         // this.Client.socket = new WebSocket(`ws://${location.host.split(":")[0]}:8080/ws`);
         this.Client.socket = new WebSocket(`wss://${location.host}/ws`);
