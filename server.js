@@ -197,6 +197,21 @@ io.on('connection', function (socket) {
                 }
             });
 
+            socket.on('yt_url', function (p_v_id) {
+                try {
+                    io.in(_room).emit('yt_url', p_v_id);
+                } catch (error) {
+                    logger.error(`error in socket on yt_url ${error}`);
+                }
+            });
+            socket.on('yt_state', function (p_state) {
+                try {
+                    io.in(_room).emit('yt_state', p_state);
+                } catch (error) {
+                    logger.error(`error in socket on yt_state ${error}`);
+                }
+            });
+
             socket.on('disconnect', function () {
                 try {
                     io.in(_room).emit('remove', socket.player.rt.id);

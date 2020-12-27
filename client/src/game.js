@@ -108,6 +108,38 @@ export default class MainGame extends Phaser.Scene {
                 'move', Buffer.from(encoded.buffer, encoded.byteOffset, encoded.byteLength));
         };
 
+        this.Client.sendYoutubeChangeURL = function (p_new_v_id) {
+
+            // TODO Send empty object of the velocity is 0 and rounded positions are same as last frame
+            self.Client.socket.emit(
+                'yt_url', p_new_v_id);
+        };
+
+        this.Client.sendYoutubeState = function (p_new_state) {
+            // TODO Send empty object of the velocity is 0 and rounded positions are same as last frame
+            self.Client.socket.emit(
+                'yt_state', p_new_state);
+        };
+
+        this.Client.socket.on('yt_url', function (p_v_id) {
+            console.log("Recieved yt video ID %s ", p_v_id);
+            if (self.current_video_id != p_v_id) {
+                self.youtubePlayer.load(p_v_id);
+            }
+        });
+
+        this.Client.socket.on('yt_state', function (p_state) {
+            console.log("Recieved yt video state %s ", p_state);
+            if (self.youtubePlayer.videoStateString != p_state) { // Not sure if this is the best check I can do
+                if (p_state == "pause") {
+                    self.youtubePlayer.pause();
+                } else if (p_state == "playing") {
+                    self.youtubePlayer.play();
+                }
+            }
+        });
+
+
         this.Client.socket.on('newplayer', function (data) {
             console.log("Recieved newplayer %s ", JSON.stringify(data));
             self.addNewPlayer(data.rt.id, data.rt.px, data.rt.py, data.sprite, data.uname);
@@ -361,6 +393,14 @@ export default class MainGame extends Phaser.Scene {
             self.load_screen_controls();
 
             // self.youtubePlayer.setPosition(600, 300);
+        }).on('pause', function () {
+            console.log("Youtube Video pressed paused");
+
+            self.Client.sendYoutubeState("pause");
+        }).on('playing', function () {
+            console.log("Youtube Video pressed play");
+
+            self.Client.sendYoutubeState("playing");
         });
 
         this.youtubePlayer.original_config = yt_original_config;
@@ -926,6 +966,7 @@ export default class MainGame extends Phaser.Scene {
                         // console.log("Matched video ID %s", videoId);
                         self.current_video_id = videoId;
                         self.youtubePlayer.load(videoId);
+                        self.Client.sendYoutubeChangeURL(videoId)
                         // TODO Network this to everyone in the room
                     } else {
                         console.log("Did not match video IDs");
