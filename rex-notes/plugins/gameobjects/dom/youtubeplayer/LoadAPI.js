@@ -6,7 +6,7 @@ var LoadAPI = function (onLoaded) {
         console.log("YT Api already ready.");
         onLoaded();
     } else {
-        if (!window.onYouTubeIframeAPIReady) {
+        // if (!window.onYouTubeIframeAPIReady) {
             window.onYouTubeIframeAPIReady = function () {
                 IsAPIReady = true;
                 for (var i = 0, cnt = CallbackQueue.length; i < cnt; i++) {
@@ -16,10 +16,10 @@ var LoadAPI = function (onLoaded) {
             };
             console.log("Try call LoadScript");
             LoadScript('https://www.youtube.com/iframe_api');
-            // Function onYouTubeIframeAPIReady() should be defined before loading 
-        } else {
-            console.log("window.onYouTubeIframeAPIReady already defined");
-        }
+        //     // Function onYouTubeIframeAPIReady() should be defined before loading 
+        // } else {
+        //     console.log("window.onYouTubeIframeAPIReady already defined");
+        // }
         CallbackQueue.push(onLoaded);
     }
 }
