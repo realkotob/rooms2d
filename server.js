@@ -30,7 +30,7 @@ const cert_path = '/etc/letsencrypt/live/mossylogs.com/';
 var SSL_FOUND = false;
 var httpServer = http.Server(app);
 var server = httpServer;
-if (fs.existsSync(cert_path)) {
+if (false) { //fs.existsSync(cert_path)) {
     PORT = 443;
     SSL_FOUND = true;
     logger.info("cert_path found, starting with SSL.");
@@ -116,7 +116,7 @@ server.lastPlayderID = 0;
 
 // let WS_PORT = 8080;
 // const wsServer = new ws.Server({ port: 8080, path: "/ws" });
-const wsServer = new ws.Server({ noServer: true });
+const wsServer = new ws.Server({ port: 8080 });
 
 const CHARACTER_SPRITE_COUNT = 24;
 let room_sockets = new Map();
@@ -192,11 +192,11 @@ wsServer.on('connection', socket => {
 });
 
 
-server.on('upgrade', function upgrade(request, socket, head) {
-    wsServer.handleUpgrade(request, socket, head, socket => {
-        wsServer.emit('connection', socket, request);
-    });
-});
+// server.on('upgrade', function upgrade(request, socket, head) {
+//     wsServer.handleUpgrade(request, socket, head, socket => {
+//         wsServer.emit('connection', socket, request);
+//     });
+// });
 server.listen(process.env.PORT || PORT, function () {
     // console.log('Listening on http://localhost:' + server.address().port);
     console.log(`Server running at: http://localhost:${PORT}/`);
