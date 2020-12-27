@@ -15,7 +15,8 @@ const config = {
   },
   backgroundColor: '#2e3136',
   // scene: [Boot, Preloader, MainMenu, MainGame],
-  scene: [Login, MainGame],
+  // scene: [Login, MainGame],
+  scene: [MainGame],
   physics: {
     default: 'arcade',
     arcade: { debug: false }

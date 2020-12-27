@@ -65,7 +65,7 @@ export default class MainGame extends Phaser.Scene {
         const self = this;
 
 
-        this.Client.socket = io.connect();
+        this.Client.socket = io.connect({ rejectUnauthorized: false });
 
         // this.Client.socket.on('connected', function () {
         //     // get path from current URL
@@ -343,7 +343,7 @@ export default class MainGame extends Phaser.Scene {
         try {
             this.youtubePlayer = this.add.rexYoutubePlayer(
                 yt_original_config.x, yt_original_config.y, yt_original_config.width, yt_original_config.height, {
-                videoId: 'OkQlrIQhUMQ',
+                videoId: 'euhtxlDs0TU',
                 modestBranding: true,
                 loop: false,
                 autoPlay: false,

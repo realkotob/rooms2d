@@ -22,6 +22,7 @@ var https = require('https');
 var http = require('http');
 var express = require('express');
 var app = express();
+const helmet = require('helmet');
 
 var PORT = 8081;
 const cert_path = '/etc/letsencrypt/live/mossylogs.com/';
@@ -29,7 +30,18 @@ const cert_path = '/etc/letsencrypt/live/mossylogs.com/';
 
 var server;
 var SSL_FOUND = false;
-var httpServer = http.Server(app);
+var httpServer;
+
+function ensureSecure(req, res, next) {
+    if (req.secure) {
+        // OK, continue
+        return next();
+    };
+    // handle port numbers if you need non defaults
+    // res.redirect('https://' + req.host + req.url); // express 3.x
+    res.redirect('https://' + req.hostname + req.url); // express 4.x
+}
+
 if (fs.existsSync(cert_path)) {
     PORT = 443;
     SSL_FOUND = true;
@@ -45,29 +57,32 @@ if (fs.existsSync(cert_path)) {
     };
 
     server = https.Server(options, app);
-
-    // Reroute to https internally. It's better to use nginx for this later 
-    // See https://stackoverflow.com/a/24015460
-    // See https://developer.ibm.com/languages/node-js/tutorials/make-https-the-defacto-standard/
-    app.all('*', ensureSecure); // at top of routing calls
-
-    function ensureSecure(req, res, next) {
-        if (req.secure) {
-            // OK, continue
-            return next();
-        };
-        // handle port numbers if you need non defaults
-        // res.redirect('https://' + req.host + req.url); // express 3.x
-        res.redirect('https://' + req.hostname + req.url); // express 4.x
-    }
-
+    httpServer = http.Server(app);
 
 } else {
-    logger.warn("cert_path not found, starting unsecure http.");
-    server = httpServer;
+    logger.warn("cert_path not found, starting with self-signed certs.");
+
+    PORT = 443;
+    SSL_FOUND = true;
+
+    var key = fs.readFileSync(__dirname + '/certs/server.key', 'utf8'); // Self signed
+    var cert = fs.readFileSync(__dirname + '/certs/server.cert', 'utf8');
+    let options = {
+        key: key,
+        cert: cert
+    };
+
+    server = https.Server(options, app);
+    httpServer = http.Server(app);
+
 }
+// Reroute to https internally. It's better to use nginx for this later 
+// See https://stackoverflow.com/a/24015460
+// See https://developer.ibm.com/languages/node-js/tutorials/make-https-the-defacto-standard/
+// app.all('*', ensureSecure); // at top of routing calls
 
 
+// server = https.Server(app);
 
 var io = require('socket.io')(server,
     {
@@ -78,6 +93,23 @@ const { ExpressPeerServer } = require('peer');
 const peerServer = ExpressPeerServer(server, {
     path: '/myapp'
 });
+
+app.use(
+    helmet.referrerPolicy({
+        policy: ["origin", "unsafe-url"],
+    })
+);
+app.use(
+    helmet({
+        contentSecurityPolicy: false,
+    })
+);
+
+app.use(
+    helmet.permittedCrossDomainPolicies({
+        permittedPolicies: "all",
+    })
+);
 
 app.use('*/peerjs', peerServer);
 
@@ -123,7 +155,7 @@ server.listen(process.env.PORT || PORT, function () {
     console.log(`Server running at: http://localhost:${PORT}/`);
 });
 if (SSL_FOUND) {
-    httpServer.listen(80);
+    // httpServer.listen(80);
 }
 
 
