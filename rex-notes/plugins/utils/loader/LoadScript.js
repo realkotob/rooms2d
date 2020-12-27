@@ -5,6 +5,7 @@ var LoadScript = function (url, onload) {
             if (onload) {
                 onload();
             }
+            console.log("For loop return in LoadScript");
             return;
         }
     }

@@ -9,11 +9,12 @@ var LoadAPI = function (onLoaded) {
         if (!window.onYouTubeIframeAPIReady) {
             window.onYouTubeIframeAPIReady = function () {
                 IsAPIReady = true;
-                for(var i=0, cnt = CallbackQueue.length; i<cnt; i++) {
+                for (var i = 0, cnt = CallbackQueue.length; i < cnt; i++) {
                     CallbackQueue[i]();
                 }
                 CallbackQueue = undefined;
             };
+            console.log("Try call LoadScript");
             LoadScript('https://www.youtube.com/iframe_api');
             // Function onYouTubeIframeAPIReady() should be defined before loading 
         }
