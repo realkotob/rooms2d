@@ -221,7 +221,7 @@ function add_socket_to_room(p_socket, p_room_id) {
         if (!room_array) {
             room_sockets.set(p_room_id, [p_socket]);
         } else {
-            room_array.push(socket);
+            room_array.push(p_socket);
         }
     } catch (error) {
         logger.error(`error in add_socket_to_room ${error}`);
