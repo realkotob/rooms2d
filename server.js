@@ -209,7 +209,7 @@ function send_message_to_socket(p_socket, p_msg_id, p_data) {
     try {
         const encoded = encode({ k: p_msg_id, d: p_data });
 
-        p_socket.send(Buffer.from(encoded.buffer, encoded.byteOffset, encoded.byteLength), { binary: true, mask: true });
+        p_socket.send(Buffer.from(encoded.buffer, encoded.byteOffset, encoded.byteLength), { binary: true, mask: false });
     } catch (error) {
         logger.error(`error in send_message_to_socket ${error}`);
     }
