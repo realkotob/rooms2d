@@ -84,7 +84,7 @@ export default class MainGame extends Phaser.Scene {
         };
 
         this.Client.socket.onopen = function () {
-            this.Client.askNewPlayer();
+            self.Client.askNewPlayer();
             console.log('WebSocket connection established');
         };
         this.Client.socket.onclose = function () {
