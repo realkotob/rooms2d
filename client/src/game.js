@@ -886,12 +886,19 @@ export default class MainGame extends Phaser.Scene {
     }
 
     removePlayer(id) {
-        for (let i = 0; i < this.players.length; i++) {
-            if (this.players[i] == id) { this.players.splice(i, 1); }
+        try {
+            for (let i = 0; i < this.players.length; i++) {
+                if (this.players[i] == id) { this.players.splice(i, 1); }
+            }
+            if (!!this.playerMap[id]) {
+                if (!!this.playerMap[id].name_label)
+                    this.playerMap[id].name_label.destroy();
+                this.playerMap[id].destroy();
+                delete this.playerMap[id];
+            }
+        } catch (error) {
+            console.error("Error in removePlayer", error);
         }
-        this.playerMap[id].name_label.destroy();
-        this.playerMap[id].destroy();
-        delete this.playerMap[id];
     };
 
 
