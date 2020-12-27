@@ -375,10 +375,11 @@ export default class MainGame extends Phaser.Scene {
             width: 340,
             height: 192
         }
+        let VID_ID = 'OkQlrIQhUMQ';
 
         self.youtubePlayer = self.add.rexYoutubePlayer(
             yt_original_config.x, yt_original_config.y, yt_original_config.width, yt_original_config.height, {
-            videoId: 'OkQlrIQhUMQ',
+            videoId: VID_ID,
             modestBranding: true,
             loop: false,
             autoPlay: false,
@@ -389,8 +390,9 @@ export default class MainGame extends Phaser.Scene {
             // self.youtubePlayer.setPosition(600, 300);
         });
 
-        self.youtubePlayer.node.origin = location.host;
+        // VID_ID = "mZX6YKpJKGk";
 
+        // self.youtubePlayer.node.src = `https://www.youtube.com/embed/${VID_ID}?modestbranding=1&playsinline=0&showinfo=0&enablejsapi=1&origin=https%3A%2F%2F${location.host}&widgetid=1`;
 
         this.youtubePlayer.original_config = yt_original_config;
 
