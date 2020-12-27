@@ -13,7 +13,7 @@ import r_crosshair from './assets/sprites/crosshair.png';
 import r_characters from './assets/sprites/characters/other/All.png';
 import r_slime from './assets/sprites/slime_monster/slime_monster_spritesheet.png';
 
-import rexyoutubeplayerplugin from './plugins/rexyoutubeplayerplugin.min.js';
+import YoutubePlayer from './plugins/youtubeplayer/YoutubePlayer.js';
 
 
 import r_char_0 from './assets/sprites/characters/char_0.png';
@@ -272,7 +272,7 @@ export default class MainGame extends Phaser.Scene {
 
         // let url = 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexyoutubeplayerplugin.min.js';
         // let url = 'js/rex-notes/dist/rexyoutubeplayerplugin.min.js';
-        this.load.plugin('rexyoutubeplayerplugin', rexyoutubeplayerplugin, true);
+        // this.load.plugin('rexyoutubeplayerplugin', YoutubePlayer, true);
 
         // for (let i = 0; i < 24; i++) {
         //     this.load_char_spritesheet(i);
@@ -369,6 +369,11 @@ export default class MainGame extends Phaser.Scene {
 
         this.phaser_created = true;
 
+
+        let video_id = "OkQlrIQhUMQ";
+
+        // let html_code_youtube = `<iframe id="YT1609037793504" style="z-index: 0; display: block; position: absolute; width: 340px; height: 192px; opacity: 1; pointer-events: auto; mix-blend-mode: normal; transform: matrix(1.5, 0, 0, 1.5, 346.5, 51) skew(0rad) rotate3d(0, 0, 0, 0deg); transform-origin: 50% 50% 0px;" allowfullscreen="1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" title="YouTube video player" src="https://www.youtube.com/embed/${video_id}?autoplay=0&amp;controls=1&amp;disablekb=1&amp;modestbranding=1&amp;enablejsapi=1&amp;origin=http%3A%2F%2Flocalhost%3A8081&amp;widgetid=1" width="640" height="360" frameborder="0"></iframe>`;
+
         let yt_original_config = {
             x: 1230,
             y: 130,
@@ -376,7 +381,9 @@ export default class MainGame extends Phaser.Scene {
             height: 192
         }
 
-        self.youtubePlayer = self.add.rexYoutubePlayer(
+        // self.youtubePlayer = this.add.dom(450, 800).createFromHTML(html_code_youtube);
+
+        self.youtubePlayer = this.add.existing(new YoutubePlayer(this,
             yt_original_config.x, yt_original_config.y, yt_original_config.width, yt_original_config.height, {
             videoId: 'OkQlrIQhUMQ',
             modestBranding: true,
@@ -387,9 +394,10 @@ export default class MainGame extends Phaser.Scene {
         }).on('ready', function () {
             console.log("Video ready");
             // self.youtubePlayer.setPosition(600, 300);
-        });
+        }));
 
-        self.youtubePlayer.node.origin = location.host;
+        // self.youtubePlayer.node.origin = location.host;
+        // self.youtubePlayer.node = yt_element.node;
 
 
         this.youtubePlayer.original_config = yt_original_config;
