@@ -13,6 +13,9 @@ import r_crosshair from './assets/sprites/crosshair.png';
 import r_characters from './assets/sprites/characters/other/All.png';
 import r_slime from './assets/sprites/slime_monster/slime_monster_spritesheet.png';
 
+import rexyoutubeplayerplugin from './plugins/rexyoutubeplayerplugin.min.js';
+
+
 import r_char_0 from './assets/sprites/characters/char_0.png';
 import r_char_1 from './assets/sprites/characters/char_1.png';
 import r_char_2 from './assets/sprites/characters/char_2.png';
@@ -267,9 +270,9 @@ export default class MainGame extends Phaser.Scene {
         this.load.spritesheet('characters', r_characters, { frameWidth: 48, frameHeight: 51 });
         this.load.spritesheet('slime', r_slime, { frameWidth: 24, frameHeight: 24 });
 
-        let url = 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexyoutubeplayerplugin.min.js';
+        // let url = 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexyoutubeplayerplugin.min.js';
         // let url = 'js/rex-notes/dist/rexyoutubeplayerplugin.min.js';
-        this.load.plugin('rexyoutubeplayerplugin', url, true);
+        this.load.plugin('rexyoutubeplayerplugin', rexyoutubeplayerplugin, true);
 
         // for (let i = 0; i < 24; i++) {
         //     this.load_char_spritesheet(i);
