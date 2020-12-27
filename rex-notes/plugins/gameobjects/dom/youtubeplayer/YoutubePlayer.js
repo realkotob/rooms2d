@@ -36,8 +36,11 @@ class YoutubePlayer extends DOMElement {
         var elementId = 'YT' + Date.now();
         var element = document.createElement('div');
         element.id = elementId;
+        element.className = "ytplayer";
         this.setElement(element);
         this.resize(width, height);
+
+        console.log("Added ytplayer DOM");
 
         // Create youtube player iframe when API ready
         var playerVars = {
@@ -55,6 +58,7 @@ class YoutubePlayer extends DOMElement {
                     'playerVars': playerVars,
                     'events': {
                         'onStateChange': (function (event) {
+                            console.log("yt_player state change");
                             this.videoState = event.data;
 
                             this.emit('statechange', this);
@@ -65,6 +69,7 @@ class YoutubePlayer extends DOMElement {
                             }
                         }).bind(this),
                         'onReady': (function (event) {
+                            console.log("yt_player ready");
                             this.youtubePlayer = youtubePlayer;
                             for (var i = 0, cnt = this.paddingCallbacks.length; i < cnt; i++) {
                                 this.paddingCallbacks[i]();
@@ -73,6 +78,7 @@ class YoutubePlayer extends DOMElement {
                             this.emit('ready', this);
                         }).bind(this),
                         'onError': (function (event) {
+                            console.log("yt_player error");
                             this.lastError = event.data;
                             this.emit('error', this, this.lastError);
                         }).bind(this),

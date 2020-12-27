@@ -17,6 +17,8 @@ var LoadAPI = function (onLoaded) {
             console.log("Try call LoadScript");
             LoadScript('https://www.youtube.com/iframe_api');
             // Function onYouTubeIframeAPIReady() should be defined before loading 
+        } else {
+            console.log("window.onYouTubeIframeAPIReady already defined");
         }
         CallbackQueue.push(onLoaded);
     }
