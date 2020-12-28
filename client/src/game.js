@@ -1,7 +1,5 @@
 import { encode, decode } from "@msgpack/msgpack";
-import { io } from 'socket.io-client';
 import Phaser, { Utils } from 'phaser';
-import Peer from 'peerjs';
 import { Queue } from "./utils.js"
 import rexYoutubePlayerURL from "../../rex-notes/plugins/youtubeplayer-plugin.js"
 
@@ -64,64 +62,16 @@ export default class MainGame extends Phaser.Scene {
 
     static clamp(val, min, max) { return Math.max(min, Math.min(max, val)); };
 
+    send_set_peer_to_server() {
+        this.socketClient.setPeerID(this.player_id, this.peerChat.peer.id);
+    }
+
     init() {
         // game.stage.disableVisibilityChange = true;
 
         const self = this;
 
-
-        this.Client.socket = io.connect({ rejectUnauthorized: false });
-
-        // this.Client.socket.on('connected', function () {
-        //     // get path from current URL
-        //     let room = window.location.pathname.slice(3);   // remove leading /chat/
-        //     let pos = room.indexOf('/');
-        //     if (pos !== -1) {
-        //         room = room.slice(0, pos);
-        //     }
-        //     console.log("Room ID %s", room);
-        //     self.room_id = room;
-        // });
-
-        this.Client.sendTest = function () {
-            console.log("test sent");
-            self.Client.socket.emit('test');
-        };
-
-        this.Client.askNewPlayer = function () {
-            let pos = window.location.pathname.indexOf('/r/');
-            if (pos !== -1) {
-                self.room_id = window.location.pathname.slice(pos + 3);
-            }
-            // console.log("Room ID %s", self.room_id);
-            let _name = localStorage.getItem("username");
-            console.log("Selected name %s", _name);
-            self.Client.socket.emit('newplayer', { room: self.room_id, username: _name });
-        };
-
-        this.Client.sendMove = function (p_pos_x, p_pos_y, p_vel_x, p_vel_y) {
-            const encoded = encode({
-                px: Math.round(p_pos_x), py: Math.round(p_pos_y), vx: Math.round(p_vel_x), vy: Math.round(p_vel_y)
-            });
-            // TODO Send empty object of the velocity is 0 and rounded positions are same as last frame
-            self.Client.socket.emit(
-                'move', Buffer.from(encoded.buffer, encoded.byteOffset, encoded.byteLength));
-        };
-
-        this.Client.sendYoutubeChangeURL = function (p_new_v_id) {
-
-            // TODO Send empty object of the velocity is 0 and rounded positions are same as last frame
-            self.Client.socket.emit(
-                'yt_url', { p: self.player_id, v: p_new_v_id });
-        };
-
-        this.Client.sendYoutubeState = function (p_new_state) {
-            // TODO Send empty object of the velocity is 0 and rounded positions are same as last frame
-            self.Client.socket.emit(
-                'yt_state', { p: self.player_id, s: p_new_state });
-        };
-
-        this.Client.socket.on('yt_url', function (p_data) {
+        this.socketClient.socket.on('yt_url', function (p_data) {
             if (self.player_id == p_data.p) {
                 return;
             }
@@ -131,11 +81,12 @@ export default class MainGame extends Phaser.Scene {
             }
         });
 
-        this.Client.socket.on('yt_state', function (p_data) {
+        this.socketClient.socket.on('yt_state', function (p_data) {
             if (self.player_id == p_data.p) {
                 return;
             }
             console.log("Recieved yt video state %s ", p_data);
+
             if (self.youtubePlayer.videoStateString != p_data.s) { // Not sure if this is the best check I can do
                 if (p_data.s == "pause") {
                     self.youtubePlayer.pause();
@@ -145,66 +96,36 @@ export default class MainGame extends Phaser.Scene {
             }
         });
 
-
-        this.Client.socket.on('newplayer', function (data) {
+        this.socketClient.socket.on('newplayer', function (data) {
             console.log("Recieved newplayer %s ", JSON.stringify(data));
             self.addNewPlayer(data.rt.id, data.rt.px, data.rt.py, data.sprite, data.uname);
         });
 
+        this.socketClient.socket.on('allpeers', function (p_all_peers) {
+            console.log("Recieved allpeers %s ", JSON.stringify(p_all_peers));
+            self.peerChat.receive_all_peers(p_all_peers);
+        });
 
-        this.Client.socket.on('allplayers', function (data) {
+        this.socketClient.socket.on('allplayers', function (data) {
             self.player_id = data.you.rt.id.toString();
             console.log("My new player id is ", self.player_id);
-            self.peer = new Peer(self.player_id);
-            self.peer.on('open', function () {
-                console.log('My PeerJS ID is:', self.peer.id);
 
-                const _all = data.all;
-                for (let i = 0; i < _all.length; i++) {
-                    if (_all[i].rt.id != self.player_id)
-                        call_player(_all[i].rt.id);
-                }
-            });
-
-
-            self.peer.on('call', (call) => {
-                console.log("Answering player ");
-                let getUserMedia_ = (navigator.getUserMedia
-                    || navigator.webkitGetUserMedia
-                    || navigator.mozGetUserMedia
-                    || navigator.msGetUserMedia);
-                getUserMedia_({ video: false, audio: true }, (stream) => {
-                    call.answer(stream); // Answer the call with an A/V stream.
-                    call.on('stream', (remoteStream) => {
-                        // Show stream in some <video> element.
-                        let peer_id = call.peer.toString();
-                        console.log("Answered player " + peer_id);
-                        const remoteVideo = document.getElementById("p" + peer_id);
-                        if (remoteVideo) {
-                            remoteVideo.srcObject = remoteStream;
-                        } else {
-                            let video = document.createElement('video');
-                            video.srcObject = remoteStream;
-                            video.autoplay = true;
-                            video.id = "p" + peer_id;
-                            let element = document.getElementById("media-container");
-                            element.appendChild(video);
-                        }
-                    });
-                }, (err) => {
-                    console.error('Failed to get local stream', err);
-                });
-            });
-
+            // if (self.socketClient.is_connected && self.peerChat.isAlive()) {
+            if (self.peerChat.isAlive()) {
+                self.send_set_peer_to_server();
+            } else {
+                self.peerChat.callback_on_connect = self.send_set_peer_to_server;
+            }
 
             const _all = data.all;
             for (let i = 0; i < _all.length; i++) {
                 console.log("Recieved allplayers %s ", JSON.stringify(data));
                 self.addNewPlayer(_all[i].rt.id, _all[i].rt.px, _all[i].rt.py, _all[i].sprite, _all[i].uname);
+                // self.peerChat.request_call_peer(_all[i].peer_id);
             }
 
 
-            self.Client.socket.on('moved', function (p_data) {
+            self.socketClient.socket.on('moved', function (p_data) {
                 const data = decode(p_data);
                 if (self.player_id != data.id) {
                     // console.log("player %s moved. current player %s", data.id, self.player_id)
@@ -212,51 +133,12 @@ export default class MainGame extends Phaser.Scene {
                 }
             });
 
-            self.Client.socket.on('remove', function (id) {
+            self.socketClient.socket.on('remove', function (id) {
                 self.removePlayer(id);
             });
         });
 
-        function call_player(p_id) {
-            console.log("Calling player ", p_id);
-            self.conn = self.peer.connect(p_id);
 
-            self.conn.on('open', function () {
-                // Receive messages
-                self.conn.on('data', function (data) {
-                    console.log('Received', data);
-                });
-
-                // Send messages
-                self.conn.send('Hello!');
-            });
-
-            let getUserMedia_ = (navigator.getUserMedia
-                || navigator.webkitGetUserMedia
-                || navigator.mozGetUserMedia
-                || navigator.msGetUserMedia);
-            getUserMedia_({ video: false, audio: true }, (stream) => {
-                console.log("Got media stream to call player ", p_id);
-                const call = self.peer.call(p_id.toString(), stream);
-                call.on('stream', (remoteStream) => {
-                    // Show stream in some <video> element.
-                    let peer_id = p_id.toString();
-                    const remoteVideo = document.getElementById("p" + peer_id);
-                    if (remoteVideo) {
-                        remoteVideo.srcObject = remoteStream;
-                    } else {
-                        let video = document.createElement('video');
-                        video.srcObject = remoteStream;
-                        video.autoplay = true;
-                        video.id = "p" + peer_id;
-                        let element = document.getElementById("media-container");
-                        element.appendChild(video);
-                    }
-                });
-            }, (err) => {
-                console.error('Failed to get local stream', err);
-            });
-        }
 
     };
 
@@ -402,11 +284,11 @@ export default class MainGame extends Phaser.Scene {
         }).on('pause', function () {
             console.log("Youtube Video pressed paused");
 
-            self.Client.sendYoutubeState("pause");
+            self.socketClient.sendYoutubeState("pause");
         }).on('playing', function () {
             console.log("Youtube Video pressed play");
 
-            self.Client.sendYoutubeState("playing");
+            self.socketClient.sendYoutubeState("playing");
         });
 
         this.youtubePlayer.original_config = yt_original_config;
@@ -510,7 +392,7 @@ export default class MainGame extends Phaser.Scene {
 
 
         // layer.inputEnabled = true; // Allows clicking on the map ; it's enough to do it on the last layer
-        this.Client.askNewPlayer();
+        this.socketClient.askNewPlayer();
 
         this.crosshair = this.add.sprite(-100, -100, 'crosshair');
         this.crosshair.setVisible(false);
@@ -537,7 +419,7 @@ export default class MainGame extends Phaser.Scene {
                 // console.log("Pressed local: %s %s world: %s %s", pointer.x, pointer.y, world_pointer.x, world_pointer.y);
                 let _player = self.movePlayerToPos(self.player_id, world_pointer.x, world_pointer.y);
                 if (_player)
-                    self.Client.sendMove(_player.x, _player.y, _player.body.velocity.x, _player.body.velocity.y);
+                    self.socketClient.sendMove(_player.x, _player.y, _player.body.velocity.x, _player.body.velocity.y);
             }
 
         }, self);
@@ -691,7 +573,7 @@ export default class MainGame extends Phaser.Scene {
 
         // TODO Send less data
         // if (this.player_movement_changed(this.current_player.last_input, current_move_input)) {
-        this.Client.sendMove(
+        this.socketClient.sendMove(
             this.current_player.x, this.current_player.y, this.current_player.body.velocity.x, this.current_player.body.velocity.y);
         // }
         // this.current_player.last_input = current_move_input;
@@ -751,19 +633,22 @@ export default class MainGame extends Phaser.Scene {
 
     handle_voice_proxomity() {
         try {
-            let video_parent = document.querySelector('#media-container');
-            this.players.forEach(p_id => {
-                if (p_id == this.player_id) {
+            if (this.peerChat.player_peer_map.size <= 0) {
+                return;
+            }
+            // let video_parent = document.getElementById("media-container");
+            for (let [player_id, peer_id] of this.peerChat.player_peer_map) {
+                if (player_id == this.player_id || !peer_id) { // peer_id is null when player disconnects
                     return;
                 }
 
-                // TODO Need to profile this and make sure it's ok. 
+                // TESTME Need to profile this and make sure it's ok. 
                 // I can optimize this by storing the DOMS in a map.
-                let child_video = video_parent ? video_parent.querySelector('#p' + p_id) : null;
+                let child_video = document.getElementById('p' + peer_id);
                 if (!child_video) {
                     return;
                 }
-                let tmp_player = this.playerMap[p_id];
+                let tmp_player = this.playerMap[player_id];
                 if (!!tmp_player) {
                     let _distance = Phaser.Math.Distance.Between(
                         tmp_player.x, tmp_player.y, this.current_player.x, this.current_player.y);
@@ -772,7 +657,7 @@ export default class MainGame extends Phaser.Scene {
                     // TODO I can store the last volume separately if the getter here is costly
                     child_video.volume = _volume;
                 }
-            });
+            };
 
         } catch (error) {
             console.warn(error);
@@ -925,6 +810,7 @@ export default class MainGame extends Phaser.Scene {
         for (let i = 0; i < this.players.length; i++) {
             if (this.players[i] == id) { this.players.splice(i, 1); }
         }
+        this.peerChat.player_peer_map.set(id, null);
         this.playerMap[id].name_label.destroy();
         this.playerMap[id].destroy();
         delete this.playerMap[id];
@@ -974,7 +860,7 @@ export default class MainGame extends Phaser.Scene {
                         // console.log("Matched video ID %s", videoId);
                         self.current_video_id = videoId;
                         self.youtubePlayer.load(videoId);
-                        self.Client.sendYoutubeChangeURL(videoId)
+                        self.socketClient.sendYoutubeChangeURL(videoId)
                         // TODO Network this to everyone in the room
                     } else {
                         console.log("Did not match video IDs");

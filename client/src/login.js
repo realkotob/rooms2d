@@ -39,8 +39,6 @@ export default class Login extends Phaser.Scene {
       _room_display_name = subname ? '/r/ ' + subname : _room_display_name;
     }
 
-
-
     let form_element = this.add.dom(450, 800).createFromHTML(login_form);
 
     let title_dom = document.querySelector('#formtitle');

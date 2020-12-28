@@ -1,7 +1,10 @@
 //noinspection JSCheckFunctionSignatures,JSCheckFunctionSignatures,JSCheckFunctionSignatures
 import MainGame from './game.js';
 import Login from './login.js';
+import PeerChat from './peer_chat.js';
+import SocketClient from './socket_client.js';
 import Phaser from 'phaser';
+
 
 
 const config = {
@@ -27,7 +30,13 @@ const config = {
     // antialias: false,
     // roundPixels: true
     pixelArt: true // from https://www.html5gamedevs.com/topic/36343-disable-antialias-in-phaser-3/
-  }
+  },
+  plugins: {
+    global: [
+      { key: 'PeerChat', plugin: PeerChat, start: false, mapping: 'peerChat' },
+      { key: 'SocketClient', plugin: SocketClient, start: false, mapping: 'socketClient' }
+    ]
+  },
 };
 
 let game = new Phaser.Game(config);

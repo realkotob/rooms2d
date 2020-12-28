@@ -197,6 +197,18 @@ io.on('connection', function (socket) {
                 }
             });
 
+
+            socket.on('set_peer_id', async function (p_data) {
+                try {
+                    socket.player.peer_id = p_data.peer_id;
+                    let all_peers = await getAllPeerIDs(_room);
+                    socket.emit("allpeers", all_peers);
+                    // io.in(_room).emit('new_peer_id', p_data);
+                } catch (error) {
+                    logger.error(`error in socket on yt_url ${error}`);
+                }
+            });
+
             socket.on('yt_url', function (p_v_id) {
                 try {
                     io.in(_room).emit('yt_url', p_v_id);
@@ -224,10 +236,6 @@ io.on('connection', function (socket) {
         }
 
     });
-
-    socket.on('test', function () {
-        console.log('test received');
-    });
 });
 
 async function getAllPlayers(p_room) {
@@ -248,6 +256,21 @@ async function getAllPlayers(p_room) {
         logger.error(`error in getAllPlayers ${error}`);
     }
     return players;
+}
+
+async function getAllPeerIDs(p_room) {
+    let peer_ids = [];
+    try {
+        let players = await getAllPlayers(p_room);
+        players.forEach(e_player => {
+            if (!!e_player.peer_id) {
+                peer_ids.push({ id: e_player.rt.id, pid: e_player.peer_id });
+            }
+        });
+    } catch (error) {
+        logger.error(`error in getAllPlayers ${error}`);
+    }
+    return peer_ids;
 }
 
 function randomInt(low, high) {
