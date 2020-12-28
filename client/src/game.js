@@ -501,12 +501,12 @@ export default class MainGame extends Phaser.Scene {
         for (let [player_id, peer_id] of self.peerChat.player_peer_map) {
             let player = self.playerMap[player_id];
             if (!player) {
-                console.warn(`Player object is null but player_id ${player_id} is in the player_peer_map.`);
+                // console.warn(`Player object is null but player_id ${player_id} is in the player_peer_map.`);
                 return;
             }
             let meter = self.peerChat.peer_volume_meter_map.get(peer_id);
             if (!meter) {
-                console.warn(`Meter object is null but peer  ${peer_id} is in the player_peer_map.`);
+                // console.warn(`Meter object is null but peer  ${peer_id} is in the player_peer_map.`);
                 return;
             }
             // console.log(`Volume of ${player.username} is ${meter.volume}`);
@@ -712,6 +712,8 @@ export default class MainGame extends Phaser.Scene {
                     let _volume = 1 - MainGame.clamp(_distance / MainGame.MAX_HEAR_DISTANCE, 0, 1);
                     // TODO I can store the last volume separately if the getter here is costly
                     child_video.volume = _volume;
+                } else {
+                    console.warn(`Could not find player obj for peer audio ${peer_id}`)
                 }
             };
 
