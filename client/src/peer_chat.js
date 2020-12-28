@@ -28,14 +28,15 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
   init_new_peer() {
     const self = this;
 
-    self.peer = new Peer();
-    // self.peer = new Peer(null, {
-    //   host: window.location.hostname,
-    //   debug: 1,
-    //   secure: true,
-    //   port: 443,
-    //   path: '/peerjs',
-    // });
+    // self.peer = new Peer();
+    self.peer = new Peer(null, {
+      host: window.location.hostname,
+      // host: "mossylogs.com",
+      debug: 1,
+      secure: true,
+      port: 443,
+      path: '/peerapp',
+    });
 
     this.peer.on('open', function () {
       // TODO Tell server about my ID

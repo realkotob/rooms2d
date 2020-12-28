@@ -108,7 +108,7 @@ app.use(helmet.expectCt());
 app.use(helmet.hsts());
 app.use(helmet.hidePoweredBy());
 
-app.use('*/peerjs', peerServer);
+app.use('/peerapp', peerServer);
 
 
 app.set('appPath', __dirname + '/public');
