@@ -494,7 +494,7 @@ export default class MainGame extends Phaser.Scene {
 
     handle_talk_activity() {
         if (this.peerChat.player_peer_map.size <= 0) {
-            console.warn(`player_peer_map is empty, skipping handle_talk_activity.`);
+            // console.warn(`player_peer_map is empty, skipping handle_talk_activity.`);
             return;
         }
         const self = this;
@@ -851,8 +851,8 @@ export default class MainGame extends Phaser.Scene {
             if (this.players[i] == id) { this.players.splice(i, 1); }
         }
 
-        this.peerChat.peer_volume_meter_map.set(this.peerChat.player_peer_map.get(id), null);
-        this.peerChat.player_peer_map.set(id, null);
+        this.peerChat.peer_volume_meter_map.delete(this.peerChat.player_peer_map.get(id));
+        this.peerChat.player_peer_map.delete(id);
         this.playerMap[id].name_label.destroy();
         this.playerMap[id].destroy();
         delete this.playerMap[id];
