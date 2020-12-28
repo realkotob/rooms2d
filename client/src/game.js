@@ -509,6 +509,7 @@ export default class MainGame extends Phaser.Scene {
                 console.warn(`Meter object is null but peer  ${peer_id} is in the player_peer_map.`);
                 return;
             }
+            // console.log(`Volume of ${player.username} is ${meter.volume}`);
             player.chat_bubble.alpha = MainGame.clamp(0.1 + meter.volume * 5, 0, 1);
         }
     }

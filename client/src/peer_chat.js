@@ -15,12 +15,29 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
   player_peer_map = new Map(); // This map is for updating dom volumes by distance
   peer_volume_meter_map = new Map(); // This map is for updating opacity by voice activity
 
+  own_stream = null;
   constructor(pluginManager) {
     super(pluginManager);
 
-    this.init_new_peer();
+    const self = this;
+
 
     window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
+    let getUserMedia_ = (navigator.getUserMedia
+      || navigator.webkitGetUserMedia
+      || navigator.mozGetUserMedia
+      || navigator.msGetUserMedia);
+
+    getUserMedia_({ video: false, audio: true }, (stream) => {
+      sel.own_stream = stream;
+    }, (err) => {
+      console.error(
+        'Failed to get local stream.', err);
+    });
+
+    this.init_new_peer();
+
   }
 
 
@@ -76,47 +93,41 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
         return;
       }
       console.log("Answering player ");
-      let getUserMedia_ = (navigator.getUserMedia
-        || navigator.webkitGetUserMedia
-        || navigator.mozGetUserMedia
-        || navigator.msGetUserMedia);
-      getUserMedia_({ video: false, audio: true }, (stream) => {
 
-        self._connected_peer_ids.push(peer_id);
 
-        call.answer(stream); // Answer the call with an A/V stream.
-        call.on('stream', (remoteStream) => {
-          // Show stream in some <video> element.
+      self._connected_peer_ids.push(peer_id);
 
-          console.log("Answered player " + peer_id);
-          const remoteVideo = document.getElementById("p" + peer_id);
-          if (!!remoteVideo) {
-            remoteVideo.srcObject = remoteStream;
-            remoteVideo.autoplay = true;
-          } else {
-            let video = document.createElement('video');
-            video.srcObject = remoteStream;
-            video.autoplay = true;
-            video.id = "p" + peer_id;
-            let element = document.getElementById("media-container");
-            element.appendChild(video);
-          }
+      call.answer(self.own_stream); // Answer the call with an A/V stream.
+      call.on('stream', (remoteStream) => {
+        // Show stream in some <video> element.
 
-          // Use volume-meter script 
-          // See https://ourcodeworld.com/articles/read/413/how-to-create-a-volume-meter-measure-the-sound-level-in-the-browser-with-javascript
-          // and https://github.com/cwilso/volume-meter
-          let audioContext = new AudioContext();
+        console.log("Answered player " + peer_id);
+        const remoteVideo = document.getElementById("p" + peer_id);
+        if (!!remoteVideo) {
+          remoteVideo.srcObject = remoteStream;
+          remoteVideo.autoplay = true;
+        } else {
+          let video = document.createElement('video');
+          video.srcObject = remoteStream;
+          video.autoplay = true;
+          video.id = "p" + peer_id;
+          let element = document.getElementById("media-container");
+          element.appendChild(video);
+        }
 
-          // Create an AudioNode from the stream.
-          let mediaStreamSource = audioContext.createMediaStreamSource(stream);
-          // Create a new volume meter and connect it.
-          let meter = createAudioMeter(audioContext);
-          mediaStreamSource.connect(meter);
-          this.peer_volume_meter_map.set(peer_id, meter);
-        });
-      }, (err) => {
-        console.error('Failed to get local stream to answer call. Note that the peer is still listed under _connected_peer_ids.', err);
+        // Use volume-meter script 
+        // See https://ourcodeworld.com/articles/read/413/how-to-create-a-volume-meter-measure-the-sound-level-in-the-browser-with-javascript
+        // and https://github.com/cwilso/volume-meter
+        let audioContext = new AudioContext();
+
+        // Create an AudioNode from the stream.
+        let mediaStreamSource = audioContext.createMediaStreamSource(self.own_stream);
+        // Create a new volume meter and connect it.
+        let meter = createAudioMeter(audioContext);
+        mediaStreamSource.connect(meter);
+        this.peer_volume_meter_map.set(peer_id, meter);
       });
+
     });
   }
 
@@ -168,39 +179,32 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
         self.conn.send(`Hello from ${self.peer.id} !`);
       });
 
-      let getUserMedia_ = (navigator.getUserMedia
-        || navigator.webkitGetUserMedia
-        || navigator.mozGetUserMedia
-        || navigator.msGetUserMedia);
-      getUserMedia_({ video: false, audio: true }, (stream) => {
+
+      if (!next_peer_id) {
+        return;
+      }
+      console.log("Got media stream to call player ", next_peer_id);
+      const call = self.peer.call(next_peer_id.toString(), self.own_stream);
+      call.on('stream', (remoteStream) => {
         if (!next_peer_id) {
           return;
         }
-        console.log("Got media stream to call player ", next_peer_id);
-        const call = self.peer.call(next_peer_id.toString(), stream);
-        call.on('stream', (remoteStream) => {
-          if (!next_peer_id) {
-            return;
-          }
-          // Show stream in some <video> element.
-          let peer_id = next_peer_id.toString();
-          const remoteVideo = document.getElementById("p" + peer_id);
-          if (remoteVideo) {
-            remoteVideo.srcObject = remoteStream;
-          } else {
-            let video = document.createElement('video');
-            video.srcObject = remoteStream;
-            video.autoplay = true;
-            video.id = "p" + peer_id;
-            let element = document.getElementById("media-container");
-            element.appendChild(video);
-          }
-          self.call_next_peer();
-        });
-      }, (err) => {
-        console.error(
-          'Failed to get local stream to send call. Note that the peer is removed _queued_peer_ids before connecting, so there will be no second attempt.', err);
+        // Show stream in some <video> element.
+        let peer_id = next_peer_id.toString();
+        const remoteVideo = document.getElementById("p" + peer_id);
+        if (remoteVideo) {
+          remoteVideo.srcObject = remoteStream;
+        } else {
+          let video = document.createElement('video');
+          video.srcObject = remoteStream;
+          video.autoplay = true;
+          video.id = "p" + peer_id;
+          let element = document.getElementById("media-container");
+          element.appendChild(video);
+        }
+        self.call_next_peer();
       });
+
 
     } catch (error) {
 
@@ -217,10 +221,6 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
   setup_own_voice_activity_meter() {
     const self = this;
 
-    let getUserMedia_ = (navigator.getUserMedia
-      || navigator.webkitGetUserMedia
-      || navigator.mozGetUserMedia
-      || navigator.msGetUserMedia);
     getUserMedia_({ video: false, audio: true }, (stream) => {
       let audioContext = new AudioContext();
 
