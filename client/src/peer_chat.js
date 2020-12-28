@@ -11,11 +11,15 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
 
   _connected_peer_ids = [];
 
+  player_peer_map = new Map(); // This map is for updating dom volumes by distance
+  peer_volume_meter_map = new Map(); // This map is for updating opacity by voice activity
+
   constructor(pluginManager) {
     super(pluginManager);
 
     this.init_new_peer();
 
+    window.AudioContext = window.AudioContext || window.webkitAudioContext;
   }
 
 
@@ -81,8 +85,9 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
 
           console.log("Answered player " + peer_id);
           const remoteVideo = document.getElementById("p" + peer_id);
-          if (remoteVideo) {
+          if (!!remoteVideo) {
             remoteVideo.srcObject = remoteStream;
+            remoteVideo.autoplay = true;
           } else {
             let video = document.createElement('video');
             video.srcObject = remoteStream;
@@ -91,6 +96,18 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
             let element = document.getElementById("media-container");
             element.appendChild(video);
           }
+
+          // Use volume-meter script 
+          // See https://ourcodeworld.com/articles/read/413/how-to-create-a-volume-meter-measure-the-sound-level-in-the-browser-with-javascript
+          // and https://github.com/cwilso/volume-meter
+          let audioContext = new AudioContext();
+
+          // Create an AudioNode from the stream.
+          let mediaStreamSource = audioContext.createMediaStreamSource(stream);
+          // Create a new volume meter and connect it.
+          let meter = createAudioMeter(audioContext);
+          mediaStreamSource.connect(meter);
+          this.peer_volume_meter_map.set(peer_id, meter);
         });
       }, (err) => {
         console.error('Failed to get local stream to answer call. Note that the peer is still listed under _connected_peer_ids.', err);
@@ -98,7 +115,6 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
     });
   }
 
-  player_peer_map = new Map(); // The map is for updating volumes each frame
   receive_all_peers(p_all_peers) {
     const self = this;
     p_all_peers.forEach(element => {

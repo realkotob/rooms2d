@@ -17,6 +17,8 @@ import r_crosshair from './assets/sprites/crosshair.png';
 import r_characters from './assets/sprites/characters/other/All.png';
 import r_slime from './assets/sprites/slime_monster/slime_monster_spritesheet.png';
 
+import r_speech_bubble from './assets/sprites/speech_bubble.png';
+
 import r_char_0 from './assets/sprites/characters/char_0.png';
 import r_char_1 from './assets/sprites/characters/char_1.png';
 import r_char_2 from './assets/sprites/characters/char_2.png';
@@ -150,6 +152,7 @@ export default class MainGame extends Phaser.Scene {
         this.load.tilemapTiledJSON('map_screen', r_example_map_with_screen);
         this.load.image('tilesheet', r_tilesheet);
         this.load.image('pixel', r_pixel);
+        this.load.image('speech_bubble', r_speech_bubble);
 
         this.load.image('sprite', r_sprite);
         // this.load.image('ball', r_ball);
@@ -440,6 +443,31 @@ export default class MainGame extends Phaser.Scene {
         // this.gameScene = this.scene.get('GameScene');
 
         this.setup_game_focus();
+
+        this.events.on('postupdate', this.postUpdate, this);
+    }
+
+    postUpdate() {
+        this.updatePlayerYSort();
+    }
+
+    updatePlayerYSort() {
+        const self = this;
+        this.players.forEach(_index => {
+            let tmp_player = this.playerMap[_index];
+            if (!!tmp_player) {
+                tmp_player.depth = tmp_player.y + (tmp_player.height * tmp_player.scale) / 2;
+
+                // console.log("Update label: %s", t_player.name_label.text);
+                tmp_player.name_label.setPosition(tmp_player.x - + tmp_player.name_label.width / 2, tmp_player.y + (tmp_player.height * tmp_player.scale) / 2); //Phaser.Math.Linear(tmp_player.name_label.x, tmp_player.x - + tmp_player.name_label.width / 2, 0.9);
+                // tmp_player.name_label.y =; //Phaser.Math.Linear(tmp_player.name_label.y, tmp_player.y + (tmp_player.height * tmp_player.scale) / 2, 0.9);
+                tmp_player.chat_bubble.setPosition(tmp_player.x - + tmp_player.name_label.width / 2, tmp_player.y - (tmp_player.height * tmp_player.scale) / 2);
+
+            }
+        });
+        // if (!!this.crosshair)
+        //     this.crosshair.depth = this.crosshair.y + this.crosshair.height / 2;
+
     }
 
     static COUNTER_DOM_UPDATE = 0;
@@ -449,7 +477,6 @@ export default class MainGame extends Phaser.Scene {
 
         this.handle_player_controls(delta);
         this.handleSimulationSync();
-        this.updatePlayerYSort();
 
         if (!this.player_id || !this.current_player) {
             return;
@@ -461,6 +488,26 @@ export default class MainGame extends Phaser.Scene {
             this.handle_voice_proxomity();
             this.handle_video_proximity();
             this.focus_game();
+        }
+        this.handle_talk_activity();
+    }
+
+    handle_talk_activity() {
+        if (this.peerChat.player_peer_map.size <= 0) {
+            return;
+        }
+        for (let [player_id, peer_id] of this.peerChat.player_peer_map) {
+            let player = this.playerMap[player_id];
+            if (!player) {
+                console.warn("Player object is null but player is in the playerMap, I cannot work with this.");
+                return;
+            }
+            let meter = this.peerChat.peer_volume_meter_map.get(peer_id);
+            if (!meter) {
+                console.warn("Meter object is null but peer is in the player_peer_map, I cannot work with this.");
+                return;
+            }
+            player.chat_bubble.alpha = meter.volume;
         }
     }
 
@@ -639,14 +686,18 @@ export default class MainGame extends Phaser.Scene {
             }
             // let video_parent = document.getElementById("media-container");
             for (let [player_id, peer_id] of this.peerChat.player_peer_map) {
-                if (player_id == this.player_id || !peer_id) { // peer_id is null when player disconnects
+                if (player_id == this.player_id) { // peer_id is null when player disconnects
                     return;
+                }
+                if (!peer_id) {
+                    console.warn("Peer ID in player map is null, could't adjust their volume.");
                 }
 
                 // TESTME Need to profile this and make sure it's ok. 
                 // I can optimize this by storing the DOMS in a map.
                 let child_video = document.getElementById('p' + peer_id);
                 if (!child_video) {
+                    console.warn(`Could not find the DOM element for peer audio ${peer_id}`)
                     return;
                 }
                 let tmp_player = this.playerMap[player_id];
@@ -749,26 +800,11 @@ export default class MainGame extends Phaser.Scene {
             _new_player.x + (_new_player.width * _new_player.scale) / 2, _new_player.y + (_new_player.height * _new_player.scale) / 2, _new_player.username, style);
         _new_player.name_label.texture.setFilter(0);
 
+        _new_player.chat_bubble = this.add.sprite(0, 0, "speech_bubble");
+
     };
 
-    updatePlayerYSort() {
-        const self = this;
-        this.players.forEach(_index => {
-            let tmp_player = this.playerMap[_index];
-            if (!!tmp_player) {
-                tmp_player.depth = tmp_player.y + (tmp_player.height * tmp_player.scale) / 2;
 
-                // console.log("Update label: %s", t_player.name_label.text);
-                tmp_player.name_label.x = Phaser.Math.Linear(tmp_player.name_label.x, tmp_player.x - + tmp_player.name_label.width / 2, 0.9);
-                tmp_player.name_label.y = Phaser.Math.Linear(tmp_player.name_label.y, tmp_player.y + (tmp_player.height * tmp_player.scale) / 2, 0.9);
-
-
-            }
-        });
-        // if (!!this.crosshair)
-        //     this.crosshair.depth = this.crosshair.y + this.crosshair.height / 2;
-
-    }
 
     updatePlayerPhysics(p_id, p_data) {
 
@@ -811,6 +847,8 @@ export default class MainGame extends Phaser.Scene {
         for (let i = 0; i < this.players.length; i++) {
             if (this.players[i] == id) { this.players.splice(i, 1); }
         }
+
+        this.peerChat.peer_volume_meter_map.set(this.peerChat.player_peer_map.get(id), null);
         this.peerChat.player_peer_map.set(id, null);
         this.playerMap[id].name_label.destroy();
         this.playerMap[id].destroy();

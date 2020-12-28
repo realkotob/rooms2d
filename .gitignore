@@ -1,3 +1,8 @@
+### Should not add archives -- git has its own compression
+*.zip
+*.rar
+*.7z
+
 # Webpack output. Can be recreated with `npm run build`
 public
 
