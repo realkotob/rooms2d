@@ -55,13 +55,18 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
 
 
     this.peer.on('call', (call) => {
+      let peer_id = call.peer.toString();
+      if (peer_id == self.peer.id) {
+        console.warn("Cannot answer call coming from self.");
+        return;
+      }
       console.log("Answering player ");
       let getUserMedia_ = (navigator.getUserMedia
         || navigator.webkitGetUserMedia
         || navigator.mozGetUserMedia
         || navigator.msGetUserMedia);
       getUserMedia_({ video: false, audio: true }, (stream) => {
-        let peer_id = call.peer.toString();
+
         self._connected_peer_ids.push(peer_id);
 
         call.answer(stream); // Answer the call with an A/V stream.
@@ -117,6 +122,11 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
       const self = this;
 
       let next_peer_id = this._queued_peer_ids.shift();
+
+      if (next_peer_id == self.peer.id) {
+        console.warn("Cannot call self.");
+        return;
+      }
 
       console.log("Calling player ", next_peer_id);
       self.conn = self.peer.connect(next_peer_id);
