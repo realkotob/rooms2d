@@ -461,7 +461,7 @@ export default class MainGame extends Phaser.Scene {
                 // console.log("Update label: %s", t_player.name_label.text);
                 tmp_player.name_label.setPosition(tmp_player.x - + tmp_player.name_label.width / 2, tmp_player.y + (tmp_player.height * tmp_player.scale) / 2); //Phaser.Math.Linear(tmp_player.name_label.x, tmp_player.x - + tmp_player.name_label.width / 2, 0.9);
                 // tmp_player.name_label.y =; //Phaser.Math.Linear(tmp_player.name_label.y, tmp_player.y + (tmp_player.height * tmp_player.scale) / 2, 0.9);
-                tmp_player.chat_bubble.setPosition(tmp_player.x - + tmp_player.name_label.width / 2, tmp_player.y - (tmp_player.height * tmp_player.scale) / 2);
+                tmp_player.chat_bubble.setPosition(tmp_player.x, tmp_player.y - (tmp_player.height * tmp_player.scale) / 2 - tmp_player.chat_bubble.height / 2);
 
             }
         });
@@ -494,20 +494,22 @@ export default class MainGame extends Phaser.Scene {
 
     handle_talk_activity() {
         if (this.peerChat.player_peer_map.size <= 0) {
+            console.warn(`player_peer_map is empty, skipping handle_talk_activity.`);
             return;
         }
-        for (let [player_id, peer_id] of this.peerChat.player_peer_map) {
-            let player = this.playerMap[player_id];
+        const self = this;
+        for (let [player_id, peer_id] of self.peerChat.player_peer_map) {
+            let player = self.playerMap[player_id];
             if (!player) {
-                console.warn("Player object is null but player is in the playerMap, I cannot work with this.");
+                console.warn(`Player object is null but player_id ${player_id} is in the player_peer_map.`);
                 return;
             }
-            let meter = this.peerChat.peer_volume_meter_map.get(peer_id);
+            let meter = self.peerChat.peer_volume_meter_map.get(peer_id);
             if (!meter) {
-                console.warn("Meter object is null but peer is in the player_peer_map, I cannot work with this.");
+                console.warn(`Meter object is null but peer  ${peer_id} is in the player_peer_map.`);
                 return;
             }
-            player.chat_bubble.alpha = meter.volume;
+            player.chat_bubble.alpha = MainGame.clamp(0.1 + meter.volume * 5, 0, 1);
         }
     }
 
@@ -684,9 +686,10 @@ export default class MainGame extends Phaser.Scene {
             if (this.peerChat.player_peer_map.size <= 0) {
                 return;
             }
+            const self = this;
             // let video_parent = document.getElementById("media-container");
-            for (let [player_id, peer_id] of this.peerChat.player_peer_map) {
-                if (player_id == this.player_id) { // peer_id is null when player disconnects
+            for (let [player_id, peer_id] of self.peerChat.player_peer_map) {
+                if (player_id == self.player_id) { // peer_id is null when player disconnects
                     return;
                 }
                 if (!peer_id) {
@@ -700,10 +703,10 @@ export default class MainGame extends Phaser.Scene {
                     console.warn(`Could not find the DOM element for peer audio ${peer_id}`)
                     return;
                 }
-                let tmp_player = this.playerMap[player_id];
+                let tmp_player = self.playerMap[player_id];
                 if (!!tmp_player) {
                     let _distance = Phaser.Math.Distance.Between(
-                        tmp_player.x, tmp_player.y, this.current_player.x, this.current_player.y);
+                        tmp_player.x, tmp_player.y, self.current_player.x, self.current_player.y);
 
                     let _volume = 1 - MainGame.clamp(_distance / MainGame.MAX_HEAR_DISTANCE, 0, 1);
                     // TODO I can store the last volume separately if the getter here is costly
@@ -801,7 +804,7 @@ export default class MainGame extends Phaser.Scene {
         _new_player.name_label.texture.setFilter(0);
 
         _new_player.chat_bubble = this.add.sprite(0, 0, "speech_bubble");
-
+        _new_player.chat_bubble.alpha = 0;
     };
 
 

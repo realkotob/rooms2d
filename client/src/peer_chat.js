@@ -1,6 +1,7 @@
 
 
 import Peer from 'peerjs';
+import createAudioMeter from './lib/volume-meter.js';
 
 export default class PeerChat extends Phaser.Plugins.BasePlugin {
   peer = null;
@@ -27,13 +28,14 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
   init_new_peer() {
     const self = this;
 
-    self.peer = new Peer(null, {
-      host: window.location.hostname,
-      debug: 1,
-      secure: true,
-      port: 443,
-      path: '/peerjs',
-    });
+    self.peer = new Peer();
+    // self.peer = new Peer(null, {
+    //   host: window.location.hostname,
+    //   debug: 1,
+    //   secure: true,
+    //   port: 443,
+    //   path: '/peerjs',
+    // });
 
     this.peer.on('open', function () {
       // TODO Tell server about my ID
@@ -49,6 +51,8 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
       } catch (error) {
         console.error("Errer in callback_on_connect", error);
       }
+
+      self.setup_own_voice_activity_meter();
 
     });
 
@@ -118,8 +122,8 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
   receive_all_peers(p_all_peers) {
     const self = this;
     p_all_peers.forEach(element => {
-      if (element.peer_id != self.peer.id) {
-        self.player_peer_map.set(element.player_id, element.pid);
+      self.player_peer_map.set(element.id, element.pid); // We need the player's peer id so mapped so we can animate their chat bubble voice activity
+      if (element.pid != self.peer.id) {
         self.request_call_peer(element.pid);
       }
     });
@@ -207,5 +211,28 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
   isAlive() {
     // TODO maybe use peer.disconnected property for this
     return this._can_call;
+  }
+
+  setup_own_voice_activity_meter() {
+    const self = this;
+
+    let getUserMedia_ = (navigator.getUserMedia
+      || navigator.webkitGetUserMedia
+      || navigator.mozGetUserMedia
+      || navigator.msGetUserMedia);
+    getUserMedia_({ video: false, audio: true }, (stream) => {
+      let audioContext = new AudioContext();
+
+      // Create an AudioNode from the stream.
+      let mediaStreamSource = audioContext.createMediaStreamSource(stream);
+      // Create a new volume meter and connect it.
+      let meter = createAudioMeter(audioContext);
+      mediaStreamSource.connect(meter);
+      this.peer_volume_meter_map.set(self.peer.id, meter);
+    }, (err) => {
+      console.error(
+        'Failed to get local stream to add chat bubble.', err);
+    });
+
   }
 }
