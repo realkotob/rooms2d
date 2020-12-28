@@ -14,7 +14,7 @@ import r_tilesheet from './assets/map/tilesheet.png';
 import r_example_map from './assets/map/example_map.json';
 import r_example_map_with_screen from './assets/map/example_map_with_screen.json';
 import r_sprite from './assets/sprites/sprite.png';
-import r_ball from './assets/sprites/ball.png';
+// import r_ball from './assets/sprites/ball.png';
 import r_crosshair from './assets/sprites/crosshair.png';
 import r_characters from './assets/sprites/characters/other/All.png';
 import r_slime from './assets/sprites/slime_monster/slime_monster_spritesheet.png';
@@ -269,7 +269,7 @@ export default class MainGame extends Phaser.Scene {
         this.load.image('pixel', r_pixel);
 
         this.load.image('sprite', r_sprite);
-        this.load.image('ball', r_ball);
+        // this.load.image('ball', r_ball);
         this.load.image('crosshair', r_crosshair);
         this.load.spritesheet('characters', r_characters, { frameWidth: 48, frameHeight: 51 });
         this.load.spritesheet('slime', r_slime, { frameWidth: 24, frameHeight: 24 });
@@ -361,9 +361,9 @@ export default class MainGame extends Phaser.Scene {
         // this.updateCamera();
     }
 
-    on_hit_ball() {
-        console.log("Player hit ball");
-    }
+    // on_hit_ball() {
+    //     console.log("Player hit ball");
+    // }
 
     create() {
         const self = this;
@@ -414,10 +414,10 @@ export default class MainGame extends Phaser.Scene {
 
 
         this.player_group = this.physics.add.group();
-        this.ball_group = this.physics.add.group();
+        // this.ball_group = this.physics.add.group();
 
 
-        this.physics.add.collider(this.player_group, this.ball_group, this.on_hit_ball);
+        // this.physics.add.collider(this.player_group, this.ball_group, this.on_hit_ball);
 
 
         // let testKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
@@ -436,7 +436,7 @@ export default class MainGame extends Phaser.Scene {
                 layer.setCollisionByProperty({ collides: true });
                 // layer.setCollisionBetween(22, 24);
                 this.physics.add.collider(this.player_group, layer);
-                this.physics.add.collider(this.ball_group, layer);
+                // this.physics.add.collider(this.ball_group, layer);
                 layer.visible = false;
             }
         }
@@ -446,7 +446,7 @@ export default class MainGame extends Phaser.Scene {
                 layer.setCollisionByProperty({ collides: true });
                 // layer.setCollisionBetween(22, 24);
                 this.physics.add.collider(this.player_group, layer);
-                this.physics.add.collider(this.ball_group, layer);
+                // this.physics.add.collider(this.ball_group, layer);
                 layer.visible = false;
             }
         }
@@ -456,7 +456,7 @@ export default class MainGame extends Phaser.Scene {
                 layer.setCollisionByProperty({ collides: true });
                 // layer.setCollisionBetween(22, 24);
                 this.physics.add.collider(this.player_group, layer);
-                this.physics.add.collider(this.ball_group, layer);
+                // this.physics.add.collider(this.ball_group, layer);
                 layer.visible = false;
             }
         }
@@ -466,7 +466,7 @@ export default class MainGame extends Phaser.Scene {
                 layer.setCollisionByProperty({ collides: true });
                 // layer.setCollisionBetween(22, 24);
                 this.physics.add.collider(this.player_group, layer);
-                this.physics.add.collider(this.ball_group, layer);
+                // this.physics.add.collider(this.ball_group, layer);
                 layer.visible = false;
             }
         }
@@ -476,7 +476,7 @@ export default class MainGame extends Phaser.Scene {
                 layer.setCollisionByProperty({ collides: true });
                 // layer.setCollisionBetween(22, 24);
                 this.physics.add.collider(this.player_group, layer);
-                this.physics.add.collider(this.ball_group, layer);
+                // this.physics.add.collider(this.ball_group, layer);
                 layer.visible = false;
             }
         }
@@ -486,7 +486,7 @@ export default class MainGame extends Phaser.Scene {
                 layer.setCollisionByProperty({ collides: true });
                 // layer.setCollisionBetween(22, 24);
                 this.physics.add.collider(this.player_group, layer);
-                this.physics.add.collider(this.ball_group, layer);
+                // this.physics.add.collider(this.ball_group, layer);
                 layer.visible = false;
             }
         }
@@ -517,18 +517,17 @@ export default class MainGame extends Phaser.Scene {
         // this.adaptive_layer.add(this.crosshair);
 
 
-        this.ball = this.physics.add.sprite(300, 400, 'slime', 6);
-        this.ball.scale = 2;
-        // this.ball.body.bounce = new Phaser.Math.Vector2(1, 1);
-        this.ball.body.setVelocity(100, 100);
-        this.ball.setCollideWorldBounds(true);
-        this.ball.setImmovable(false);
-        this.ball.setBounce(1);
-        this.ball.setCircle(12);
-        this.ball.setPushable(true);
-        this.ball.setDrag(40);
-        this.ball.setMaxVelocity(1000);
-        this.ball_group.add(this.ball);
+        // this.ball = this.physics.add.sprite(300, 400, 'slime', 6);
+        // this.ball.scale = 2;
+        // this.ball.body.setVelocity(100, 100);
+        // this.ball.setCollideWorldBounds(true);
+        // this.ball.setImmovable(false);
+        // this.ball.setBounce(1);
+        // this.ball.setCircle(12);
+        // this.ball.setPushable(true);
+        // this.ball.setDrag(40);
+        // this.ball.setMaxVelocity(1000);
+        // this.ball_group.add(this.ball);
 
         this.input.mouse.disableContextMenu();
 
