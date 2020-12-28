@@ -42,6 +42,8 @@ function ensureSecure(req, res, next) {
     res.redirect('https://' + req.hostname + req.url); // express 4.x
 }
 
+var ssl_key;
+var ssl_cert;
 if (fs.existsSync(cert_path)) {
     PORT = 443;
     SSL_FOUND = true;
@@ -49,11 +51,11 @@ if (fs.existsSync(cert_path)) {
 
     // var key = fs.readFileSync(__dirname + '/certs/server.key', 'utf8'); // Self signed
     // var cert = fs.readFileSync(__dirname + '/certs/server.cert', 'utf8');
-    let key = fs.readFileSync(cert_path + 'privkey.pem', 'utf8');
-    let cert = fs.readFileSync(cert_path + 'fullchain.pem', 'utf8');
+    ssl_key = fs.readFileSync(cert_path + 'privkey.pem', 'utf8');
+    ssl_cert = fs.readFileSync(cert_path + 'fullchain.pem', 'utf8');
     let options = {
-        key: key,
-        cert: cert
+        key: ssl_key,
+        cert: ssl_cert
     };
 
     server = https.Server(options, app);
@@ -65,11 +67,11 @@ if (fs.existsSync(cert_path)) {
     PORT = 443;
     SSL_FOUND = true;
 
-    var key = fs.readFileSync(__dirname + '/certs/server.key', 'utf8'); // Self signed
-    var cert = fs.readFileSync(__dirname + '/certs/server.cert', 'utf8');
+    ssl_key = fs.readFileSync(__dirname + '/certs/server.key', 'utf8'); // Self signed
+    ssl_cert = fs.readFileSync(__dirname + '/certs/server.cert', 'utf8');
     let options = {
-        key: key,
-        cert: cert
+        key: ssl_key,
+        cert: ssl_cert
     };
 
     server = https.Server(options, app);
@@ -91,7 +93,14 @@ var io = require('socket.io')(server,
 const { ExpressPeerServer } = require('peer');
 
 const peerServer = ExpressPeerServer(server, {
-    path: '/myapp'
+    port: 443,
+    proxied: true,
+    debug: true,
+    path: '/',
+    ssl: {
+        key: ssl_key,
+        cert: ssl_cert
+    }
 });
 
 // See https://www.npmjs.com/package/helmet

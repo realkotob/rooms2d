@@ -23,7 +23,13 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
   init_new_peer() {
     const self = this;
 
-    self.peer = new Peer();
+    self.peer = new Peer(null, {
+      host: window.location.hostname,
+      debug: 1,
+      secure: true,
+      port: 443,
+      path: '/peerjs',
+    });
 
     this.peer.on('open', function () {
       // TODO Tell server about my ID
@@ -44,12 +50,12 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
 
     this.peer.on('error', function (err) {
       // Errors on the peer are almost always fatal and will destroy the peer
-      console.error('Critical peer error. Starting new peer.', err);
+      console.error('Critical peer error. What do?', err);
 
-      self._can_call = false;
+      // self._can_call = false;
 
       // TODO Tell the server about this
-      self.init_new_peer();
+      // self.init_new_peer();
 
     });
 
