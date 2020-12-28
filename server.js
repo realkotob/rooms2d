@@ -146,7 +146,7 @@ if (SSL_FOUND) {
     // httpServer.listen(80);
 }
 
-
+var room_videos = new Map();
 const CHARACTER_SPRITE_COUNT = 24;
 io.on('connection', function (socket) {
 
@@ -179,7 +179,7 @@ io.on('connection', function (socket) {
 
             // console.log(socket.rooms); // Set { <socket.id>, "room1" }
 
-            socket.emit('allplayers', { you: socket.player, all: await getAllPlayers(_room) });
+            socket.emit('allplayers', { you: socket.player, all: await getAllPlayers(_room), room_data: { vid_id: room_videos.get(_room) } });
             socket.to(_room).emit('newplayer', socket.player);
 
             socket.on('move', function (p_data) {
@@ -211,6 +211,7 @@ io.on('connection', function (socket) {
 
             socket.on('yt_url', function (p_v_id) {
                 try {
+                    room_videos.set(_room, p_v_id);
                     io.in(_room).emit('yt_url', p_v_id);
                 } catch (error) {
                     logger.error(`error in socket on yt_url ${error}`);

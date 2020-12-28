@@ -108,6 +108,7 @@ export default class MainGame extends Phaser.Scene {
 
         this.socketClient.socket.on('allplayers', function (data) {
             self.player_id = data.you.rt.id.toString();
+            self.youtubePlayer.load(data.room_data.vid_id);
             console.log("My new player id is ", self.player_id);
 
             // if (self.socketClient.is_connected && self.peerChat.isAlive()) {
