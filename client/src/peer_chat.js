@@ -30,7 +30,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
       || navigator.msGetUserMedia);
 
     getUserMedia_({ video: false, audio: true }, (stream) => {
-      sel.own_stream = stream;
+      self.own_stream = stream;
     }, (err) => {
       console.error(
         'Failed to get local stream.', err);
