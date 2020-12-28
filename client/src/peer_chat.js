@@ -76,6 +76,16 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
       // TODO Tell server about my ID
       console.log('My PeerJS ID is:', self.peer.id);
       self._can_call = true;
+
+      let video = document.createElement('audio');
+      video.srcObject = self.own_stream;
+      video.autoplay = true;
+      // video.src = (URL || webkitURL || mozURL).createObjectURL(self.own_stream);
+      video.id = "p" + self.peer.id;
+      video.volume = 0;
+      let element = document.getElementById("media-container");
+      element.appendChild(video);
+
       self.setup_voice_activity_meter(self.peer.id, self.own_stream);
 
       self.call_next_peer();
@@ -124,17 +134,20 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
         if (!!remoteVideo) {
           remoteVideo.srcObject = remoteStream;
           remoteVideo.autoplay = true;
+          // remoteVideo.src = (URL || webkitURL || mozURL).createObjectURL(remoteStream);
+          self.setup_voice_activity_meter(peer_id, remoteStream);
         } else {
-          let video = document.createElement('video');
+          let video = document.createElement('audio');
           video.srcObject = remoteStream;
+          // video.src = (URL || webkitURL || mozURL).createObjectURL(remoteStream);
           video.autoplay = true;
           video.id = "p" + peer_id;
           let element = document.getElementById("media-container");
           element.appendChild(video);
+          self.setup_voice_activity_meter(peer_id, remoteStream);
         }
 
 
-        self.setup_voice_activity_meter(peer_id, remoteStream);
       });
 
     });
@@ -199,10 +212,12 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
         let peer_id = next_peer_id.toString();
         const remoteVideo = document.getElementById("p" + peer_id);
         if (remoteVideo) {
+          remoteVideo.autoplay = true;
           remoteVideo.srcObject = remoteStream;
         } else {
-          let video = document.createElement('video');
+          let video = document.createElement('audio');
           video.srcObject = remoteStream;
+          // video.src = (URL || webkitURL || mozURL).createObjectURL(remoteStream);
           video.autoplay = true;
           video.id = "p" + peer_id;
           let element = document.getElementById("media-container");
@@ -232,6 +247,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
 
     // Create an AudioNode from the stream.
     let mediaStreamSource = this.audioContext.createMediaStreamSource(stream);
+    // let mediaStreamSource = this.audioContext.createMediaElementSource(audio_element);
     // Create a new volume meter and connect it.
     let meter = createAudioMeter(this.audioContext);
     mediaStreamSource.connect(meter);
