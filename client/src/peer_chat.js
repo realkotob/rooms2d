@@ -88,8 +88,10 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
       let element = document.getElementById("media-container");
       element.appendChild(video);
 
+
       getUserMedia_({ video: false, audio: true }, (stream) => {
-        video.srcObject = self.setup_voice_activity_meter(self.peer.id, stream).stream;
+        self.setup_voice_activity_meter(self.peer.id, stream.clone());
+        video.srcObject = stream.clone();
         // self.setup_voice_activity_meter(self.peer.id, stream);
       }, (err) => {
         console.error(
@@ -139,13 +141,14 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
 
         console.log("Answered player " + peer_id);
         const remoteVideo = document.getElementById("p" + peer_id);
+        self.setup_voice_activity_meter(peer_id, remoteStream.clone());
         if (!!remoteVideo) {
-          remoteVideo.srcObject = self.setup_voice_activity_meter(peer_id, remoteStream).stream;
+          remoteVideo.srcObject = remoteStream.clone();
           remoteVideo.autoplay = true;
           // remoteVideo.src = (URL || webkitURL || mozURL).createObjectURL(remoteStream);
         } else {
           let video = document.createElement('audio');
-          video.srcObject = self.setup_voice_activity_meter(peer_id, remoteStream).stream;
+          video.srcObject = remoteStream.clone();
           // video.src = (URL || webkitURL || mozURL).createObjectURL(remoteStream);
           video.autoplay = true;
           video.id = "p" + peer_id;
@@ -219,16 +222,17 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
         const remoteVideo = document.getElementById("p" + peer_id);
         if (remoteVideo) {
           remoteVideo.autoplay = true;
-          remoteVideo.srcObject = remoteStream;
+          remoteVideo.srcObject = remoteStream.clone();
         } else {
           let video = document.createElement('audio');
-          video.srcObject = remoteStream;
+          video.srcObject = remoteStream.clone();
           // video.src = (URL || webkitURL || mozURL).createObjectURL(remoteStream);
           video.autoplay = true;
           video.id = "p" + peer_id;
           let element = document.getElementById("media-container");
           element.appendChild(video);
         }
+        self.setup_voice_activity_meter(peer_id, remoteStream.clone());
         self.call_next_peer();
       });
 
