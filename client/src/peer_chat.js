@@ -64,12 +64,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
       self._can_call = true;
 
 
-      getUserMedia_({ video: false, audio: true }, (own_stream) => {
-        self.setup_voice_activity_meter(self.peer.id, own_stream);
-      }, (err) => {
-        console.error(
-          'Failed to get local stream.', err);
-      });
+
 
       self.call_next_peer();
 
@@ -111,31 +106,36 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
       getUserMedia_({ video: false, audio: true }, (own_stream) => {
 
         call.answer(own_stream); // Answer the call with an A/V stream.
-        call.on('stream', (remoteStream) => {
-          // Show stream in some <video> element.
 
-          console.log("Answered player " + peer_id);
-          const remoteVideo = document.getElementById("p" + peer_id);
-          if (!!remoteVideo) {
-            remoteVideo.srcObject = remoteStream;
-            remoteVideo.autoplay = true;
-            remoteVideo.play();
-            // remoteVideo.src = (URL || webkitURL || mozURL).createObjectURL(remoteStream);
-          } else {
-            let video = document.createElement('audio');
-            video.srcObject = remoteStream;
-            // video.src = (URL || webkitURL || mozURL).createObjectURL(remoteStream);
-            video.autoplay = true;
-            video.id = "p" + peer_id;
-            video.play();
-            let element = document.getElementById("media-container");
-            element.appendChild(video);
-          }
-          self.setup_voice_activity_meter(peer_id, remoteStream.clone());
-        }, (err) => {
-          console.error(
-            'Failed to get local stream.', err);
-        });
+        if (!self.peer_volume_meter_map.get(self.peer.id)) {
+          self.setup_voice_activity_meter(self.peer.id, own_stream.clone());
+        }
+      }, (err) => {
+        console.error(
+          'Failed to get local stream.', err);
+      });
+      call.on('stream', (remoteStream) => {
+        // Show stream in some <video> element.
+
+        console.log("Answered player " + peer_id);
+        const remoteVideo = document.getElementById("p" + peer_id);
+        // if (!!remoteVideo) {
+        //   remoteVideo.srcObject = remoteStream;
+        //   remoteVideo.autoplay = true;
+        //   remoteVideo.play();
+        //   // remoteVideo.src = (URL || webkitURL || mozURL).createObjectURL(remoteStream);
+        // } else {
+        let video = document.createElement('audio');
+        video.srcObject = remoteStream;
+        // video.src = (URL || webkitURL || mozURL).createObjectURL(remoteStream);
+        video.autoplay = true;
+        video.id = "p" + peer_id;
+        video.play();
+        let element = document.getElementById("media-container");
+        element.appendChild(video);
+        // }
+        self.setup_voice_activity_meter(peer_id, remoteStream.clone());
+
 
       });
 
@@ -191,7 +191,6 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
       });
 
       getUserMedia_({ video: false, audio: true }, (own_stream) => {
-
         const call = self.peer.call(next_peer_id.toString(), own_stream);
         call.on('stream', (remoteStream) => {
           if (!next_peer_id) {
@@ -220,6 +219,9 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
           self.call_next_peer();
         });
 
+        if (!self.peer_volume_meter_map.get(self.peer.id)) {
+          self.setup_voice_activity_meter(self.peer.id, own_stream.clone());
+        }
       }, (err) => {
         console.error(
           'Failed to get local stream.', err);

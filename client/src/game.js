@@ -103,6 +103,12 @@ export default class MainGame extends Phaser.Scene {
             self.addNewPlayer(data.rt.id, data.rt.px, data.rt.py, data.sprite, data.uname);
         });
 
+        this.socketClient.socket.on('new_peer_id', function (p_data) {
+            console.log("Recieved new_peer_id %s ", JSON.stringify(p_data));
+            self.peerChat.player_peer_map.set(p_data.id, p_data.pid);
+        });
+
+
         this.socketClient.socket.on('allpeers', function (p_all_peers) {
             console.log("Recieved allpeers %s ", JSON.stringify(p_all_peers));
             self.peerChat.receive_all_peers(p_all_peers);
@@ -690,7 +696,7 @@ export default class MainGame extends Phaser.Scene {
             const self = this;
             // let video_parent = document.getElementById("media-container");
             for (let [player_id, peer_id] of self.peerChat.player_peer_map) {
-                if (player_id != self.player_id && !!peer_id) { // peer_id is null when player disconnects
+                if (player_id != self.player_id) { // peer_id is null when player disconnects
                     // TESTME Need to profile this and make sure it's ok. 
                     // I can optimize this by storing the DOMS in a map.
                     let child_video = document.getElementById('p' + peer_id);
@@ -702,6 +708,7 @@ export default class MainGame extends Phaser.Scene {
 
                             let _volume = 1 - MainGame.clamp(_distance / MainGame.MAX_HEAR_DISTANCE, 0, 1);
                             // TODO I can store the last volume separately if the getter here is costly
+                            console.log(`Set volume for ${tmp_player.username} to ${_volume}`);
                             child_video.volume = _volume;
                         } else {
                             console.warn(`Could not find player obj for peer audio ${peer_id}`)
