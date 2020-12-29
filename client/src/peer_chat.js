@@ -119,6 +119,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
           if (!!remoteVideo) {
             remoteVideo.srcObject = remoteStream;
             remoteVideo.autoplay = true;
+            remoteVideo.play();
             // remoteVideo.src = (URL || webkitURL || mozURL).createObjectURL(remoteStream);
           } else {
             let video = document.createElement('audio');
@@ -126,6 +127,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
             // video.src = (URL || webkitURL || mozURL).createObjectURL(remoteStream);
             video.autoplay = true;
             video.id = "p" + peer_id;
+            video.play();
             let element = document.getElementById("media-container");
             element.appendChild(video);
           }
@@ -201,8 +203,9 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
           let peer_id = next_peer_id.toString();
           const remoteVideo = document.getElementById("p" + peer_id);
           if (remoteVideo) {
-            remoteVideo.autoplay = true;
             remoteVideo.srcObject = remoteStream;
+            remoteVideo.autoplay = true;
+            remoteVideo.play();
           } else {
             let video = document.createElement('audio');
             video.srcObject = remoteStream;
@@ -211,12 +214,11 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
             video.id = "p" + peer_id;
             let element = document.getElementById("media-container");
             element.appendChild(video);
+            video.play();
           }
           self.setup_voice_activity_meter(peer_id, remoteStream.clone());
           self.call_next_peer();
         });
-
-        self.setup_voice_activity_meter(self.peer.id, remoteStream.clone());
 
       }, (err) => {
         console.error(
