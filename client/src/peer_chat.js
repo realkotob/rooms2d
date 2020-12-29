@@ -3,6 +3,10 @@
 import Peer from 'peerjs';
 import createAudioMeter from './lib/volume-meter.js';
 
+var getUserMedia_ = (navigator.getUserMedia
+  || navigator.webkitGetUserMedia
+  || navigator.mozGetUserMedia
+  || navigator.msGetUserMedia);
 export default class PeerChat extends Phaser.Plugins.BasePlugin {
   peer = null;
 
@@ -43,18 +47,16 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
 
   grab_media_stream() {
     const self = this;
-    let getUserMedia_ = (navigator.getUserMedia
-      || navigator.webkitGetUserMedia
-      || navigator.mozGetUserMedia
-      || navigator.msGetUserMedia);
 
-    getUserMedia_({ video: false, audio: true }, (stream) => {
-      self.own_stream = stream;
-      self.init_new_peer();
-    }, (err) => {
-      console.error(
-        'Failed to get local stream.', err);
-    });
+
+    self.init_new_peer();
+
+    // getUserMedia_({ video: false, audio: true }, (stream) => {
+    //   self.own_stream = stream;
+    // }, (err) => {
+    //   console.error(
+    //     'Failed to get local stream.', err);
+    // });
   }
 
 
@@ -78,7 +80,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
       self._can_call = true;
 
       let video = document.createElement('audio');
-      video.srcObject = self.own_stream;
+      // video.srcObject = self.own_stream;
       video.autoplay = true;
       // video.src = (URL || webkitURL || mozURL).createObjectURL(self.own_stream);
       video.id = "p" + self.peer.id;
@@ -86,7 +88,13 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
       let element = document.getElementById("media-container");
       element.appendChild(video);
 
-      self.setup_voice_activity_meter(self.peer.id, self.own_stream);
+      getUserMedia_({ video: false, audio: true }, (stream) => {
+        video.srcObject = self.setup_voice_activity_meter(self.peer.id, stream).stream;
+        // self.setup_voice_activity_meter(self.peer.id, stream);
+      }, (err) => {
+        console.error(
+          'Failed to get local stream.', err);
+      });
 
       self.call_next_peer();
 
@@ -132,19 +140,17 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
         console.log("Answered player " + peer_id);
         const remoteVideo = document.getElementById("p" + peer_id);
         if (!!remoteVideo) {
-          remoteVideo.srcObject = remoteStream;
+          remoteVideo.srcObject = self.setup_voice_activity_meter(peer_id, remoteStream).stream;
           remoteVideo.autoplay = true;
           // remoteVideo.src = (URL || webkitURL || mozURL).createObjectURL(remoteStream);
-          self.setup_voice_activity_meter(peer_id, remoteStream);
         } else {
           let video = document.createElement('audio');
-          video.srcObject = remoteStream;
+          video.srcObject = self.setup_voice_activity_meter(peer_id, remoteStream).stream;
           // video.src = (URL || webkitURL || mozURL).createObjectURL(remoteStream);
           video.autoplay = true;
           video.id = "p" + peer_id;
           let element = document.getElementById("media-container");
           element.appendChild(video);
-          self.setup_voice_activity_meter(peer_id, remoteStream);
         }
 
 
@@ -252,6 +258,20 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
     let meter = createAudioMeter(this.audioContext);
     mediaStreamSource.connect(meter);
     this.peer_volume_meter_map.set(peer_id, meter);
+
+    // var microphone = context.createMediaStreamSource(stream);
+    // var backgroundMusic = context.createMediaElementSource(document.getElementById("back"));
+    // var analyser = context.createAnalyser();
+    let finalStream = this.audioContext.createMediaStreamDestination();
+    // microphone.connect(analyser);
+    meter.connect(finalStream);
+    // backgroundMusic.connect(mixedOutput);
+    // requestAnimationFrame(drawAnimation);
+
+    return finalStream;
+
+    // streamRecorder = mixedOutput.stream.record();
+    // peerConnection.addStream(mixedOutput.stream);
   }
 
 }
