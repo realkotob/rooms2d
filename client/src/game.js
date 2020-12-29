@@ -569,6 +569,7 @@ export default class MainGame extends Phaser.Scene {
         } else {
             if (!this.cameras.main.following_player) {
                 this.cameras.main.following_player = true;
+                this.screen_controls.node.style.visibility = "hidden"; // Player cannot access screen controls outside of view area (temp fix until desk is implemented)
                 this.cameras.main.stopFollow();
                 this.cameras.main.startFollow(
                     this.current_player, false, 1, 1, _dist_x + (this.cameras.main.followOffset.x * 1), _dist_y + (this.cameras.main.followOffset.y * 1)
@@ -870,7 +871,8 @@ export default class MainGame extends Phaser.Scene {
         // TODO Maybe animate alpha for this
         this.screen_controls_hint = this.add.dom(1455, 70).createFromHTML(screen_controls_hint_html);
 
-        this.screen_controls = this.add.dom(1230, 300).createFromHTML(screen_controls_html);
+        this.screen_controls = this.add.dom(625, 400).createFromHTML(screen_controls_html);
+        this.screen_controls.setScrollFactor(0);
 
         this.screen_controls.node.style.visibility = "hidden";
 
