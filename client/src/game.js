@@ -500,17 +500,17 @@ export default class MainGame extends Phaser.Scene {
         const self = this;
         for (let [player_id, peer_id] of self.peerChat.player_peer_map) {
             let player = self.playerMap[player_id];
-            if (!player) {
-                // console.warn(`Player object is null but player_id ${player_id} is in the player_peer_map.`);
-                return;
+            if (player) {
+                let meter = self.peerChat.peer_volume_meter_map.get(peer_id);
+                if (meter) {
+                    // console.log(`Volume of ${player.username} is ${meter.volume}`);
+                    player.chat_bubble.alpha = MainGame.clamp(0.1 + meter.volume * 5, 0, 1);
+                } else {
+                    console.warn(`Meter object is null but peer  ${peer_id} is in the player_peer_map.`);
+                }
+            } else {
+                console.warn(`Player object is null but player_id ${player_id} is in the player_peer_map.`);
             }
-            let meter = self.peerChat.peer_volume_meter_map.get(peer_id);
-            if (!meter) {
-                // console.warn(`Meter object is null but peer  ${peer_id} is in the player_peer_map.`);
-                return;
-            }
-            // console.log(`Volume of ${player.username} is ${meter.volume}`);
-            player.chat_bubble.alpha = MainGame.clamp(0.1 + meter.volume * 5, 0, 1);
         }
     }
 
@@ -690,30 +690,25 @@ export default class MainGame extends Phaser.Scene {
             const self = this;
             // let video_parent = document.getElementById("media-container");
             for (let [player_id, peer_id] of self.peerChat.player_peer_map) {
-                if (player_id == self.player_id) { // peer_id is null when player disconnects
-                    return;
-                }
-                if (!peer_id) {
-                    console.warn("Peer ID in player map is null, could't adjust their volume.");
-                }
+                if (player_id != self.player_id && !!peer_id) { // peer_id is null when player disconnects
+                    // TESTME Need to profile this and make sure it's ok. 
+                    // I can optimize this by storing the DOMS in a map.
+                    let child_video = document.getElementById('p' + peer_id);
+                    if (child_video) {
+                        let tmp_player = self.playerMap[player_id];
+                        if (!!tmp_player) {
+                            let _distance = Phaser.Math.Distance.Between(
+                                tmp_player.x, tmp_player.y, self.current_player.x, self.current_player.y);
 
-                // TESTME Need to profile this and make sure it's ok. 
-                // I can optimize this by storing the DOMS in a map.
-                let child_video = document.getElementById('p' + peer_id);
-                if (!child_video) {
-                    console.warn(`Could not find the DOM element for peer audio ${peer_id}`)
-                    return;
-                }
-                let tmp_player = self.playerMap[player_id];
-                if (!!tmp_player) {
-                    let _distance = Phaser.Math.Distance.Between(
-                        tmp_player.x, tmp_player.y, self.current_player.x, self.current_player.y);
-
-                    let _volume = 1 - MainGame.clamp(_distance / MainGame.MAX_HEAR_DISTANCE, 0, 1);
-                    // TODO I can store the last volume separately if the getter here is costly
-                    child_video.volume = _volume;
-                } else {
-                    console.warn(`Could not find player obj for peer audio ${peer_id}`)
+                            let _volume = 1 - MainGame.clamp(_distance / MainGame.MAX_HEAR_DISTANCE, 0, 1);
+                            // TODO I can store the last volume separately if the getter here is costly
+                            child_video.volume = _volume;
+                        } else {
+                            console.warn(`Could not find player obj for peer audio ${peer_id}`)
+                        }
+                    } else {
+                        console.warn(`Could not find the DOM element for peer audio ${peer_id}`)
+                    }
                 }
             };
 
