@@ -451,10 +451,14 @@ export default class MainGame extends Phaser.Scene {
         this.setup_game_focus();
 
         this.events.on('postupdate', this.postUpdate, this);
+        this.events.on('preupdate', this.preUpdate, this);
     }
 
     postUpdate() {
         this.updatePlayerYSort();
+    }
+    preUpdate() {
+        this.handleSimulationSync();
     }
 
     updatePlayerYSort() {
@@ -482,7 +486,6 @@ export default class MainGame extends Phaser.Scene {
         this.handle_player_anims();
 
         this.handle_player_controls(delta);
-        this.handleSimulationSync();
 
         if (!this.player_id || !this.current_player) {
             return;
@@ -724,7 +727,7 @@ export default class MainGame extends Phaser.Scene {
         }
     }
 
-    handleSimulationSync(delta) {
+    handleSimulationSync() {
         this.players.forEach(p_id => {
             let tmp_player = this.playerMap[p_id];
             if (!tmp_player) {
