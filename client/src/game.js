@@ -573,10 +573,10 @@ export default class MainGame extends Phaser.Scene {
             if (!!this.cameras.main.following_player) {
                 this.cameras.main.following_player = false;
                 this.cameras.main.stopFollow();
-                this.cameras.main.startFollow(this.youtubePlayer, false, 0.05, 0.05, -_dist_x + (this.cameras.main.followOffset.x * 1), -_dist_y + (this.cameras.main.followOffset.y * 1));
+                this.cameras.main.startFollow(this.youtubePlayer, false, 0.1, 0.1, -_dist_x + (this.cameras.main.followOffset.x * 1), -_dist_y + (this.cameras.main.followOffset.y * 1));
             } else {
-                this.cameras.main.followOffset.x = Phaser.Math.Linear(this.cameras.main.followOffset.x, MainGame.WHY_IS_VIDEO_NOT_CENTERED_X, 0.05);
-                this.cameras.main.followOffset.y = Phaser.Math.Linear(this.cameras.main.followOffset.y, 0, 0.05);
+                this.cameras.main.followOffset.x = Phaser.Math.Linear(this.cameras.main.followOffset.x, MainGame.WHY_IS_VIDEO_NOT_CENTERED_X, 0.1);
+                this.cameras.main.followOffset.y = Phaser.Math.Linear(this.cameras.main.followOffset.y, 0, 0.1);
             }
         } else {
             if (!this.cameras.main.following_player) {
@@ -587,8 +587,8 @@ export default class MainGame extends Phaser.Scene {
                     this.current_player, false, 1, 1, _dist_x + (this.cameras.main.followOffset.x * 1), _dist_y + (this.cameras.main.followOffset.y * 1)
                 );
             } else {
-                this.cameras.main.followOffset.x = Phaser.Math.Linear(this.cameras.main.followOffset.x, 0, 0.05);
-                this.cameras.main.followOffset.y = Phaser.Math.Linear(this.cameras.main.followOffset.y, 0, 0.05);
+                this.cameras.main.followOffset.x = Phaser.Math.Linear(this.cameras.main.followOffset.x, 0, 0.1);
+                this.cameras.main.followOffset.y = Phaser.Math.Linear(this.cameras.main.followOffset.y, 0, 0.1);
             }
         }
     }
