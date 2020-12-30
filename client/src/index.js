@@ -20,16 +20,8 @@ const config = {
   // scene: [Boot, Preloader, MainMenu, MainGame],
   scene: [Login, MainGame],
   physics: {
-    default: 'matter',
-    matter: {
-      restingThresh: 1,
-      debug: {
-        renderFill: false
-      },
-      gravity: {
-        y: 0
-      }
-    }
+    default: 'arcade',
+    arcade: { debug: false }
   },
   dom: {
     createContainer: true
