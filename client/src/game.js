@@ -320,9 +320,6 @@ export default class MainGame extends Phaser.Scene {
         this.player_group = this.physics.add.group();
         this.ball_group = this.physics.add.group();
 
-
-
-
         // this.physics.add.collider(this.player_group, this.ball_group);
 
 
@@ -338,69 +335,49 @@ export default class MainGame extends Phaser.Scene {
         let col_layers = [];
 
         let layer;
+
+        var add_physics_to_player = function (p_layer, p_self, p_col_layers) {
+            p_layer.setCollisionByProperty({ collides: true });
+            // p_layer.setCollisionBetween(22, 24);
+            p_self.physics.add.collider(p_self.player_group, p_layer);
+            // this.physics.add.collider(this.ball, p_layer);
+            p_layer.visible = false;
+            p_col_layers.push(p_layer);
+        }
         for (let i = 0; i < map_top_left.layers.length; i++) {
             layer = map_top_left.createLayer(i, tileset);
             if (layer.layer.name == "collision") {
-                layer.setCollisionByProperty({ collides: true });
-                // layer.setCollisionBetween(22, 24);
-                this.physics.add.collider(this.player_group, layer);
-                // this.physics.add.collider(this.ball, layer);
-                layer.visible = false;
-                col_layers.push(layer);
+                add_physics_to_player(layer, this, col_layers);
             }
         }
         for (let i = 0; i < map_top_center.layers.length; i++) {
             layer = map_top_center.createLayer(i, tileset, map_top_center.widthInPixels);
             if (layer.layer.name == "collision") {
-                layer.setCollisionByProperty({ collides: true });
-                // layer.setCollisionBetween(22, 24);
-                this.physics.add.collider(this.player_group, layer);
-                // this.physics.add.collider(this.ball, layer);
-                layer.visible = false;
-                col_layers.push(layer);
+                add_physics_to_player(layer, this, col_layers);
             }
         }
         for (let i = 0; i < map_bot_left.layers.length; i++) {
             layer = map_bot_left.createLayer(i, tileset, 0, map_bot_left.heightInPixels);
             if (layer.layer.name == "collision") {
-                layer.setCollisionByProperty({ collides: true });
-                // layer.setCollisionBetween(22, 24);
-                this.physics.add.collider(this.player_group, layer);
-                // this.physics.add.collider(this.ball, layer);
-                layer.visible = false;
-                col_layers.push(layer);
+                add_physics_to_player(layer, this, col_layers);
             }
         }
         for (let i = 0; i < map_bot_center.layers.length; i++) {
             layer = map_bot_center.createLayer(i, tileset, map_bot_center.widthInPixels, map_bot_center.heightInPixels);
             if (layer.layer.name == "collision") {
-                layer.setCollisionByProperty({ collides: true });
-                // layer.setCollisionBetween(22, 24);
-                this.physics.add.collider(this.player_group, layer);
-                // this.physics.add.collider(this.ball, layer);
-                layer.visible = false;
-                col_layers.push(layer);
+                add_physics_to_player(layer, this, col_layers);
             }
         }
         for (let i = 0; i < map_bot_center.layers.length; i++) {
             layer = map_top_right.createLayer(i, tileset, map_top_right.widthInPixels * 2, 0);
             if (layer.layer.name == "collision") {
-                layer.setCollisionByProperty({ collides: true });
-                // layer.setCollisionBetween(22, 24);
-                this.physics.add.collider(this.player_group, layer);
-                // this.physics.add.collider(this.ball, layer);
-                layer.visible = false;
-                col_layers.push(layer);
+                add_physics_to_player(layer, this, col_layers);
             }
         }
         for (let i = 0; i < map_bot_center.layers.length; i++) {
             layer = map_bot_right.createLayer(i, tileset, map_bot_right.widthInPixels * 2, map_bot_right.heightInPixels);
             if (layer.layer.name == "collision") {
-                layer.setCollisionByProperty({ collides: true });
-                // layer.setCollisionBetween(22, 24);
-                this.physics.add.collider(this.player_group, layer);
-                layer.visible = false;
-                col_layers.push(layer);
+                add_physics_to_player(layer, this, col_layers);
             }
         }
 
