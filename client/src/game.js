@@ -265,9 +265,30 @@ export default class MainGame extends Phaser.Scene {
         // this.updateCamera();
     }
 
-    // on_hit_ball() {
-    //     console.log("Player hit ball");
-    // }
+    on_ball_collision(p_player, p_ball) {
+        if (!!p_player.holding_ball || !!p_ball.just_thrown) {
+            // a) Player cannot catch a ball if they are holding one
+            // b) Ball cannot be caught immediatly after throwing
+            // console.log("Player already has a ball.");
+            return;
+
+        }
+        console.log("Player caught ball");
+        // It does not make sense that player cannot catch the ball they threw
+        // I should just toggle it in a scheduled event after throwing
+        // if (!p_ball.thrower_player_id || p_ball.thrower_player_id != p_player.player_id) {
+        // Player caught ball
+        p_ball.just_thrown = true;
+        p_ball.body.reset(
+            p_player.x + Math.sign(p_player.body.velocity.x) * p_player.width, p_player.y + Math.sign(p_player.body.velocity.y) * p_player.height);
+        p_ball.thrower_player_id = null;
+        p_player.holding_ball = p_ball;
+
+        let timer = this.time.delayedCall(1000, () => {
+            p_ball.just_thrown = false;
+        });
+        // }
+    }
 
     create() {
         const self = this;
@@ -433,6 +454,24 @@ export default class MainGame extends Phaser.Scene {
                 if (_player)
                     self.socketClient.sendMove(_player.x, _player.y, _player.body.velocity.x, _player.body.velocity.y);
             }
+            else if (pointer.rightButtonDown()) {
+                // Throw ball if present
+                console.log("Player try throw");
+
+                if (!!self.current_player && !!self.current_player.holding_ball) {
+                    console.log("Player throwing");
+                    let tmp_ball = self.current_player.holding_ball;
+                    self.current_player.holding_ball = null;
+                    tmp_ball.thrower_player_id = self.player_id;
+                    let world_pointer = self.cameras.main.getWorldPoint(pointer.x, pointer.y);
+                    let direction = new Phaser.Math.Vector2(world_pointer.x - self.current_player.x, world_pointer.y - self.current_player.y)
+                    direction = direction.normalize();
+                    direction.x = direction.x * 200;
+                    direction.y = direction.y * 200;
+                    tmp_ball.setVelocity(direction.x, direction.y);
+                    console.log("Ball velocity %s %s", direction.x, direction.y);
+                }
+            }
 
         }, self);
 
@@ -458,6 +497,7 @@ export default class MainGame extends Phaser.Scene {
 
     postUpdate() {
         this.updatePlayerYSort();
+        this.handle_ball_follow();
     }
     preUpdate() {
         this.handleSimulationSync();
@@ -477,6 +517,9 @@ export default class MainGame extends Phaser.Scene {
 
             }
         });
+        if (!!this.ball) { // FIXME This should iterate over all balls
+            this.ball.depth = this.ball.y + (this.ball.height * this.ball.scale) / 2;
+        }
         // if (!!this.crosshair)
         //     this.crosshair.depth = this.crosshair.y + this.crosshair.height / 2;
 
@@ -503,6 +546,19 @@ export default class MainGame extends Phaser.Scene {
         this.handle_talk_activity();
     }
 
+    handle_ball_follow() {
+
+        this.players.forEach(_index => {
+            let tmp_player = this.playerMap[_index];
+            if (!tmp_player || !tmp_player.holding_ball) {
+                return;
+            }
+            tmp_player.holding_ball.setPosition(
+                tmp_player.x + Math.sign(tmp_player.body.velocity.x) * tmp_player.width, tmp_player.y + Math.sign(tmp_player.body.velocity.y) * tmp_player.height);
+        });
+
+    }
+
     handle_talk_activity() {
         if (this.peerChat.player_peer_map.size <= 0) {
             // console.warn(`player_peer_map is empty, skipping handle_talk_activity.`);
@@ -517,7 +573,9 @@ export default class MainGame extends Phaser.Scene {
                     // console.log(`Volume of ${player.username} is ${meter.volume}`);
                     player.chat_bubble.alpha = MainGame.clamp(0.1 + meter.volume * 5, 0, 1);
                 } else {
-                    console.warn(`Meter object is null but peer  ${peer_id} is in the player_peer_map.`);
+                    if (this.peerChat.player_peer_map.size > 1) { // Don't show this error if player is alone
+                        console.warn(`Meter object is null but peer  ${peer_id} is in the player_peer_map.`);
+                    }
                 }
             } else {
                 console.warn(`Player object is null but player_id ${player_id} is in the player_peer_map.`);
@@ -788,6 +846,7 @@ export default class MainGame extends Phaser.Scene {
         // _new_player.body.velocity.y = p_vel_y;
         // this.adaptive_layer.add(_new_player);
         this.playerMap[p_id] = _new_player;
+        _new_player.player_id = p_id;
         _new_player.scale = 3;
         _new_player.sprite_id = p_sprite_id;
         _new_player.username = p_username;
@@ -796,9 +855,10 @@ export default class MainGame extends Phaser.Scene {
         _new_player.sync_dirty = false;
         _new_player.received_frames = new Queue();
         this.player_group.add(_new_player);
-        this.physics.add.collider(_new_player, this.ball);
+        this.physics.add.overlap(_new_player, this.ball, this.on_ball_collision, null, this);
         if (p_id == this.player_id) {
             this.current_player = _new_player;
+            this.current_player.player_id = this.player_id;
 
             this.cameras.main.startFollow(_new_player, false, 1, 1);
             this.cameras.main.following_player = true;
