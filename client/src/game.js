@@ -436,7 +436,8 @@ export default class MainGame extends Phaser.Scene {
         this.ball.setBounce(1, 1);
         this.ball.setCircle(12);
         this.ball.setPushable(true);
-        // this.ball.setDrag(40);
+        this.ball.setDamping(true)
+        this.ball.setDrag(0.999);
         this.ball.setMaxVelocity(1000);
         // this.ball_group.add(this.ball);
         // const self = this;
