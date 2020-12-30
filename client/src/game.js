@@ -11,6 +11,13 @@ import r_pixel from './assets/sprites/pixel.png';
 import r_tilesheet from './assets/map/tilesheet.png';
 import r_example_map from './assets/map/example_map.json';
 import r_example_map_with_screen from './assets/map/example_map_with_screen.json';
+
+import r_village_top_left_json from './assets/map/village_top_left.json';
+import r_village_top_right_json from './assets/map/village_top_right.json';
+import r_village_bot_right_json from './assets/map/village_bot_right.json';
+import r_village_bot_left_json from './assets/map/village_bot_left.json';
+import r_village_bot_center_json from './assets/map/village_bot_center.json';
+
 import r_sprite from './assets/sprites/sprite.png';
 // import r_ball from './assets/sprites/ball.png';
 import r_crosshair from './assets/sprites/crosshair.png';
@@ -154,8 +161,13 @@ export default class MainGame extends Phaser.Scene {
     preload() {
         this.char_anims = {};
 
-        this.load.tilemapTiledJSON('map', r_example_map);
+        // this.load.tilemapTiledJSON('map', r_example_map);
         this.load.tilemapTiledJSON('map_screen', r_example_map_with_screen);
+        this.load.tilemapTiledJSON('village_top_left', r_village_top_left_json);
+        this.load.tilemapTiledJSON('village_top_right', r_village_top_right_json);
+        this.load.tilemapTiledJSON('village_bot_center', r_village_bot_center_json);
+        this.load.tilemapTiledJSON('village_bot_right', r_village_bot_right_json);
+        this.load.tilemapTiledJSON('village_bot_left', r_village_bot_left_json);
         this.load.image('tilesheet', r_tilesheet);
         this.load.image('pixel', r_pixel);
         this.load.image('speech_bubble', r_speech_bubble);
@@ -313,17 +325,17 @@ export default class MainGame extends Phaser.Scene {
 
 
         // let testKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
-        let map = this.make.tilemap({ key: 'map', tileWidth: 32, tileHeight: 32 });
-        let map1 = this.make.tilemap({ key: 'map_screen', tileWidth: 32, tileHeight: 32 });
-        let map2 = this.make.tilemap({ key: 'map', tileWidth: 32, tileHeight: 32 });
-        let map3 = this.make.tilemap({ key: 'map', tileWidth: 32, tileHeight: 32 });
-        let map4 = this.make.tilemap({ key: 'map', tileWidth: 32, tileHeight: 32 });
-        let map5 = this.make.tilemap({ key: 'map', tileWidth: 32, tileHeight: 32 });
-        let tileset = map.addTilesetImage('tilesheet');
+        let map_top_left = this.make.tilemap({ key: 'village_top_left', tileWidth: 32, tileHeight: 32 });
+        let map_top_center = this.make.tilemap({ key: 'map_screen', tileWidth: 32, tileHeight: 32 });
+        let map_bot_left = this.make.tilemap({ key: 'village_bot_left', tileWidth: 32, tileHeight: 32 });
+        let map_bot_center = this.make.tilemap({ key: 'village_bot_center', tileWidth: 32, tileHeight: 32 });
+        let map_top_right = this.make.tilemap({ key: 'village_top_right', tileWidth: 32, tileHeight: 32 });
+        let map_bot_right = this.make.tilemap({ key: 'village_bot_right', tileWidth: 32, tileHeight: 32 });
+        let tileset = map_top_left.addTilesetImage('tilesheet');
 
         let layer;
-        for (let i = 0; i < map.layers.length; i++) {
-            layer = map.createLayer(i, tileset);
+        for (let i = 0; i < map_top_left.layers.length; i++) {
+            layer = map_top_left.createLayer(i, tileset);
             if (layer.layer.name == "collision") {
                 layer.setCollisionByProperty({ collides: true });
                 // layer.setCollisionBetween(22, 24);
@@ -332,8 +344,8 @@ export default class MainGame extends Phaser.Scene {
                 layer.visible = false;
             }
         }
-        for (let i = 0; i < map1.layers.length; i++) {
-            layer = map1.createLayer(i, tileset, map1.widthInPixels);
+        for (let i = 0; i < map_top_center.layers.length; i++) {
+            layer = map_top_center.createLayer(i, tileset, map_top_center.widthInPixels);
             if (layer.layer.name == "collision") {
                 layer.setCollisionByProperty({ collides: true });
                 // layer.setCollisionBetween(22, 24);
@@ -342,8 +354,8 @@ export default class MainGame extends Phaser.Scene {
                 layer.visible = false;
             }
         }
-        for (let i = 0; i < map2.layers.length; i++) {
-            layer = map2.createLayer(i, tileset, 0, map2.heightInPixels);
+        for (let i = 0; i < map_bot_left.layers.length; i++) {
+            layer = map_bot_left.createLayer(i, tileset, 0, map_bot_left.heightInPixels);
             if (layer.layer.name == "collision") {
                 layer.setCollisionByProperty({ collides: true });
                 // layer.setCollisionBetween(22, 24);
@@ -352,8 +364,8 @@ export default class MainGame extends Phaser.Scene {
                 layer.visible = false;
             }
         }
-        for (let i = 0; i < map3.layers.length; i++) {
-            layer = map3.createLayer(i, tileset, map3.widthInPixels, map3.heightInPixels);
+        for (let i = 0; i < map_bot_center.layers.length; i++) {
+            layer = map_bot_center.createLayer(i, tileset, map_bot_center.widthInPixels, map_bot_center.heightInPixels);
             if (layer.layer.name == "collision") {
                 layer.setCollisionByProperty({ collides: true });
                 // layer.setCollisionBetween(22, 24);
@@ -362,8 +374,8 @@ export default class MainGame extends Phaser.Scene {
                 layer.visible = false;
             }
         }
-        for (let i = 0; i < map3.layers.length; i++) {
-            layer = map4.createLayer(i, tileset, map4.widthInPixels * 2, 0);
+        for (let i = 0; i < map_bot_center.layers.length; i++) {
+            layer = map_top_right.createLayer(i, tileset, map_top_right.widthInPixels * 2, 0);
             if (layer.layer.name == "collision") {
                 layer.setCollisionByProperty({ collides: true });
                 // layer.setCollisionBetween(22, 24);
@@ -372,8 +384,8 @@ export default class MainGame extends Phaser.Scene {
                 layer.visible = false;
             }
         }
-        for (let i = 0; i < map3.layers.length; i++) {
-            layer = map5.createLayer(i, tileset, map5.widthInPixels * 2, map5.heightInPixels);
+        for (let i = 0; i < map_bot_center.layers.length; i++) {
+            layer = map_bot_right.createLayer(i, tileset, map_bot_right.widthInPixels * 2, map_bot_right.heightInPixels);
             if (layer.layer.name == "collision") {
                 layer.setCollisionByProperty({ collides: true });
                 // layer.setCollisionBetween(22, 24);
@@ -386,8 +398,8 @@ export default class MainGame extends Phaser.Scene {
         // this.adaptive_layer.add(map);
 
         //  Set the camera and physics bounds to be the size of 4x4 bg images
-        this.cameras.main.setBounds(0, 0, map.widthInPixels * 3, map.heightInPixels * 2);
-        this.physics.world.setBounds(0, 0, map.widthInPixels * 3, map.heightInPixels * 2);
+        this.cameras.main.setBounds(0, 0, map_top_left.widthInPixels * 3, map_top_left.heightInPixels * 2);
+        this.physics.world.setBounds(0, 0, map_top_left.widthInPixels * 3, map_top_left.heightInPixels * 2);
         this.cameras.main.zoom = 1.5;
         this.youtubePlayer.original_config.zoom = this.cameras.main.zoom;
 
@@ -944,6 +956,10 @@ var regexep_youtube = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&
 // ^ (?: https ?: \/\/)?(?:www\.)?youtu\.?be(?:\.com)?.*?(?:v|list)=(.*?)(?:&|$)|^(?:https?:\/\/)?(?:www\.)?youtu\.?be(?:\.com)?(?:(?!=).)*\/(.*)$
 
 // var regexep_youtube = /youtu(?:.*\/v\/|.*v\=|\.be\/)([A-Za-z0-9_\-]{11})/;
+
+// This one is pure wizardry courtesy of my friend
+// https://regex101.com/r/qCDoob/1
+// ^(?:https?:\/\/)?(?:www\.)?youtu\.?be(?:\.com)?\/(.*?)\??(?:v|list)=(.*?)(?:&|$)|^(?:https?:\/\/)?(?:www\.)?youtu\.?be(?:\.com)?(?:(?!=).)*\/(.*)$
 var get_yt_id_from_link = function (url) {
     // console.log("Regexing url %s", url);
     var code = url.match(regexep_youtube);
