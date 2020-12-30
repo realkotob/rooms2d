@@ -805,6 +805,7 @@ export default class MainGame extends Phaser.Scene {
         _new_player.sync_target = new Phaser.Math.Vector2(p_pos_x, p_pos_y);
         _new_player.sync_dirty = false;
         _new_player.received_frames = new Queue();
+        this.player_group.add(_new_player);
         if (p_id == this.player_id) {
             this.current_player = _new_player;
             _new_player.body.collideWorldBounds = true;
@@ -815,7 +816,6 @@ export default class MainGame extends Phaser.Scene {
             this.cameras.main.following_player = true;
             // NOTE Second parameter of startFollow is for rounding pixel jitter. 
             // Setting it to true will fix the jitter of world tiles but add jitter for the player sprite.
-            this.player_group.add(_new_player);
         }
 
         // Add label
