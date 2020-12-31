@@ -841,7 +841,7 @@ export default class MainGame extends Phaser.Scene {
 
                             let _volume = 1 - MainGame.clamp(_distance / MainGame.MAX_HEAR_DISTANCE, 0, 1);
                             // TODO I can store the last volume separately if the getter here is costly
-                            console.log(`Set volume for ${tmp_player.username} to ${_volume}`);
+                            // console.log(`Set volume for ${tmp_player.username} to ${_volume}`);
                             child_video.volume = _volume;
                         } else {
                             console.warn(`Could not find player obj for peer audio ${peer_id}`)
