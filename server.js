@@ -157,6 +157,7 @@ if (SSL_FOUND) {
 
 var room_videos = new Map();
 const CHARACTER_SPRITE_COUNT = 24;
+var room_balls = new Map();
 io.on('connection', function (socket) {
 
     socket.on('newplayer', async function (p_data) {
@@ -168,6 +169,11 @@ io.on('connection', function (socket) {
             // (newplayer_data && newplayer_data.room) || DEFAULT_ROOM);
 
             await socket.join(_room);
+
+            if (!room_balls.get(_room)) {
+                let new_ball_ids = [1]; // TODO This needs to be a map instead of an array to store ball position/velocity
+                room_balls.set(_room, new_ball_ids);
+            }
 
             server.lastPlayderID += 1;
             let _name = p_data.username && p_data.username.length > 0 ? p_data.username : ("P" + server.lastPlayderID);
@@ -188,7 +194,12 @@ io.on('connection', function (socket) {
 
             // console.log(socket.rooms); // Set { <socket.id>, "room1" }
 
-            socket.emit('allplayers', { you: socket.player, all: await getAllPlayers(_room), room_data: { vid_id: room_videos.get(_room) } });
+            socket.emit(
+                'room_info', {
+                you: socket.player, all: await getAllPlayers(_room), room_data: {
+                    vid_id: room_videos.get(_room), balls: room_balls.get(_room)
+                }
+            });
             socket.to(_room).emit('newplayer', socket.player);
 
             socket.on('move', function (p_data) {
@@ -236,6 +247,7 @@ io.on('connection', function (socket) {
                     const data = decode(p_data);
                     io.in(_room).emit('throw_ball', data);
                     socket.player.holding_ball = null;
+                    // TODO Update internal map of ball position/velocity
                 } catch (error) {
                     logger.error(`error in socket on yt_url ${error}`);
                 }

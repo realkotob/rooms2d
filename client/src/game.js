@@ -130,7 +130,7 @@ export default class MainGame extends Phaser.Scene {
             console.log("Recieved throw_ball %s ", JSON.stringify(p_all_peers));
         });
 
-        this.socketClient.socket.on('allplayers', function (data) {
+        this.socketClient.socket.on('room_info', function (data) {
             self.player_id = data.you.rt.id.toString();
             self.youtubePlayer.load(data.room_data.vid_id);
             console.log("My new player id is ", self.player_id);
@@ -275,24 +275,52 @@ export default class MainGame extends Phaser.Scene {
     }
 
     on_catch_ball(p_player_id, p_ball_id) {
-
+        let tmp_player = this.playerMap[p_player_id];
+        let tmp_ball = this.ballMap.get(p_ball_id);
+        if (!!tmp_player && !!tmp_ball) {
+            tmp_player.holding_ball = tmp_ball;
+            tmp_ball.thrower_player_id = null;
+            tmp_ball.physics_buffer = [];
+            tmp_ball.start_simulation = false;
+        } else {
+            console.warn("Could not assign ball to player, one of their maps is broken.");
+        }
     }
 
     on_throw_ball(p_ball_id, p_px, p_py, p_vx, p_vy) {
+        // WARNING Currently the thrower_player_id is not being assigned, but it could be needed later for adding temporary collision exclusion
         // TODO Add to buffer array and wait for 120 frames
+        let tmp_ball = this.ballMap.get(p_ball_id);
+        if (!tmp_ball) {
+            return;
+        }
+        if (!tmp_ball.physics_buffer) {
+            tmp_ball.physics_buffer = []; // This probably never happens but 🤷
+        }
+        tmp_ball.unshift({
+            px: p_px,
+            py: p_py,
+            vx: p_vx,
+            vy: p_vy
+        });
+        if (tmp_ball.length > 60) {
+            tmp_ball.start_simulation = true;
+        }
     }
 
     on_ball_collision(p_player, p_ball) {
+        if (p_player.player_id != this.player_id) {
+            // Each client handles their own ball catch code
+            // This makes collision exclusion of thrower easier
+            return;
+        }
         if (!!p_player.holding_ball || !!p_ball.just_thrown) {
             // a) Player cannot catch a ball if they are holding one
             // b) Ball cannot be caught immediatly after throwing
-            // console.log("Player already has a ball.");
             return;
 
         }
         console.log("Player caught ball");
-        // It does not make sense that player cannot catch the ball they threw
-        // I should just toggle it in a scheduled event after throwing
         // if (!p_ball.thrower_player_id || p_ball.thrower_player_id != p_player.player_id) {
         // Player caught ball
         p_ball.just_thrown = true;
@@ -301,7 +329,8 @@ export default class MainGame extends Phaser.Scene {
         p_ball.thrower_player_id = null;
         p_player.holding_ball = p_ball;
 
-        let timer = this.time.delayedCall(1000, () => {
+        let timer = this.time.delayedCall(1250, () => {
+            // TODO I need better collision exclusion here, maybe something more native to phaser
             p_ball.just_thrown = false;
         });
         // }
@@ -374,48 +403,48 @@ export default class MainGame extends Phaser.Scene {
 
         let layer;
 
-        var add_physics_to_player = function (p_layer, p_self, p_col_layers) {
+        var add_physics_to_layer = function (p_layer, p_self, p_col_layers) {
             p_layer.setCollisionByProperty({ collides: true });
             // p_layer.setCollisionBetween(22, 24);
             p_self.physics.add.collider(p_self.player_group, p_layer);
-            // this.physics.add.collider(this.ball, p_layer);
             p_layer.visible = false;
             p_col_layers.push(p_layer);
         }
+
         for (let i = 0; i < map_top_left.layers.length; i++) {
             layer = map_top_left.createLayer(i, tileset);
             if (layer.layer.name == "collision") {
-                add_physics_to_player(layer, this, col_layers);
+                add_physics_to_layer(layer, this, col_layers);
             }
         }
         for (let i = 0; i < map_top_center.layers.length; i++) {
             layer = map_top_center.createLayer(i, tileset, map_top_center.widthInPixels);
             if (layer.layer.name == "collision") {
-                add_physics_to_player(layer, this, col_layers);
+                add_physics_to_layer(layer, this, col_layers);
             }
         }
         for (let i = 0; i < map_bot_left.layers.length; i++) {
             layer = map_bot_left.createLayer(i, tileset, 0, map_bot_left.heightInPixels);
             if (layer.layer.name == "collision") {
-                add_physics_to_player(layer, this, col_layers);
+                add_physics_to_layer(layer, this, col_layers);
             }
         }
         for (let i = 0; i < map_bot_center.layers.length; i++) {
             layer = map_bot_center.createLayer(i, tileset, map_bot_center.widthInPixels, map_bot_center.heightInPixels);
             if (layer.layer.name == "collision") {
-                add_physics_to_player(layer, this, col_layers);
+                add_physics_to_layer(layer, this, col_layers);
             }
         }
         for (let i = 0; i < map_bot_center.layers.length; i++) {
             layer = map_top_right.createLayer(i, tileset, map_top_right.widthInPixels * 2, 0);
             if (layer.layer.name == "collision") {
-                add_physics_to_player(layer, this, col_layers);
+                add_physics_to_layer(layer, this, col_layers);
             }
         }
         for (let i = 0; i < map_bot_center.layers.length; i++) {
             layer = map_bot_right.createLayer(i, tileset, map_bot_right.widthInPixels * 2, map_bot_right.heightInPixels);
             if (layer.layer.name == "collision") {
-                add_physics_to_player(layer, this, col_layers);
+                add_physics_to_layer(layer, this, col_layers);
             }
         }
 
@@ -445,24 +474,33 @@ export default class MainGame extends Phaser.Scene {
         // this.adaptive_layer.add(this.crosshair);
 
         this.ballMap = new Map();
-        // TODO Add all balls to map and reference them by some ball_id
 
-        this.ball = this.physics.add.sprite(300, 400, 'slime', 6);
-        this.ball.scale = 2;
-        this.ball.setCollideWorldBounds(true);
-        // this.ball.body.setVelocity(100, 100);
-        // this.ball.setImmovable(false);
-        this.ball.setBounce(1, 1);
-        this.ball.setCircle(12);
-        this.ball.setPushable(true);
-        this.ball.setDamping(true)
-        this.ball.setDrag(0.999);
-        this.ball.setMaxVelocity(1000);
-        // this.ball_group.add(this.ball);
-        // const self = this;
-        col_layers.forEach(layer => {
-            self.physics.add.collider(self.ball, layer);
-        });
+        var add_new_ball = function (p_ball_id, p_x, p_y, p_col_layers, p_self) {
+            let new_ball = p_self.physics.add.sprite(p_x, p_y, 'slime', 6);
+
+            p_self.ballMap.set(p_ball_id, new_ball);
+
+            new_ball.scale = 2;
+            new_ball.id = p_ball_id;
+            new_ball.setCollideWorldBounds(true);
+            // new_ball.body.setVelocity(100, 100);
+            // new_ball.setImmovable(false);
+            new_ball.setBounce(1, 1);
+            new_ball.setCircle(12);
+            new_ball.setPushable(true);
+            new_ball.setDamping(true)
+            new_ball.setDrag(0.999);
+            new_ball.setMaxVelocity(1000);
+            // this.ball_group.add(new_ball);
+            // const self = this;
+            p_col_layers.forEach(layer => {
+                p_self.physics.add.collider(new_ball, layer);
+            });
+        }
+
+        add_new_ball(1, 300, 400, col_layers, this);
+        add_new_ball(2, 600, 400, col_layers, this);
+
 
         this.input.mouse.disableContextMenu();
 
@@ -480,16 +518,21 @@ export default class MainGame extends Phaser.Scene {
 
                 if (!!self.current_player && !!self.current_player.holding_ball) {
                     console.log("Player throwing");
+                    // TODO Add animation delay? 
                     let tmp_ball = self.current_player.holding_ball;
                     self.current_player.holding_ball = null;
                     tmp_ball.thrower_player_id = self.player_id;
                     let world_pointer = self.cameras.main.getWorldPoint(pointer.x, pointer.y);
                     let direction = new Phaser.Math.Vector2(world_pointer.x - self.current_player.x, world_pointer.y - self.current_player.y)
                     direction = direction.normalize();
-                    direction.x = direction.x * 200;
-                    direction.y = direction.y * 200;
-                    tmp_ball.setVelocity(direction.x, direction.y);
+
+                    let pos_x = tmp_player.x + Math.sign(direction.x) * tmp_player.width;
+                    let pos_y = tmp_player.y + Math.sign(direction.y) * tmp_player.height;
+                    tmp_ball.setPosition(pos_x, pos_y);
+                    self.socketClient.playerThrowBall(tmp_ball.id, pos_x, pos_y, direction.x * 200, direction.y * 200);
+                    tmp_ball.setVelocity(direction.x * 200, direction.y * 200);
                     console.log("Ball velocity %s %s", direction.x, direction.y);
+
                 }
             }
 
@@ -537,8 +580,10 @@ export default class MainGame extends Phaser.Scene {
 
             }
         });
-        if (!!this.ball) { // FIXME This should iterate over all balls
-            this.ball.depth = this.ball.y + (this.ball.height * this.ball.scale) / 2;
+        for (let [_ball_id, tmp_ball] of self.ballMap) {
+            if (!!tmp_ball) { // FIXME This should iterate over all balls
+                tmp_ball.depth = tmp_ball.y + (tmp_ball.height * tmp_ball.scale) / 2;
+            }
         }
         // if (!!this.crosshair)
         //     this.crosshair.depth = this.crosshair.y + this.crosshair.height / 2;
@@ -809,6 +854,7 @@ export default class MainGame extends Phaser.Scene {
     }
 
     handleSimulationSync() {
+        // This should be moved to physics loop callback
         this.players.forEach(p_id => {
             let tmp_player = this.playerMap[p_id];
             if (!tmp_player) {
@@ -855,6 +901,28 @@ export default class MainGame extends Phaser.Scene {
                 // }
             }
         });
+        for (let [ball_id, tmp_ball] of this.ballMap) {
+            if (!!tmp_ball) {
+                if (!!tmp_ball.thrower_player_id && tmp_ball.thrower_player_id == this.player_id) {
+                    this.socketClient.playerThrowBall(ball_id, tmp_ball.x, tmp_ball.y, tmp_ball.body.velocity.x, tmp_ball.body.velocity.y);
+                }
+                else if (!!tmp_ball.start_simulation) {
+                    let next_frame_target = tmp_ball.physics_buffer.pop();
+                    if (!!next_frame_target) {
+                        tmp_ball.body.setVelocity(next_frame_target.vx, next_frame_target.vy);
+
+                        let sync_target = new Phaser.Math.Vector2(next_frame_target.px, next_frame_target.py);
+                        let _old_pos = new Phaser.Math.Vector2(tmp_player.x, tmp_player.y);
+                        let _new_pos = _old_pos.lerp(sync_target, 0.5);
+
+                        tmp_ball.x = _new_pos.x;
+                        tmp_ball.y = _new_pos.y;
+                    }
+
+                }
+            }
+
+        }
     }
 
 
@@ -875,7 +943,11 @@ export default class MainGame extends Phaser.Scene {
         _new_player.sync_dirty = false;
         _new_player.received_frames = new Queue();
         this.player_group.add(_new_player);
-        this.physics.add.overlap(_new_player, this.ball, this.on_ball_collision, null, this);
+        for (let [_ball_id, tmp_ball] of this.ballMap) {
+            if (!!tmp_ball) { // FIXME This should iterate over all balls
+                this.physics.add.overlap(_new_player, tmp_ball, this.on_ball_collision, null, this);
+            }
+        }
         if (p_id == this.player_id) {
             this.current_player = _new_player;
             this.current_player.player_id = this.player_id;
@@ -924,7 +996,6 @@ export default class MainGame extends Phaser.Scene {
 
         tmp_player.click_move_target = new Phaser.Math.Vector2(p_pos_x, p_pos_y);
 
-        let distance = Phaser.Math.Distance.Between(tmp_player.x, tmp_player.y, p_pos_x, p_pos_y);
 
 
         this.physics.moveToObject(tmp_player, tmp_player.click_move_target, null,
