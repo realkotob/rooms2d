@@ -127,7 +127,7 @@ export default class MainGame extends Phaser.Scene {
         });
         this.socketClient.socket.on('throw_ball', function (p_data) {
             self.on_throw_ball(p_data.p, p_data.b, p_data.x, p_data.y);
-            console.log("Recieved throw_ball %s ", JSON.stringify(p_all_peers));
+            console.log("Recieved throw_ball %s ", JSON.stringify(p_data));
         });
 
         this.socketClient.socket.on('room_info', function (data) {
@@ -526,8 +526,8 @@ export default class MainGame extends Phaser.Scene {
                     let direction = new Phaser.Math.Vector2(world_pointer.x - self.current_player.x, world_pointer.y - self.current_player.y)
                     direction = direction.normalize();
 
-                    let pos_x = tmp_player.x + Math.sign(direction.x) * tmp_player.width;
-                    let pos_y = tmp_player.y + Math.sign(direction.y) * tmp_player.height;
+                    let pos_x =  self.current_player.x + Math.sign(direction.x) *  self.current_player.width;
+                    let pos_y =  self.current_player.y + Math.sign(direction.y) *  self.current_player.height;
                     tmp_ball.setPosition(pos_x, pos_y);
                     self.socketClient.playerThrowBall(tmp_ball.id, pos_x, pos_y, direction.x * 200, direction.y * 200);
                     tmp_ball.setVelocity(direction.x * 200, direction.y * 200);
