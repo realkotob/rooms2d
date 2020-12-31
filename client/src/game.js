@@ -294,7 +294,7 @@ export default class MainGame extends Phaser.Scene {
         if (!tmp_ball) {
             return;
         }
-        if (tmp_bal.thrower_player_id == this.player_id) {
+        if (tmp_ball.thrower_player_id == this.player_id) {
             // ignore simulation for the thrower since he is the source
             return;
         }
