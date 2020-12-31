@@ -996,7 +996,7 @@ export default class MainGame extends Phaser.Scene {
 
         tmp_player.click_move_target = new Phaser.Math.Vector2(p_pos_x, p_pos_y);
 
-        let distance = Phaser.Math.Distance.Between(tmp_player.x, tmp_player.y, p_px, p_py);
+        let distance = Phaser.Math.Distance.Between(tmp_player.x, tmp_player.y, p_pos_x, p_pos_y);
 
         this.physics.moveToObject(tmp_player, tmp_player.click_move_target, null,
             distance / MainGame.MOVE_CLICK_SPEED);
