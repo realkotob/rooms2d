@@ -218,6 +218,29 @@ io.on('connection', function (socket) {
                 }
             });
 
+            socket.on('catchball', async function (p_data) {
+                try {
+                    const data = decode(p_data);
+                    io.in(_room).emit('catch_ball', data);
+                    let other_socket = await getSocketForPlayer(_room, data.p);
+                    if (!!other_socket) {
+                        other_socket.player.holding_ball = data.b;
+                    }
+                } catch (error) {
+                    logger.error(`error in socket on yt_url ${error}`);
+                }
+            });
+
+            socket.on('throwball', async function (p_data) {
+                try {
+                    const data = decode(p_data);
+                    io.in(_room).emit('throw_ball', data);
+                    socket.player.holding_ball = null;
+                } catch (error) {
+                    logger.error(`error in socket on yt_url ${error}`);
+                }
+            });
+
             socket.on('yt_url', function (p_v_id) {
                 try {
                     room_videos.set(_room, p_v_id);
@@ -266,6 +289,23 @@ async function getAllPlayers(p_room) {
         logger.error(`error in getAllPlayers ${error}`);
     }
     return players;
+}
+
+async function getSocketForPlayer(p_room, p_id) {
+    try {
+        let _sockets_ids = await io.in(p_room).allSockets();
+        for (const socket_id of _sockets_ids) {
+            // console.log("Socket ID %s", (socket_id));
+            let player_socket = io.of("/").sockets.get(socket_id);
+            let player = player_socket && player_socket.player;
+            if (!!player && player.rt.id == p_id) {
+                return player_socket;
+            };;
+        };
+    } catch (error) {
+        logger.error(`error in getSocketForPlayer ${error}`);
+    }
+    return null;
 }
 
 async function getAllPeerIDs(p_room) {

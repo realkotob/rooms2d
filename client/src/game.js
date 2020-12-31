@@ -84,17 +84,16 @@ export default class MainGame extends Phaser.Scene {
             if (self.player_id == p_data.p) {
                 return;
             }
-            console.log("Recieved yt video ID %s ", p_data);
             if (self.current_video_id != p_data.v) {
                 self.youtubePlayer.load(p_data.v);
             }
+            console.log("Recieved yt video ID %s ", p_data);
         });
 
         this.socketClient.socket.on('yt_state', function (p_data) {
             if (self.player_id == p_data.p) {
                 return;
             }
-            console.log("Recieved yt video state %s ", p_data);
 
             if (self.youtubePlayer.videoStateString != p_data.s) { // Not sure if this is the best check I can do
                 if (p_data.s == "pause") {
@@ -103,22 +102,32 @@ export default class MainGame extends Phaser.Scene {
                     self.youtubePlayer.play();
                 }
             }
+            console.log("Recieved yt video state %s ", p_data);
         });
 
         this.socketClient.socket.on('newplayer', function (data) {
-            console.log("Recieved newplayer %s ", JSON.stringify(data));
             self.addNewPlayer(data.rt.id, data.rt.px, data.rt.py, data.sprite, data.uname);
+            console.log("Recieved newplayer %s ", JSON.stringify(data));
         });
 
         this.socketClient.socket.on('new_peer_id', function (p_data) {
-            console.log("Recieved new_peer_id %s ", JSON.stringify(p_data));
             self.peerChat.player_peer_map.set(p_data.id, p_data.pid);
+            console.log("Recieved new_peer_id %s ", JSON.stringify(p_data));
         });
 
 
         this.socketClient.socket.on('allpeers', function (p_all_peers) {
-            console.log("Recieved allpeers %s ", JSON.stringify(p_all_peers));
             self.peerChat.receive_all_peers(p_all_peers);
+            console.log("Recieved allpeers %s ", JSON.stringify(p_all_peers));
+        });
+
+        this.socketClient.socket.on('catch_ball', function (p_data) {
+            self.on_catch_ball(p_data.p, p_data.b);
+            console.log("Recieved catch_ball %s ", JSON.stringify(p_all_peers));
+        });
+        this.socketClient.socket.on('throw_ball', function (p_data) {
+            self.on_throw_ball(p_data.p, p_data.b, p_data.x, p_data.y);
+            console.log("Recieved throw_ball %s ", JSON.stringify(p_all_peers));
         });
 
         this.socketClient.socket.on('allplayers', function (data) {
@@ -263,6 +272,14 @@ export default class MainGame extends Phaser.Scene {
 
     resize() {
         // this.updateCamera();
+    }
+
+    on_catch_ball(p_player_id, p_ball_id) {
+
+    }
+
+    on_throw_ball(p_ball_id, p_px, p_py, p_vx, p_vy) {
+        // TODO Add to buffer array and wait for 120 frames
     }
 
     on_ball_collision(p_player, p_ball) {
@@ -427,6 +444,8 @@ export default class MainGame extends Phaser.Scene {
         this.crosshair.setVisible(false);
         // this.adaptive_layer.add(this.crosshair);
 
+        this.ballMap = new Map();
+        // TODO Add all balls to map and reference them by some ball_id
 
         this.ball = this.physics.add.sprite(300, 400, 'slime', 6);
         this.ball.scale = 2;
