@@ -275,6 +275,10 @@ export default class MainGame extends Phaser.Scene {
     }
 
     on_catch_ball(p_player_id, p_ball_id) {
+        if (p_player_id == this.player_id) {
+            // ignore the thrower since he is the source
+            return;
+        }
         let tmp_player = this.playerMap[p_player_id];
         let tmp_ball = this.ballMap.get(p_ball_id);
         if (!!tmp_player && !!tmp_ball) {
@@ -301,7 +305,7 @@ export default class MainGame extends Phaser.Scene {
         if (!tmp_ball.physics_buffer) {
             tmp_ball.physics_buffer = []; // This probably never happens but 🤷
         }
-        tmp_ball.unshift({
+        tmp_ball.physics_buffer.unshift({
             px: p_px,
             py: p_py,
             vx: p_vx,
