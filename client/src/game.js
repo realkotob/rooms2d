@@ -123,7 +123,7 @@ export default class MainGame extends Phaser.Scene {
 
         this.socketClient.socket.on('catch_ball', function (p_data) {
             self.on_catch_ball(p_data.p, p_data.b);
-            console.log("Recieved catch_ball %s ", JSON.stringify(p_all_peers));
+            // console.log("Recieved catch_ball %s ", JSON.stringify(p_data));
         });
         this.socketClient.socket.on('throw_ball', function (p_data) {
             self.on_throw_ball(p_data.b, p_data.x, p_data.y, p_data.v, p_data.w);
@@ -286,6 +286,7 @@ export default class MainGame extends Phaser.Scene {
             tmp_ball.thrower_player_id = null;
             tmp_ball.physics_buffer = [];
             tmp_ball.start_simulation = false;
+            console.log("on_catch_ball Player %s caught ball with id %s", p_player_id, p_ball_id);
         } else {
             console.warn("Could not assign ball to player, one of their maps is broken.");
         }
@@ -296,12 +297,15 @@ export default class MainGame extends Phaser.Scene {
         // TODO Add to buffer array and wait for 120 frames
         let tmp_ball = this.ballMap.get(p_ball_id);
         if (!tmp_ball) {
+            console.log("Ball with id %s does not exist.", p_ball_id);
             return;
         }
         if (tmp_ball.thrower_player_id == this.player_id) {
             // ignore simulation for the thrower since he is the source
             return;
         }
+
+
         if (!tmp_ball.physics_buffer) {
             tmp_ball.physics_buffer = []; // This probably never happens but 🤷
         }
@@ -311,9 +315,11 @@ export default class MainGame extends Phaser.Scene {
             vx: p_vx,
             vy: p_vy
         });
-        if (tmp_ball.length > 60) {
+        if (tmp_ball.physics_buffer.length == 60) { // Only trigger this once, to avoid overriding catch signal from other players
             tmp_ball.start_simulation = true;
+            // console.log("Started ball simulation");
         }
+        // console.log("Adding ball %s data to physics buffer with size %s", p_ball_id, tmp_ball.physics_buffer.length);
     }
 
     on_ball_collision(p_player, p_ball) {
@@ -328,19 +334,14 @@ export default class MainGame extends Phaser.Scene {
             return;
 
         }
-        console.log("Player caught ball");
+        console.log("on_ball_collision");
         // if (!p_ball.thrower_player_id || p_ball.thrower_player_id != p_player.player_id) {
         // Player caught ball
-        p_ball.just_thrown = true;
         p_ball.body.reset(
             p_player.x + Math.sign(p_player.body.velocity.x) * p_player.width, p_player.y + Math.sign(p_player.body.velocity.y) * p_player.height);
-        p_ball.thrower_player_id = null;
         p_player.holding_ball = p_ball;
 
-        let timer = this.time.delayedCall(1250, () => {
-            // TODO I need better collision exclusion here, maybe something more native to phaser
-            p_ball.just_thrown = false;
-        });
+        this.socketClient.playerCatchBall(p_player.player_id, p_ball.id);
         // }
     }
 
@@ -522,25 +523,29 @@ export default class MainGame extends Phaser.Scene {
             }
             else if (pointer.rightButtonDown()) {
                 // Throw ball if present
-                console.log("Player try throw");
+                // console.log("Player try throw");
 
                 if (!!self.current_player && !!self.current_player.holding_ball) {
-                    console.log("Player throwing");
                     // TODO Add animation delay? 
                     let tmp_ball = self.current_player.holding_ball;
-                    self.current_player.holding_ball = null;
                     tmp_ball.thrower_player_id = self.player_id;
+                    console.log("Player %s throwing %s", self.current_player.player_id, tmp_ball.id);
                     let world_pointer = self.cameras.main.getWorldPoint(pointer.x, pointer.y);
                     let direction = new Phaser.Math.Vector2(world_pointer.x - self.current_player.x, world_pointer.y - self.current_player.y)
                     direction = direction.normalize();
+                    tmp_ball.just_thrown = true;
 
                     let pos_x = self.current_player.x + Math.sign(direction.x) * self.current_player.width;
                     let pos_y = self.current_player.y + Math.sign(direction.y) * self.current_player.height;
                     tmp_ball.setPosition(pos_x, pos_y);
                     self.socketClient.playerThrowBall(tmp_ball.id, pos_x, pos_y, direction.x * 200, direction.y * 200);
                     tmp_ball.setVelocity(direction.x * 200, direction.y * 200);
-                    console.log("Ball velocity %s %s", direction.x, direction.y);
+                    let timer = self.time.delayedCall(1250, () => {
+                        // TODO I need better collision exclusion here, maybe something more native to phaser
+                        tmp_ball.just_thrown = false;
+                    });
 
+                    self.current_player.holding_ball = null;
                 }
             }
 
@@ -916,13 +921,14 @@ export default class MainGame extends Phaser.Scene {
                 }
                 else if (!!tmp_ball.start_simulation) {
                     let next_frame_target = tmp_ball.physics_buffer.pop();
+                    // console.log("Maybe replay ball from buffer %s", JSON.stringify(next_frame_target));
                     if (!!next_frame_target) {
                         tmp_ball.body.setVelocity(next_frame_target.vx, next_frame_target.vy);
 
                         let sync_target = new Phaser.Math.Vector2(next_frame_target.px, next_frame_target.py);
-                        let _old_pos = new Phaser.Math.Vector2(tmp_player.x, tmp_player.y);
+                        let _old_pos = new Phaser.Math.Vector2(tmp_ball.x, tmp_ball.y);
                         let _new_pos = _old_pos.lerp(sync_target, 0.5);
-
+                        // console.log("Replaying ball from physics buffer");
                         tmp_ball.x = _new_pos.x;
                         tmp_ball.y = _new_pos.y;
                     }
