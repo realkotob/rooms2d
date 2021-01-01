@@ -126,7 +126,8 @@ export default class MainGame extends Phaser.Scene {
             // console.log("Recieved catch_ball %s ", JSON.stringify(p_data));
         });
         this.socketClient.socket.on('throw_ball', function (p_data) {
-            self.on_throw_ball(p_data.b, p_data.x, p_data.y, p_data.v, p_data.w);
+            const data = decode(p_data);
+            self.on_throw_ball(data.b, data.x, data.y, data.v, data.w);
             // console.log("Recieved throw_ball %s ", JSON.stringify(p_data));
         });
         this.socketClient.socket.on('start_throw_ball', function (p_data) {
@@ -314,7 +315,7 @@ export default class MainGame extends Phaser.Scene {
         }
         tmp_ball.thrower_player_id = p_player_id;
         tmp_ball.holder_player_id = null;
-
+        tmp_ball.start_simulation = false;
         tmp_ball.physics_buffer = [{
             px: p_px,
             py: p_py,
@@ -665,8 +666,9 @@ export default class MainGame extends Phaser.Scene {
             if (!tmp_player || !tmp_player.holding_ball) {
                 return;
             }
-            if (!!tmp_player.holding_ball.thrower_player_id) {
-                console.warn("handle_ball_follow should only happen when ball is being held.");
+            if (!!tmp_player.holding_ball.start_simulation) {
+                console.warn("handle_ball_follow should not happen when ball is replaying simulation.");
+                return;
             }
             tmp_player.holding_ball.setPosition(
                 tmp_player.x + Math.sign(tmp_player.body.velocity.x) * tmp_player.width, tmp_player.y + Math.sign(tmp_player.body.velocity.y) * tmp_player.height);
