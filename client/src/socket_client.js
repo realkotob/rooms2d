@@ -63,8 +63,16 @@ export default class SocketClient extends Phaser.Plugins.BasePlugin {
       self.send_encoded('catchball', { p: p_player_id, b: p_ball_id });
     };
 
+    this.playerStartThrowBall = function (p_player_id, p_ball_id, p_px, p_py, p_vx, p_vy) {
+      self.send_encoded('startthrowball', {
+        p: p_player_id, b: p_ball_id, x: p_px, y: p_py, v: p_vx, w: p_vy
+      });
+    };
+
     this.playerThrowBall = function (p_ball_id, p_px, p_py, p_vx, p_vy) {
-      self.send_encoded('throwball', { b: p_ball_id, x: p_px, y: p_py, v: p_vx, w: p_vy });
+      self.send_encoded('throwball', {
+        b: p_ball_id, x: p_px, y: p_py, v: p_vx, w: p_vy
+      });
     };
 
     this.setPeerID = function (p_player_id, p_peer_id) {

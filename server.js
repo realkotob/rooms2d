@@ -245,6 +245,8 @@ io.on('connection', function (socket) {
             socket.on('throwball', async function (p_data) {
                 try {
                     const data = decode(p_data);
+                    // const encoded = encode(data);
+                    // io.in(_room).emit('throw_ball', Buffer.from(encoded.buffer, encoded.byteOffset, encoded.byteLength));
                     io.in(_room).emit('throw_ball', data);
                     socket.player.holding_ball = null;
                     // TODO Update internal map of ball position/velocity
@@ -252,6 +254,18 @@ io.on('connection', function (socket) {
                     logger.error(`error in socket on yt_url ${error}`);
                 }
             });
+
+            socket.on('startthrowball', async function (p_data) {
+                try {
+                    const data = decode(p_data);
+                    io.in(_room).emit('start_throw_ball', data);
+                    socket.player.holding_ball = null;
+                    // TODO Update internal map of ball position/velocity
+                } catch (error) {
+                    logger.error(`error in socket on yt_url ${error}`);
+                }
+            });
+
 
             socket.on('yt_url', function (p_v_id) {
                 try {

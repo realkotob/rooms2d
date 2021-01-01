@@ -129,6 +129,10 @@ export default class MainGame extends Phaser.Scene {
             self.on_throw_ball(p_data.b, p_data.x, p_data.y, p_data.v, p_data.w);
             // console.log("Recieved throw_ball %s ", JSON.stringify(p_data));
         });
+        this.socketClient.socket.on('start_throw_ball', function (p_data) {
+            self.on_start_throw_ball(p_data.p, p_data.b, p_data.x, p_data.y, p_data.v, p_data.w);
+            // console.log("Recieved throw_ball %s ", JSON.stringify(p_data));
+        });
 
         this.socketClient.socket.on('room_info', function (data) {
             self.player_id = data.you.rt.id.toString();
@@ -284,6 +288,7 @@ export default class MainGame extends Phaser.Scene {
         if (!!tmp_player && !!tmp_ball) {
             tmp_player.holding_ball = tmp_ball;
             tmp_ball.thrower_player_id = null;
+            tmp_ball.holder_player_id = p_player_id;
             tmp_ball.physics_buffer = [];
             tmp_ball.start_simulation = false;
             console.log("on_catch_ball Player %s caught ball with id %s", p_player_id, p_ball_id);
@@ -292,19 +297,44 @@ export default class MainGame extends Phaser.Scene {
         }
     }
 
-    on_throw_ball(p_ball_id, p_px, p_py, p_vx, p_vy) {
-        // WARNING Currently the thrower_player_id is not being assigned, but it could be needed later for adding temporary collision exclusion
-        // TODO Add to buffer array and wait for 120 frames
+    on_start_throw_ball(p_player_id, p_ball_id, p_px, p_py, p_vx, p_vy) {
         let tmp_ball = this.ballMap.get(p_ball_id);
         if (!tmp_ball) {
-            console.log("Ball with id %s does not exist.", p_ball_id);
+            console.warn("Ball with id %s does not exist.", p_ball_id);
             return;
         }
-        if (tmp_ball.thrower_player_id == this.player_id) {
+        if (p_player_id == this.player_id) {
             // ignore simulation for the thrower since he is the source
             return;
         }
 
+        let tmp_player = this.playerMap[p_player_id];
+        if (!!tmp_player) {
+            tmp_player.holding_ball = null;
+        }
+        tmp_ball.thrower_player_id = p_player_id;
+        tmp_ball.holder_player_id = null;
+
+        tmp_ball.physics_buffer = [{
+            px: p_px,
+            py: p_py,
+            vx: p_vx,
+            vy: p_vy
+        }];
+    }
+
+    on_throw_ball(p_ball_id, p_px, p_py, p_vx, p_vy) {
+        let tmp_ball = this.ballMap.get(p_ball_id);
+
+        if (!tmp_ball) {
+            console.warn("Ball with id %s does not exist.", p_ball_id);
+            return;
+        }
+
+        if (tmp_ball.thrower_player_id == this.player_id) {
+            // ignore simulation for the thrower since he is the source
+            return;
+        }
 
         if (!tmp_ball.physics_buffer) {
             tmp_ball.physics_buffer = []; // This probably never happens but 🤷
@@ -328,20 +358,24 @@ export default class MainGame extends Phaser.Scene {
             // This makes collision exclusion of thrower easier
             return;
         }
-        if (!!p_player.holding_ball || !!p_ball.just_thrown) {
+        if (!!p_player.holding_ball || !!p_ball.just_thrown || !!p_ball.holder_player_id) {
             // a) Player cannot catch a ball if they are holding one
             // b) Ball cannot be caught immediatly after throwing
+            // c) Ball cannot be caught if it is already being carried by someone
             return;
 
         }
         console.log("on_ball_collision");
-        // if (!p_ball.thrower_player_id || p_ball.thrower_player_id != p_player.player_id) {
         // Player caught ball
+
         p_ball.body.reset(
             p_player.x + Math.sign(p_player.body.velocity.x) * p_player.width, p_player.y + Math.sign(p_player.body.velocity.y) * p_player.height);
-        p_player.holding_ball = p_ball;
 
         this.socketClient.playerCatchBall(p_player.player_id, p_ball.id);
+
+        p_player.holding_ball = p_ball;
+
+        p_ball.holder_player_id = p_player.player_id;
         // }
     }
 
@@ -534,11 +568,11 @@ export default class MainGame extends Phaser.Scene {
                     let direction = new Phaser.Math.Vector2(world_pointer.x - self.current_player.x, world_pointer.y - self.current_player.y)
                     direction = direction.normalize();
                     tmp_ball.just_thrown = true;
-
+                    tmp_ball.holder_player_id = null;
                     let pos_x = self.current_player.x + Math.sign(direction.x) * self.current_player.width;
                     let pos_y = self.current_player.y + Math.sign(direction.y) * self.current_player.height;
                     tmp_ball.setPosition(pos_x, pos_y);
-                    self.socketClient.playerThrowBall(tmp_ball.id, pos_x, pos_y, direction.x * 200, direction.y * 200);
+                    self.socketClient.playerStartThrowBall(tmp_ball.thrower_player_id, tmp_ball.id, pos_x, pos_y, direction.x * 200, direction.y * 200);
                     tmp_ball.setVelocity(direction.x * 200, direction.y * 200);
                     let timer = self.time.delayedCall(1250, () => {
                         // TODO I need better collision exclusion here, maybe something more native to phaser
@@ -630,6 +664,9 @@ export default class MainGame extends Phaser.Scene {
             let tmp_player = this.playerMap[_index];
             if (!tmp_player || !tmp_player.holding_ball) {
                 return;
+            }
+            if (!!tmp_player.holding_ball.thrower_player_id) {
+                console.warn("handle_ball_follow should only happen when ball is being held.");
             }
             tmp_player.holding_ball.setPosition(
                 tmp_player.x + Math.sign(tmp_player.body.velocity.x) * tmp_player.width, tmp_player.y + Math.sign(tmp_player.body.velocity.y) * tmp_player.height);
@@ -919,7 +956,10 @@ export default class MainGame extends Phaser.Scene {
                 if (!!tmp_ball.thrower_player_id && tmp_ball.thrower_player_id == this.player_id) {
                     this.socketClient.playerThrowBall(ball_id, tmp_ball.x, tmp_ball.y, tmp_ball.body.velocity.x, tmp_ball.body.velocity.y);
                 }
-                else if (!!tmp_ball.start_simulation) {
+                else if (!!tmp_ball.start_simulation && !tmp_ball.holder_player_id) {
+                    // a) Only simulate after the buffer has been filled (start_simulation set to true)
+                    // b) Ignore the throw simulation when ball is held
+
                     let next_frame_target = tmp_ball.physics_buffer.pop();
                     // console.log("Maybe replay ball from buffer %s", JSON.stringify(next_frame_target));
                     if (!!next_frame_target) {
