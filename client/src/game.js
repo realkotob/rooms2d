@@ -377,6 +377,10 @@ export default class MainGame extends Phaser.Scene {
         p_player.holding_ball = p_ball;
 
         p_ball.holder_player_id = p_player.player_id;
+
+        p_ball.thrower_player_id = null;
+        p_ball.physics_buffer = [];
+        p_ball.start_simulation = false;
         // }
     }
 
