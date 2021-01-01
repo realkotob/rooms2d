@@ -346,7 +346,7 @@ export default class MainGame extends Phaser.Scene {
             vx: p_vx,
             vy: p_vy
         });
-        if (tmp_ball.physics_buffer.length == 60) { // Only trigger this once, to avoid overriding catch signal from other players
+        if (tmp_ball.physics_buffer.length == 30) { // Only trigger this once, to avoid overriding catch signal from other players
             tmp_ball.start_simulation = true;
             // console.log("Started ball simulation");
         }
