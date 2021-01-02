@@ -281,7 +281,7 @@ export default class MainGame extends Phaser.Scene {
     }
 
     on_ball_collision(p_player, p_ball) {
-        if (!!p_player.holding_ball || (!!p_ball.just_thrown && p_ball.thrower_player_id == this.player_id) || !!p_ball.holder_player_id) {
+        if (!!p_player.holding_ball || (!!p_ball.just_thrown && p_ball.thrower_player_id == p_player.player_id) || !!p_ball.holder_player_id) {
             // a) Player cannot catch a ball if they are holding one
             // b) Ball cannot be caught immediatly after throwing by the thrower
             // c) Ball cannot be caught if it is already being carried by someone
