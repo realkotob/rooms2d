@@ -553,7 +553,7 @@ export default class MainGame extends Phaser.Scene {
             // new_ball.body.setVelocity(100, 100);
             // new_ball.setImmovable(false);
             new_ball.setBounce(1, 1);
-            new_ball.setCircle(12);
+            new_ball.setCircle(10, 2, 2);
             new_ball.setPushable(true);
             new_ball.setDamping(true)
             new_ball.setDrag(0.999);
@@ -576,7 +576,7 @@ export default class MainGame extends Phaser.Scene {
             // invis_ball.body.setVelocity(100, 100);
             // invis_ball.setImmovable(false);
             invis_ball.setBounce(1, 1);
-            invis_ball.setCircle(12);
+            invis_ball.setCircle(10, 2, 2);
             invis_ball.setPushable(true);
             invis_ball.setDamping(true)
             invis_ball.setDrag(0.999);
@@ -1034,7 +1034,7 @@ export default class MainGame extends Phaser.Scene {
         _new_player.scale = 3;
         _new_player.sprite_id = p_sprite_id;
         _new_player.username = p_username;
-        _new_player.setCircle(6);
+        _new_player.setCircle(3, 5, 10);
         _new_player.sync_target = new Phaser.Math.Vector2(p_pos_x, p_pos_y);
         _new_player.sync_dirty = false;
         _new_player.received_frames = new Queue();
