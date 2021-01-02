@@ -281,9 +281,12 @@ io.on('connection', function (socket) {
 
             socket.on('throwball', async function (p_data) {
                 try {
-                    const data = decode(p_data);
-                    const encoded = encode(data);
-                    io.in(_room).emit('throw_ball', Buffer.from(encoded.buffer, encoded.byteOffset, encoded.byteLength));
+                    io.in(_room).emit('throw_ball', p_data);
+
+                    // const data = decode(p_data);
+                    // const encoded = encode(data);
+                    // io.in(_room).emit('throw_ball', Buffer.from(encoded.buffer, encoded.byteOffset, encoded.byteLength));
+
                     // io.in(_room).emit('throw_ball', data);
                     // socket.player.holding_ball = null;
                     // TODO Update internal map of ball position/velocity
