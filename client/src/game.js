@@ -341,11 +341,12 @@ export default class MainGame extends Phaser.Scene {
         // }
 
         let tmp_player = this.playerMap[p_player_id];
-        if (!!tmp_player) {
-            tmp_player.holding_ball = null;
+        if (!tmp_player) {
+            console.warn("Player with id %s does not exist.", p_player_id);
+            return;
         }
+
         tmp_ball.thrower_player_id = p_player_id;
-        tmp_ball.holder_player_id = null;
         tmp_ball.start_simulation = false;
         tmp_ball.physics_buffer = [{
             px: p_px,
@@ -377,14 +378,24 @@ export default class MainGame extends Phaser.Scene {
             vx: p_vx,
             vy: p_vy
         });
+
         if (tmp_ball.physics_buffer.length == 45) { // Only trigger this once, to avoid overriding catch signal from other players
-            tmp_ball.start_simulation = true;
+            let tmp_player = this.playerMap[tmp_ball.thrower_player_id];
+            if (!tmp_player) {
+                console.warn("Player with id %s does not exist.", tmp_player.player_id);
+                return;
+            }
+            tmp_ball.holder_player_id = null;
+            tmp_player.holding_ball = null;
             if (tmp_ball.thrower_player_id == this.player_id) {
-                let timer = self.time.delayedCall(1250, () => {
+                tmp_ball.just_thrown = true;
+                let timer = this.time.delayedCall(1250, () => {
                     // TODO I need better collision exclusion here, maybe something more native to phaser
                     tmp_ball.just_thrown = false;
                 });
             }
+
+            tmp_ball.start_simulation = true;
             // console.log("Started ball simulation");
         }
         // console.log("Adding ball %s data to physics buffer with size %s", p_ball_id, tmp_ball.physics_buffer.length);
@@ -530,7 +541,6 @@ export default class MainGame extends Phaser.Scene {
         // this.adaptive_layer.add(this.crosshair);
 
         this.ballMap = new Map();
-        this.invisBallMap = new Map();
 
         var add_new_ball = function (p_ball_id, p_x, p_y, p_col_layers, p_self) {
             let new_ball = p_self.physics.add.sprite(p_x, p_y, 'slime', 6);
@@ -558,7 +568,7 @@ export default class MainGame extends Phaser.Scene {
             let invis_ball = p_self.physics.add.sprite(p_x, p_y, 'slime', 6);
             invis_ball.alpha = 0;
 
-            p_self.invisBallMap.set(p_ball_id, invis_ball);
+            new_ball.fake = invis_ball;
 
             invis_ball.scale = 2;
             invis_ball.id = p_ball_id;
@@ -596,26 +606,20 @@ export default class MainGame extends Phaser.Scene {
                 // Throw ball if present
                 // console.log("Player try throw");
 
-                if (!!self.current_player && !!self.current_player.holding_ball) {
+                if (!!self.current_player && !!self.current_player.holding_ball && !self.current_player.holding_ball.thrower_player_id) {
                     // TODO Add animation delay? 
                     let tmp_ball = self.current_player.holding_ball;
-                    let fake_ball = self.invisBallMap.get(tmp_ball.id);
 
                     tmp_ball.thrower_player_id = self.player_id;
-                    console.log("Player %s throwing %s", self.current_player.player_id, tmp_ball.id);
+                    console.log("Player %s throwing %s", tmp_ball.thrower_player_id, tmp_ball.id);
                     let world_pointer = self.cameras.main.getWorldPoint(pointer.x, pointer.y);
                     let direction = new Phaser.Math.Vector2(world_pointer.x - self.current_player.x, world_pointer.y - self.current_player.y)
                     direction = direction.normalize();
-                    tmp_ball.just_thrown = true;
-                    tmp_ball.holder_player_id = null;
                     let pos_x = self.current_player.x + Math.sign(direction.x) * self.current_player.width;
                     let pos_y = self.current_player.y + Math.sign(direction.y) * self.current_player.height;
-                    fake_ball.setPosition(pos_x, pos_y);
-                    self.socketClient.playerStartThrowBall(tmp_ball.thrower_player_id, tmp_ball.id, pos_x, pos_y, direction.x * 200, direction.y * 200);
-                    fake_ball.setVelocity(direction.x * 200, direction.y * 200);
-
-
-                    self.current_player.holding_ball = null;
+                    tmp_ball.fake.setPosition(pos_x, pos_y);
+                    self.socketClient.playerStartThrowBall(self.player_id, tmp_ball.id, pos_x, pos_y, direction.x * 200, direction.y * 200);
+                    tmp_ball.fake.setVelocity(direction.x * 200, direction.y * 200);
                 }
             }
 
@@ -991,8 +995,8 @@ export default class MainGame extends Phaser.Scene {
         for (let [ball_id, tmp_ball] of this.ballMap) {
             if (!!tmp_ball) {
                 if (!!tmp_ball.thrower_player_id && tmp_ball.thrower_player_id == this.player_id) {
-                    let fake_ball = this.invisBallMap.get(tmp_ball.id);
-                    this.socketClient.playerThrowBall(ball_id, fake_ball.x, fake_ball.y, fake_ball.body.velocity.x, fake_ball.body.velocity.y);
+                    this.socketClient.playerThrowBall(
+                        ball_id, tmp_ball.fake.x, tmp_ball.fake.y, tmp_ball.fake.body.velocity.x, tmp_ball.fake.body.velocity.y);
                 }
                 if (!!tmp_ball.start_simulation && !tmp_ball.holder_player_id) {
                     // a) Only simulate after the buffer has been filled (start_simulation set to true)
