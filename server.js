@@ -162,7 +162,7 @@ var room_balls = new Map();
 io.on('connection', function (socket) {
     setInterval(() => {
         socket.emit("ping", Date.now());
-        logger.info("Send ping event ");
+        // logger.info("Send ping event ");
     }, 5000);
 
     socket.on('newplayer', async function (p_data) {
@@ -245,11 +245,11 @@ io.on('connection', function (socket) {
 
             socket.on('catchball', async function (p_data) {
                 try {
+                    io.in(_room).emit('catch_ball', p_data);
                     const data = decode(p_data);
                     let tmp_ball = room_balls.get(_room).get(data.b);
                     if (!tmp_ball.holder_player_id) {
                         tmp_ball.thrower_player_id = null;
-                        io.in(_room).emit('catch_ball', data);
                         let other_socket = await getSocketForPlayer(_room, data.p);
                         if (!!other_socket) {
                             other_socket.player.holding_ball = data.b;
