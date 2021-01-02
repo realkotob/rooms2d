@@ -291,6 +291,7 @@ export default class MainGame extends Phaser.Scene {
         if (!!p_player.shooting_anim) {
             return; // Disable catching anything during kick-ball animation
         }
+
         console.log("on_ball_collision: Player caught ball.");
 
         p_ball.physics_buffer = [];
@@ -302,12 +303,16 @@ export default class MainGame extends Phaser.Scene {
             // The above is for prediction, but only the player's own client does the decision
             return;
         }
+
+        console.log("on_ball_collision: Player caught ball for real.");
+
+        p_ball.start_simulation = false;
+        p_ball.thrower_player_id = null;
+
         p_player.holding_ball = p_ball;
 
         p_ball.holder_player_id = p_player.player_id;
 
-        p_ball.thrower_player_id = null;
-        p_ball.start_simulation = false;
         this.socketClient.playerCatchBall(p_player.player_id, p_ball.id);
     }
 
@@ -319,11 +324,11 @@ export default class MainGame extends Phaser.Scene {
         let tmp_player = this.playerMap[p_player_id];
         let tmp_ball = this.ballMap.get(p_ball_id);
         if (!!tmp_player && !!tmp_ball) {
-            tmp_player.holding_ball = tmp_ball;
-            tmp_ball.thrower_player_id = null;
-            tmp_ball.holder_player_id = p_player_id;
             tmp_ball.physics_buffer = [];
+            tmp_ball.thrower_player_id = null;
             tmp_ball.start_simulation = false;
+            tmp_ball.holder_player_id = p_player_id;
+            tmp_player.holding_ball = tmp_ball;
             console.log("on_catch_ball Player %s caught ball with id %s", p_player_id, p_ball_id);
         } else {
             console.warn("Could not assign ball %s to player %s, one of their mappings broke.", p_ball_id, p_player_id);
@@ -391,9 +396,9 @@ export default class MainGame extends Phaser.Scene {
         //     return;
         // }
 
-        if (!tmp_ball.physics_buffer) {
-            tmp_ball.physics_buffer = []; // This probably never happens but 🤷
-        }
+        // if (!tmp_ball.physics_buffer) {
+        //     tmp_ball.physics_buffer = []; // This probably never happens but 🤷
+        // }
         tmp_ball.physics_buffer.unshift({
             px: p_px,
             py: p_py,
@@ -406,9 +411,10 @@ export default class MainGame extends Phaser.Scene {
         }
 
         if (tmp_ball.physics_buffer.length >= (60 - MainGame.clamp(this.socketClient.latency / 16, 0, 600)) && tmp_ball.thrower_player_id != this.player_id) { // Only trigger this once, to avoid overriding catch signal from other players
+            console.log("Started simulation on non-thrower");
             let tmp_player = this.playerMap[tmp_ball.thrower_player_id];
             if (!tmp_player) {
-                console.warn("Player with id %s does not exist.", tmp_ball.thrower_player_id);
+                console.warn("Player with id %s does not exist for non-thrower", tmp_ball.thrower_player_id);
                 return;
             }
             tmp_ball.holder_player_id = null;
@@ -420,9 +426,10 @@ export default class MainGame extends Phaser.Scene {
             tmp_ball.start_simulation = true;
         }
         else if (tmp_ball.physics_buffer.length >= (60 - MainGame.clamp(this.socketClient.latency / 16, 0, 600)) && tmp_ball.thrower_player_id == this.player_id) {
+            console.log("Started simulation on thrower");
             let tmp_player = this.playerMap[tmp_ball.thrower_player_id];
             if (!tmp_player) {
-                console.warn("Player with id %s does not exist.", tmp_ball.thrower_player_id);
+                console.warn("Player with id %s does not exist for thrower.", tmp_ball.thrower_player_id);
                 return;
             }
             tmp_ball.holder_player_id = null;
@@ -677,6 +684,9 @@ export default class MainGame extends Phaser.Scene {
                     });
                     tmp_ball.just_thrown = true;
                     self.current_player.body.reset(self.current_player.x, self.current_player.y); // Stop player movement?
+                } else if (!!self.current_player.holding_ball && self.current_player.holding_ball.thrower_player_id) {
+                    console.error("Cannot throw ball because it has thrower_player_id. holding_ball was nullified");
+                    self.current_player.holding_ball = null;
                 }
             }
 
@@ -771,7 +781,8 @@ export default class MainGame extends Phaser.Scene {
                 return;
             }
             if (!!tmp_player.holding_ball.start_simulation) {
-                console.warn("handle_ball_follow should not happen when ball is replaying simulation.");
+                console.error("handle_ball_follow should not happen when ball is replaying simulation. holding_ball was nullified to reduce error logs.");
+                tmp_player.holding_ball = null;
                 return;
             }
             tmp_player.holding_ball.setPosition(
@@ -790,13 +801,14 @@ export default class MainGame extends Phaser.Scene {
             let player = self.playerMap[player_id];
             if (player) {
                 let meter = self.peerChat.peer_volume_meter_map.get(peer_id);
-                if (meter) {
+                if (!!meter) {
                     // console.log(`Volume of ${player.username} is ${meter.volume}`);
                     player.chat_bubble.alpha = MainGame.clamp(0.1 + meter.volume * 5, 0, 1);
                 } else {
-                    if (this.peerChat.player_peer_map.size > 1) { // Don't show this error if player is alone
-                        console.warn(`Meter object is null but peer  ${peer_id} is in the player_peer_map.`);
-                    }
+                    // This usually happens while waiting for the peer to answer the call. No need for logs unless debugging.
+                    // if (this.peerChat.player_peer_map.size > 1) { // Don't show this error if player is alone
+                    //     console.warn(`Meter object is null but peer  ${peer_id} is in the player_peer_map.`);
+                    // }
                 }
             } else {
                 console.warn(`Player object is null but player_id ${player_id} is in the player_peer_map.`);
