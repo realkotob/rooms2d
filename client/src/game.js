@@ -354,6 +354,26 @@ export default class MainGame extends Phaser.Scene {
             vx: p_vx,
             vy: p_vy
         }];
+
+        if (p_player_id != this.player_id) {
+            var timeline = this.tweens.timeline({
+                tweens: [{
+                    targets: tmp_player,
+                    y: tmp_player.y - 10,
+                    scale: tmp_player.scale * 1.1,
+                    ease: 'Power1',
+                    duration: 500
+                },
+                {
+                    targets: tmp_player,
+                    y: tmp_player.y,
+                    scale: tmp_player.scale,
+                    ease: 'Power1',
+                    duration: 500,
+                }
+                ]
+            });
+        }
     }
 
     on_throw_ball(p_ball_id, p_px, p_py, p_vx, p_vy) {
@@ -630,6 +650,26 @@ export default class MainGame extends Phaser.Scene {
                     tmp_ball.fake.setPosition(pos_x, pos_y);
                     self.socketClient.playerStartThrowBall(self.player_id, tmp_ball.id, pos_x, pos_y, direction.x * 200, direction.y * 200);
                     tmp_ball.fake.setVelocity(direction.x * 200, direction.y * 200);
+
+                    self.current_player.shooting_anim = true;
+                    var timeline = this.tweens.timeline({
+                        tweens: [{
+                            targets: self.current_player,
+                            y: self.current_player.y - 10,
+                            scale: self.current_player.scale * 1.1,
+                            ease: 'Power1',
+                            duration: 500
+                        },
+                        {
+                            targets: self.current_player,
+                            y: self.current_player.y,
+                            scale: self.current_player.scale,
+                            ease: 'Power1',
+                            duration: 500,
+                            onComplete: function () { self.current_player.shooting_anim = false; },
+                        }
+                        ]
+                    });
                 }
             }
 
