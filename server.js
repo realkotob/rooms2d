@@ -234,7 +234,7 @@ io.on('connection', function (socket) {
                     socket.emit("allpeers", all_peers);
                     io.in(_room).emit('new_peer_id', { id: socket.player.rt.id, pid: p_data.peer_id });
                 } catch (error) {
-                    logger.error(`error in socket on yt_url ${error}`);
+                    logger.error(`error in socket on set_peer_id ${error}`);
                 }
             });
 
@@ -255,7 +255,7 @@ io.on('connection', function (socket) {
                     }
 
                 } catch (error) {
-                    logger.error(`error in socket on yt_url ${error}`);
+                    logger.error(`error in socket on catchball ${error}`);
                 }
             });
 
@@ -275,7 +275,7 @@ io.on('connection', function (socket) {
                             `Player ${data.p} tried to throw ball ${data.b} already thrown by ${tmp_ball.thrower_player_id}`)
                     }
                 } catch (error) {
-                    logger.error(`error in socket on yt_url ${error}`);
+                    logger.error(`error in socket on startthrowball ${error}`);
                 }
             });
 
@@ -288,10 +288,9 @@ io.on('connection', function (socket) {
                     // socket.player.holding_ball = null;
                     // TODO Update internal map of ball position/velocity
                 } catch (error) {
-                    logger.error(`error in socket on yt_url ${error}`);
+                    logger.error(`error in socket on throwball ${error}`);
                 }
             });
-
 
 
             socket.on('yt_url', function (p_v_id) {
