@@ -288,6 +288,9 @@ export default class MainGame extends Phaser.Scene {
             return;
 
         }
+        if (!!this.current_player.shooting_anim) {
+            return; // Disable catching anything during kick-ball animation
+        }
         console.log("on_ball_collision: Player caught ball.");
 
         p_ball.physics_buffer = [];
@@ -668,6 +671,8 @@ export default class MainGame extends Phaser.Scene {
                         }
                         ]
                     });
+
+                    self.current_player.body.reset(self.current_player.x, self.current_player.y); // Stop player movement?
                 }
             }
 
@@ -857,6 +862,10 @@ export default class MainGame extends Phaser.Scene {
     handle_player_controls(delta) {
         if (!this.player_id || !this.current_player) {
             return;
+        }
+
+        if (!!this.current_player.shooting_anim) {
+            return; // Disable movement during kick-ball animation
         }
 
 
