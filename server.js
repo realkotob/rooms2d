@@ -88,6 +88,7 @@ if (fs.existsSync(cert_path)) {
 
 var io = require('socket.io')(server,
     {
+        pingInterval: 5000,
         cookie: false // from https://github.com/socketio/socket.io/issues/2276
     });
 const { ExpressPeerServer } = require('peer');
@@ -159,6 +160,11 @@ var room_videos = new Map();
 const CHARACTER_SPRITE_COUNT = 24;
 var room_balls = new Map();
 io.on('connection', function (socket) {
+
+    socket.on("ping", (start_ms) => {
+        logger.info("Receive ping event ");
+        socket.emit('pong', start_ms);
+    });
 
     socket.on('newplayer', async function (p_data) {
         try {

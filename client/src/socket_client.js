@@ -27,10 +27,8 @@ export default class SocketClient extends Phaser.Plugins.BasePlugin {
 
     this.socket = io.connect({ rejectUnauthorized: false });
 
-
     this.socket.on('connected', function () {
       self.is_connected = true;
-
 
       //     // get path from current URL
       //     let room = window.location.pathname.slice(3);   // remove leading /chat/
@@ -40,6 +38,20 @@ export default class SocketClient extends Phaser.Plugins.BasePlugin {
       //     }
       //     console.log("Room ID %s", room);
       //     self.room_id = room;
+    });
+
+    this.latency = 0;
+    setInterval(() => {
+
+      // volatile, so the packet will be discarded if the socket is not connected
+      self.socket.volatile.emit("ping", Date.now());
+    }, 5000);
+
+    this.socket.on('pong', function (start_ms) {
+      let latency_ms = Date.now() - start_ms;
+      console.log("Latency: %s", latency_ms);
+      self.latency = latency_ms;
+
     });
 
     this.sendTest = function () {

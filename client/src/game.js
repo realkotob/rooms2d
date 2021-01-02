@@ -379,24 +379,34 @@ export default class MainGame extends Phaser.Scene {
             vy: p_vy
         });
 
-        if (tmp_ball.physics_buffer.length == 45) { // Only trigger this once, to avoid overriding catch signal from other players
+        if (!!tmp_ball.start_simulation) {
+            return; // Don't bother checking to start simulation if it started
+        }
+
+        if (tmp_ball.physics_buffer.length >= (60 - MainGame.clamp(this.socketClient.latency / 16, 0, 600)) && tmp_ball.thrower_player_id != this.player_id) { // Only trigger this once, to avoid overriding catch signal from other players
             let tmp_player = this.playerMap[tmp_ball.thrower_player_id];
             if (!tmp_player) {
-                console.warn("Player with id %s does not exist.", tmp_player.player_id);
+                console.warn("Player with id %s does not exist.", tmp_ball.thrower_player_id);
                 return;
             }
             tmp_ball.holder_player_id = null;
             tmp_player.holding_ball = null;
-            if (tmp_ball.thrower_player_id == this.player_id) {
-                tmp_ball.just_thrown = true;
-                let timer = this.time.delayedCall(1250, () => {
-                    // TODO I need better collision exclusion here, maybe something more native to phaser
-                    tmp_ball.just_thrown = false;
-                });
-            }
 
             tmp_ball.start_simulation = true;
-            // console.log("Started ball simulation");
+        }
+        else if (tmp_ball.physics_buffer.length >= (60 - MainGame.clamp(this.socketClient.latency / 16, 0, 600)) && tmp_ball.thrower_player_id == this.player_id) {
+            let tmp_player = this.playerMap[tmp_ball.thrower_player_id];
+            if (!tmp_player) {
+                console.warn("Player with id %s does not exist.", tmp_ball.thrower_player_id);
+                return;
+            }
+            tmp_ball.holder_player_id = null;
+            tmp_player.holding_ball = null;
+            tmp_ball.just_thrown = true;
+            let timer = this.time.delayedCall(1250, () => {
+                tmp_ball.just_thrown = false;
+            });
+            tmp_ball.start_simulation = true;
         }
         // console.log("Adding ball %s data to physics buffer with size %s", p_ball_id, tmp_ball.physics_buffer.length);
     }
@@ -679,6 +689,8 @@ export default class MainGame extends Phaser.Scene {
 
     static COUNTER_DOM_UPDATE = 0;
     static INTERVAL_DOM_UPDATE = 10;
+    static COUNTER_FOCUS_UPDATE = 0;
+    static INTERVAL_FOCUS_UPDATE = 60;
     update(time, delta) {
         this.handle_player_anims();
 
@@ -688,14 +700,20 @@ export default class MainGame extends Phaser.Scene {
             return;
         }
         this.handleVideoPan();
-        MainGame.COUNTER_DOM_UPDATE += 1;
+
         if (MainGame.COUNTER_DOM_UPDATE >= MainGame.INTERVAL_DOM_UPDATE) {
             MainGame.COUNTER_DOM_UPDATE = 0;
             this.handle_voice_proxomity();
             this.handle_video_proximity();
+        }
+        if (MainGame.COUNTER_FOCUS_UPDATE >= MainGame.INTERVAL_FOCUS_UPDATE) {
+            MainGame.COUNTER_FOCUS_UPDATE = 0;
             this.focus_game();
         }
         this.handle_talk_activity();
+
+        MainGame.COUNTER_DOM_UPDATE += 1;
+        MainGame.COUNTER_FOCUS_UPDATE += 1;
     }
 
     handle_ball_follow() {
