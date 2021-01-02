@@ -171,8 +171,17 @@ io.on('connection', function (socket) {
             await socket.join(_room);
 
             if (!room_balls.get(_room)) {
-                let new_ball_ids = [1]; // TODO This needs to be a map instead of an array to store ball position/velocity
-                room_balls.set(_room, new_ball_ids);
+                let room_ball_map = new Map();
+                let new_ball_ids = [1, 2];
+
+                new_ball_ids.forEach(t_ball_id => {
+                    room_ball_map.set(t_ball_id, {
+                        thrower_player_id: null,
+                        holder_player_id: null,
+                    })
+                });
+
+                room_balls.set(_room, room_ball_map);
             }
 
             server.lastPlayderID += 1;
@@ -232,11 +241,19 @@ io.on('connection', function (socket) {
             socket.on('catchball', async function (p_data) {
                 try {
                     const data = decode(p_data);
-                    io.in(_room).emit('catch_ball', data);
-                    let other_socket = await getSocketForPlayer(_room, data.p);
-                    if (!!other_socket) {
-                        other_socket.player.holding_ball = data.b;
+                    let tmp_ball = room_balls.get(_room).get(data.b);
+                    if (!tmp_ball.holder_player_id) {
+                        tmp_ball.thrower_player_id = null;
+                        io.in(_room).emit('catch_ball', data);
+                        let other_socket = await getSocketForPlayer(_room, data.p);
+                        if (!!other_socket) {
+                            other_socket.player.holding_ball = data.b;
+                        }
+                    } else {
+                        logger.warn(
+                            `Player ${data.p} tried to catch ball ${data.b} already held by ${tmp_ball.holder_player_id}`)
                     }
+
                 } catch (error) {
                     logger.error(`error in socket on yt_url ${error}`);
                 }
@@ -248,7 +265,7 @@ io.on('connection', function (socket) {
                     const encoded = encode(data);
                     io.in(_room).emit('throw_ball', Buffer.from(encoded.buffer, encoded.byteOffset, encoded.byteLength));
                     // io.in(_room).emit('throw_ball', data);
-                    socket.player.holding_ball = null;
+                    // socket.player.holding_ball = null;
                     // TODO Update internal map of ball position/velocity
                 } catch (error) {
                     logger.error(`error in socket on yt_url ${error}`);
@@ -258,9 +275,17 @@ io.on('connection', function (socket) {
             socket.on('startthrowball', async function (p_data) {
                 try {
                     const data = decode(p_data);
-                    io.in(_room).emit('start_throw_ball', data);
-                    socket.player.holding_ball = null;
-                    // TODO Update internal map of ball position/velocity
+                    let tmp_ball = room_balls.get(_room).get(data.b);
+                    if (!tmp_ball.thrower_player_id) {
+                        tmp_ball.holder_player_id = null;
+                        tmp_ball.thrower_player_id = data.p;
+                        io.in(_room).emit('start_throw_ball', data);
+                        socket.player.holding_ball = null;
+                        // NOTE Maybe update internal map of ball position/velocity
+                    } else {
+                        logger.warn(
+                            `Player ${data.p} tried to throw ball ${data.b} already thrown by ${tmp_ball.thrower_player_id}`)
+                    }
                 } catch (error) {
                     logger.error(`error in socket on yt_url ${error}`);
                 }
