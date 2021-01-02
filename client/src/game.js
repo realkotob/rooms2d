@@ -288,7 +288,7 @@ export default class MainGame extends Phaser.Scene {
             return;
 
         }
-        if (!!this.current_player.shooting_anim) {
+        if (!!p_player.shooting_anim) {
             return; // Disable catching anything during kick-ball animation
         }
         console.log("on_ball_collision: Player caught ball.");
