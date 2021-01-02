@@ -281,11 +281,6 @@ export default class MainGame extends Phaser.Scene {
     }
 
     on_ball_collision(p_player, p_ball) {
-        if (p_player.player_id != this.player_id) {
-            // Each client handles their own ball catch code
-            // This makes collision exclusion of thrower easier
-            return;
-        }
         if (!!p_player.holding_ball || !!p_ball.just_thrown || !!p_ball.holder_player_id) {
             // a) Player cannot catch a ball if they are holding one
             // b) Ball cannot be caught immediatly after throwing
@@ -294,21 +289,23 @@ export default class MainGame extends Phaser.Scene {
 
         }
         console.log("on_ball_collision: Player caught ball.");
-        // Player caught ball
+
+        p_ball.physics_buffer = [];
 
         p_ball.body.reset(
             p_player.x + Math.sign(p_player.body.velocity.x) * p_player.width, p_player.y + Math.sign(p_player.body.velocity.y) * p_player.height);
 
-        this.socketClient.playerCatchBall(p_player.player_id, p_ball.id);
-
+        if (p_player.player_id != this.player_id) {
+            // The above is for prediction, but only the player's own client does the decision
+            return;
+        }
         p_player.holding_ball = p_ball;
 
         p_ball.holder_player_id = p_player.player_id;
 
         p_ball.thrower_player_id = null;
-        p_ball.physics_buffer = [];
         p_ball.start_simulation = false;
-        // }
+        this.socketClient.playerCatchBall(p_player.player_id, p_ball.id);
     }
 
     on_catch_ball(p_player_id, p_ball_id) {
