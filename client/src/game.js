@@ -279,6 +279,37 @@ export default class MainGame extends Phaser.Scene {
         // this.updateCamera();
     }
 
+    on_ball_collision(p_player, p_ball) {
+        if (p_player.player_id != this.player_id) {
+            // Each client handles their own ball catch code
+            // This makes collision exclusion of thrower easier
+            return;
+        }
+        if (!!p_player.holding_ball || !!p_ball.just_thrown || !!p_ball.holder_player_id) {
+            // a) Player cannot catch a ball if they are holding one
+            // b) Ball cannot be caught immediatly after throwing
+            // c) Ball cannot be caught if it is already being carried by someone
+            return;
+
+        }
+        console.log("on_ball_collision");
+        // Player caught ball
+
+        p_ball.body.reset(
+            p_player.x + Math.sign(p_player.body.velocity.x) * p_player.width, p_player.y + Math.sign(p_player.body.velocity.y) * p_player.height);
+
+        this.socketClient.playerCatchBall(p_player.player_id, p_ball.id);
+
+        p_player.holding_ball = p_ball;
+
+        p_ball.holder_player_id = p_player.player_id;
+
+        p_ball.thrower_player_id = null;
+        p_ball.physics_buffer = [];
+        p_ball.start_simulation = false;
+        // }
+    }
+
     on_catch_ball(p_player_id, p_ball_id) {
         if (p_player_id == this.player_id) {
             // ignore the thrower since he is the source
@@ -359,36 +390,7 @@ export default class MainGame extends Phaser.Scene {
         // console.log("Adding ball %s data to physics buffer with size %s", p_ball_id, tmp_ball.physics_buffer.length);
     }
 
-    on_ball_collision(p_player, p_ball) {
-        if (p_player.player_id != this.player_id) {
-            // Each client handles their own ball catch code
-            // This makes collision exclusion of thrower easier
-            return;
-        }
-        if (!!p_player.holding_ball || !!p_ball.just_thrown || !!p_ball.holder_player_id) {
-            // a) Player cannot catch a ball if they are holding one
-            // b) Ball cannot be caught immediatly after throwing
-            // c) Ball cannot be caught if it is already being carried by someone
-            return;
 
-        }
-        console.log("on_ball_collision");
-        // Player caught ball
-
-        p_ball.body.reset(
-            p_player.x + Math.sign(p_player.body.velocity.x) * p_player.width, p_player.y + Math.sign(p_player.body.velocity.y) * p_player.height);
-
-        this.socketClient.playerCatchBall(p_player.player_id, p_ball.id);
-
-        p_player.holding_ball = p_ball;
-
-        p_ball.holder_player_id = p_player.player_id;
-
-        p_ball.thrower_player_id = null;
-        p_ball.physics_buffer = [];
-        p_ball.start_simulation = false;
-        // }
-    }
 
     create() {
         const self = this;
