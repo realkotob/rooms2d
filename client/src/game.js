@@ -292,7 +292,7 @@ export default class MainGame extends Phaser.Scene {
             return;
 
         }
-        console.log("on_ball_collision");
+        console.log("on_ball_collision: Player caught ball.");
         // Player caught ball
 
         p_ball.body.reset(
@@ -342,7 +342,7 @@ export default class MainGame extends Phaser.Scene {
 
         let tmp_player = this.playerMap[p_player_id];
         if (!tmp_player) {
-            console.warn("Player with id %s does not exist.", p_player_id);
+            console.error("on_start_throw_ball: Player with id %s does not exist.", p_player_id);
             return;
         }
 

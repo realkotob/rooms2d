@@ -1,7 +1,7 @@
 import { io } from 'socket.io-client';
 import { encode, decode } from "@msgpack/msgpack";
 
-
+var average = (array) => array.reduce((a, b) => a + b) / array.length;
 export default class SocketClient extends Phaser.Plugins.BasePlugin {
 
   socket = null;
@@ -40,18 +40,17 @@ export default class SocketClient extends Phaser.Plugins.BasePlugin {
       //     self.room_id = room;
     });
 
-    this.latency = 0;
-    setInterval(() => {
-
-      // volatile, so the packet will be discarded if the socket is not connected
-      self.socket.volatile.emit("ping", Date.now());
-    }, 5000);
-
-    this.socket.on('pong', function (start_ms) {
+    this.latency = 100;
+    this.latency_logs = [];
+    this.socket.on('ping', function (start_ms) {
       let latency_ms = Date.now() - start_ms;
-      console.log("Latency: %s", latency_ms);
-      self.latency = latency_ms;
 
+      self.latency_logs.unshift(latency_ms);
+      if (self.latency_logs.length > 5)
+        self.latency_logs.pop();
+
+      self.latency = average(self.latency_logs);
+      console.log("Average Latency: %s", self.latency);
     });
 
     this.sendTest = function () {

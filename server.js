@@ -160,11 +160,10 @@ var room_videos = new Map();
 const CHARACTER_SPRITE_COUNT = 24;
 var room_balls = new Map();
 io.on('connection', function (socket) {
-
-    socket.on("ping", (start_ms) => {
-        logger.info("Receive ping event ");
-        socket.emit('pong', start_ms);
-    });
+    setInterval(() => {
+        socket.emit("ping", Date.now());
+        logger.info("Send ping event ");
+    }, 5000);
 
     socket.on('newplayer', async function (p_data) {
         try {
