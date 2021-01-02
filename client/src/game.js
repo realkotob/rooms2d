@@ -122,7 +122,8 @@ export default class MainGame extends Phaser.Scene {
         });
 
         this.socketClient.socket.on('catch_ball', function (p_data) {
-            self.on_catch_ball(p_data.p, p_data.b);
+            const data = decode(p_data);
+            self.on_catch_ball(data.p, data.b);
             // console.log("Recieved catch_ball %s ", JSON.stringify(p_data));
         });
         this.socketClient.socket.on('throw_ball', function (p_data) {
@@ -325,7 +326,7 @@ export default class MainGame extends Phaser.Scene {
             tmp_ball.start_simulation = false;
             console.log("on_catch_ball Player %s caught ball with id %s", p_player_id, p_ball_id);
         } else {
-            console.warn("Could not assign ball to player, one of their maps is broken.");
+            console.warn("Could not assign ball %s to player %s, one of their mappings broke.", p_ball_id, p_player_id);
         }
     }
 
