@@ -281,9 +281,9 @@ export default class MainGame extends Phaser.Scene {
     }
 
     on_ball_collision(p_player, p_ball) {
-        if (!!p_player.holding_ball || !!p_ball.just_thrown || !!p_ball.holder_player_id) {
+        if (!!p_player.holding_ball || (!!p_ball.just_thrown && p_ball.thrower_player_id == this.player_id) || !!p_ball.holder_player_id) {
             // a) Player cannot catch a ball if they are holding one
-            // b) Ball cannot be caught immediatly after throwing
+            // b) Ball cannot be caught immediatly after throwing by the thrower
             // c) Ball cannot be caught if it is already being carried by someone
             return;
 
@@ -348,6 +348,7 @@ export default class MainGame extends Phaser.Scene {
         }
 
         tmp_ball.thrower_player_id = p_player_id;
+        tmp_ball.just_thrown = true;
         tmp_ball.start_simulation = false;
         tmp_ball.physics_buffer = [{
             px: p_px,
@@ -412,7 +413,10 @@ export default class MainGame extends Phaser.Scene {
             }
             tmp_ball.holder_player_id = null;
             tmp_player.holding_ball = null;
-
+            tmp_ball.just_thrown = true;
+            let timer = this.time.delayedCall(1250, () => {
+                tmp_ball.just_thrown = false;
+            });
             tmp_ball.start_simulation = true;
         }
         else if (tmp_ball.physics_buffer.length >= (60 - MainGame.clamp(this.socketClient.latency / 16, 0, 600)) && tmp_ball.thrower_player_id == this.player_id) {
@@ -671,7 +675,7 @@ export default class MainGame extends Phaser.Scene {
                         }
                         ]
                     });
-
+                    tmp_ball.just_thrown = true;
                     self.current_player.body.reset(self.current_player.x, self.current_player.y); // Stop player movement?
                 }
             }
