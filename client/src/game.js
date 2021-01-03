@@ -72,9 +72,7 @@ export default class MainGame extends Phaser.Scene {
 
     static clamp(val, min, max) { return Math.max(min, Math.min(max, val)); };
 
-    send_set_peer_to_server() {
-        this.socketClient.setPeerID(this.player_id, this.peerChat.peer.id);
-    }
+
 
     init() {
         // game.stage.disableVisibilityChange = true;
@@ -151,6 +149,10 @@ export default class MainGame extends Phaser.Scene {
             // console.log("Recieved throw_ball %s ", JSON.stringify(p_data));
         });
 
+        var send_peer_cb = () => {
+            self.socketClient.setPeerID(self.player_id, self.peerChat.peer.id);
+        };
+
         this.socketClient.socket.on('room_info', function (data) {
             self.player_id = data.you.rt.id.toString();
             self.youtubePlayer.load(data.room_data.vid_id);
@@ -158,9 +160,9 @@ export default class MainGame extends Phaser.Scene {
 
             // if (self.socketClient.is_connected && self.peerChat.isAlive()) {
             if (self.peerChat.isAlive()) {
-                self.send_set_peer_to_server();
+                send_peer_cb();
             } else {
-                self.peerChat.callback_on_connect = self.send_set_peer_to_server;
+                self.peerChat.callback_on_connect = send_peer_cb;
             }
 
             const _all = data.all;
