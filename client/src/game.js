@@ -1139,7 +1139,7 @@ export default class MainGame extends Phaser.Scene {
             // NOTE Second parameter of startFollow is for rounding pixel jitter. 
             // Setting it to true will fix the jitter of world tiles but add jitter for the player sprite.
 
-            this.physics.add.overlap(_new_player, this.screen_control_collision_layer, this.entered_screen_control_trigger);
+            this.physics.add.overlap(_new_player, this.screen_control_collision_layer, this.entered_screen_control_trigger, this.process_overlap_screen_control, this);
         }
         _new_player.setPushable(false);
         // _new_player.setImmovable(true);
@@ -1154,8 +1154,23 @@ export default class MainGame extends Phaser.Scene {
         _new_player.chat_bubble.alpha = 0;
     };
 
-    entered_screen_control_trigger(p_player, p_area) {
+    entered_screen_control_trigger(p_player, p_area_layer) {
+        if (!!p_player.ignore_open_screen_control) {
+            return;
+        }
+        p_player.ignore_open_screen_control = true;
         this.show_video_controls();
+    }
+
+    process_overlap_screen_control(p_player, p_area_layer) {
+        p_player.inside_screen_control_area = !!(this.screen_control_collision_layer.getTileAtWorldXY(p_player.x, p_player.y));
+        if (!p_player.inside_screen_control_area) {
+            if (!!p_player.ignore_open_screen_control) {
+                p_player.ignore_open_screen_control = false;
+                return false;
+            }
+        }
+        return p_player.inside_screen_control_area;
     }
 
 
