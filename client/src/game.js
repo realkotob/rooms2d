@@ -891,11 +891,14 @@ export default class MainGame extends Phaser.Scene {
 
 
         if (Phaser.Input.Keyboard.JustDown(this.keys_arrows.space)) {
-            if (!this.cameras.main.following_player) { // The camera is following the player at all times except when in range of a video
-                // This if check is a temporary hack until the desk collisions are added
-                console.log("Open video controls");
-                this.show_video_controls();
-            }
+            // TODO Mute player audio
+
+
+            // This check was a temporary hack until the desk collisions were added
+            // if (!this.cameras.main.following_player) { // The camera is following the player at all times except when in range of a video
+            //     console.log("Open video controls");
+            //     this.show_video_controls();
+            // }
         }
 
         let current_move_input = new Phaser.Math.Vector2(0, 0);
@@ -1225,7 +1228,7 @@ export default class MainGame extends Phaser.Scene {
 
     load_screen_controls() {
         // TODO Maybe animate alpha for this
-        this.screen_controls_hint = this.add.dom(1455, 70).createFromHTML(screen_controls_hint_html);
+        this.screen_controls_hint = this.add.dom(1425, 80).createFromHTML(screen_controls_hint_html);
 
         this.screen_controls = this.add.dom(625, 400).createFromHTML(screen_controls_html);
         this.screen_controls.setScrollFactor(0);
