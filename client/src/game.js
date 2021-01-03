@@ -1260,9 +1260,7 @@ export default class MainGame extends Phaser.Scene {
 
         this.videolink = this.screen_controls.getChildByID('videolink');
         this.videolink.value = `https://www.youtube.com/watch?v=${this.current_video_id}`;
-
-
-
+        this.videolink_validhint = this.screen_controls.getChildByID('validhint');
     }
 
     show_video_controls() {
@@ -1274,6 +1272,29 @@ export default class MainGame extends Phaser.Scene {
         this.screen_controls.node.style.visibility = "visible";
 
         let string_before_open = self.videolink.value;
+
+        var on_change_fn = function (event) {
+            let new_entered = self.videolink.value;
+            if (new_entered !== '') {
+                // From https://stackoverflow.com/questions/6903823/regex-for-youtube-id
+                // and https://stackoverflow.com/questions/2936467/parse-youtube-video-id-using-preg-match/6382259#6382259
+
+                let videoId = get_yt_id_from_link(new_entered);
+                if (!!videoId) {
+                    self.videolink_validhint.innerHTML = "☑"
+                    self.videolink_validhint.style.color = "#00c569";
+                } else {
+                    self.videolink_validhint.innerHTML = "✖"
+                    self.videolink_validhint.style.color = "#f01c63";
+                }
+                console.log("Changed hint for valid url.");
+            }
+        };
+
+        this.videolink.addEventListener("change", on_change_fn);
+        this.videolink.addEventListener("input", on_change_fn);
+        this.videolink.addEventListener("paste", on_change_fn);
+        this.videolink.addEventListener("keypress", on_change_fn);
 
         this.screen_controls.addListener('click');
         // this.screen_controls.setPerspective(800);
