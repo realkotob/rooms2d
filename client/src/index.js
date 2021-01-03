@@ -35,13 +35,6 @@ const config = {
     global: [
       { key: 'PeerChat', plugin: PeerChat, start: false, mapping: 'peerChat' },
       { key: 'SocketClient', plugin: SocketClient, start: false, mapping: 'socketClient' }
-    ],
-    scene: [
-      {
-        key: 'PhaserRaycaster',
-        plugin: PhaserRaycaster,
-        mapping: 'raycasterPlugin'
-      }
     ]
   },
 };

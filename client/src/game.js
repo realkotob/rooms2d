@@ -660,26 +660,6 @@ export default class MainGame extends Phaser.Scene {
         this.input.on('pointerdown', function (pointer) {
             if (pointer.leftButtonDown()) {
                 let world_pointer = self.cameras.main.getWorldPoint(pointer.x, pointer.y);
-                self.ray_click_move = self.Raycaster.createRay();
-                self.ray_click_move.setOrigin(self.current_player.x, self.current_player.y);
-                // var angleRadians = Math.atan2(p2.y - p1.y, p2.x - p1.x);
-                let tmp_vector = new Phaser.Math.Vector2(world_pointer.x - self.current_player.x, world_pointer.y - self.current_player.y);
-                let vec_angle = tmp_vector.angle();
-                console.log("Raycast angle is %s", vec_angle * (180 / Math.PI));
-                self.ray_click_move.setAngle(vec_angle);
-                let tmp_intersection = self.ray_click_move.cast();
-                if (!!tmp_intersection) {
-                    console.log("Found raycast intersection with %s", JSON.stringify(tmp_intersection));
-                    let distance_to_intersection = Phaser.Math.Distance.Between(
-                        tmp_intersection.x, tmp_intersection.y, self.current_player.x, self.current_player.y);
-                    let distance_to_pointer = Phaser.Math.Distance.Between(
-                        world_pointer.x, world_pointer.y, self.current_player.x, self.current_player.y);
-                    if (distance_to_intersection <= distance_to_pointer) {
-                        console.log("Apply raycast intersection with %s", JSON.stringify(tmp_intersection));
-                        world_pointer.x = tmp_intersection.x;
-                        world_pointer.y = tmp_intersection.y;
-                    }
-                }
                 // console.log("Pressed local: %s %s world: %s %s", pointer.x, pointer.y, world_pointer.x, world_pointer.y);
                 let _player = self.movePlayerToPos(self.player_id, world_pointer.x, world_pointer.y);
                 if (_player)
@@ -751,17 +731,6 @@ export default class MainGame extends Phaser.Scene {
 
         this.events.on('postupdate', this.postUpdate, this);
         this.events.on('preupdate', this.preUpdate, this);
-
-
-        this.Raycaster = this.raycasterPlugin.createRaycaster();
-
-        // this.ray_click_move.enablePhysics();
-        col_layers.forEach(t_layer => {
-            self.Raycaster.mapGameObjects(t_layer, false, {
-                collisionTiles: [22, 23, 24] //array of tiles types which can collide with ray
-            });
-        });
-
     }
 
     postUpdate() {
