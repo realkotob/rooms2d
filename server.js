@@ -198,8 +198,8 @@ io.on('connection', function (socket) {
                 uname: _name,
                 rt: {
                     id: server.lastPlayderID,
-                    px: randomInt(100, 400),
-                    py: randomInt(100, 400),
+                    px: randomInt(150, 450),
+                    py: randomInt(150, 400),
                     vx: 0,
                     vy: 0,
                 }
