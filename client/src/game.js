@@ -501,7 +501,7 @@ export default class MainGame extends Phaser.Scene {
 
         // let testKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
         let map_top_left = this.make.tilemap({ key: 'village_top_left', tileWidth: 32, tileHeight: 32 });
-        let map_top_center = this.make.tilemap({ key: 'map_screen', tileWidth: 32, tileHeight: 32 });
+        let map_screen = this.make.tilemap({ key: 'map_screen', tileWidth: 32, tileHeight: 32 });
         let map_bot_left = this.make.tilemap({ key: 'village_bot_left', tileWidth: 32, tileHeight: 32 });
         let map_bot_center = this.make.tilemap({ key: 'village_bot_center', tileWidth: 32, tileHeight: 32 });
         let map_top_right = this.make.tilemap({ key: 'village_top_right', tileWidth: 32, tileHeight: 32 });
@@ -526,10 +526,15 @@ export default class MainGame extends Phaser.Scene {
                 add_physics_to_layer(layer, this, col_layers);
             }
         }
-        for (let i = 0; i < map_top_center.layers.length; i++) {
-            layer = map_top_center.createLayer(i, tileset, map_top_center.widthInPixels);
+        for (let i = 0; i < map_screen.layers.length; i++) {
+            layer = map_screen.createLayer(i, tileset, map_screen.widthInPixels);
             if (layer.layer.name == "collision") {
                 add_physics_to_layer(layer, this, col_layers);
+            }
+            if (layer.layer.name == "screen_control_trigger") {
+                layer.setCollisionByProperty({ collides: true });
+                layer.visible = false;
+                this.screen_control_collision_layer = layer;
             }
         }
         for (let i = 0; i < map_bot_left.layers.length; i++) {
@@ -1133,6 +1138,8 @@ export default class MainGame extends Phaser.Scene {
             this.cameras.main.following_player = true;
             // NOTE Second parameter of startFollow is for rounding pixel jitter. 
             // Setting it to true will fix the jitter of world tiles but add jitter for the player sprite.
+
+            this.physics.add.overlap(_new_player, this.screen_control_collision_layer, this.entered_screen_control_trigger);
         }
         _new_player.setPushable(false);
         // _new_player.setImmovable(true);
@@ -1146,6 +1153,10 @@ export default class MainGame extends Phaser.Scene {
         _new_player.chat_bubble = this.add.sprite(0, 0, "speech_bubble");
         _new_player.chat_bubble.alpha = 0;
     };
+
+    entered_screen_control_trigger(p_player, p_area) {
+        this.show_video_controls();
+    }
 
 
 
@@ -1265,7 +1276,7 @@ export default class MainGame extends Phaser.Scene {
 
 
 }
-// This one works very well for rare links
+// This one works very well for rare links (choice B)
 var regexep_youtube = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/gi;
 // This one works well for the regular case
 // ^(?:https?://)?(?:www\.)?(?:youtu\.be/|youtube\.com(?:/embed/|/v/|/watch\?v=|/watch\?.+&v=))([\w-]{11})(?:.+)?$
@@ -1273,13 +1284,26 @@ var regexep_youtube = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&
 //This one is best for capturing list id, or vid id if available
 // ^ (?: https ?: \/\/)?(?:www\.)?youtu\.?be(?:\.com)?.*?(?:v|list)=(.*?)(?:&|$)|^(?:https?:\/\/)?(?:www\.)?youtu\.?be(?:\.com)?(?:(?!=).)*\/(.*)$
 
-// var regexep_youtube = /youtu(?:.*\/v\/|.*v\=|\.be\/)([A-Za-z0-9_\-]{11})/;
+// /youtu(?:.*\/v\/|.*v\=|\.be\/)([A-Za-z0-9_\-]{11})/;
 
 // This one is pure wizardry courtesy of my friend
 // https://regex101.com/r/qCDoob/1
-// ^(?:https?:\/\/)?(?:www\.)?youtu\.?be(?:\.com)?\/(.*?)\??(?:v|list)=(.*?)(?:&|$)|^(?:https?:\/\/)?(?:www\.)?youtu\.?be(?:\.com)?(?:(?!=).)*\/(.*)$
+var regexep_youtube = /^(?:https?:\/\/)?(?:www\.)?youtu\.?be(?:\.com)?\/(.*?)\??(?:v|list)=(.*?)(?:&|$)|^(?:https?:\/\/)?(?:www\.)?youtu\.?be(?:\.com)?(?:(?!=).)*\/(.*)$/gi;
 var get_yt_id_from_link = function (url) {
     // console.log("Regexing url %s", url);
     var code = url.match(regexep_youtube);
-    return (!!code && (typeof code[1] == 'string')) ? code[1] : false;
+    if (!code)
+        return null;
+
+    if ((typeof code[1] == 'string') && code[1].length > 0) {
+        if (code[1] != 'playlist' && code[1] != 'embed/videoseries') {
+            return code[2];
+        } else {
+            // link is for a playlist
+            // TODO Queue playlist
+            return null;
+        }
+    } else {
+        return code[3];
+    }
 }
