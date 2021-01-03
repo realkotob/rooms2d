@@ -33,8 +33,8 @@ const config = {
   },
   plugins: {
     global: [
-      { key: 'PeerChat', plugin: PeerChat, start: false, mapping: 'peerChat' },
-      { key: 'SocketClient', plugin: SocketClient, start: false, mapping: 'socketClient' }
+      { key: 'PeerChat', plugin: PeerChat, start: true, mapping: 'peerChat' },
+      { key: 'SocketClient', plugin: SocketClient, start: true, mapping: 'socketClient' }
     ]
   },
 };

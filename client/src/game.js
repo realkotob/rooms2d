@@ -125,11 +125,11 @@ export default class MainGame extends Phaser.Scene {
             console.log("Recieved newplayer %s ", JSON.stringify(data));
         });
 
+        // TODO Move these two callbacks to socket_client.js
         this.socketClient.socket.on('new_peer_id', function (p_data) {
             self.peerChat.player_peer_map.set(p_data.id, p_data.pid);
             console.log("Recieved new_peer_id %s ", JSON.stringify(p_data));
         });
-
 
         this.socketClient.socket.on('allpeers', function (p_all_peers) {
             self.peerChat.receive_all_peers(p_all_peers);
@@ -661,6 +661,9 @@ export default class MainGame extends Phaser.Scene {
         let raycast_offset = 4;
 
         this.input.on('pointerdown', function (pointer) {
+            if (!self.current_player)
+                return;
+
             if (pointer.leftButtonDown()) {
                 let world_pointer = self.cameras.main.getWorldPoint(pointer.x, pointer.y);
                 let test_point = world_pointer;
