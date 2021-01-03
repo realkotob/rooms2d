@@ -317,6 +317,14 @@ io.on('connection', function (socket) {
                 }
             });
 
+            socket.on('muted_self', function (p_state) {
+                try {
+                    io.in(_room).emit('muted_self', p_state);
+                } catch (error) {
+                    logger.error(`error in socket on muted_self ${error}`);
+                }
+            });
+
             socket.on('disconnect', function () {
                 try {
                     io.in(_room).emit('remove', socket.player.rt.id);

@@ -106,6 +106,20 @@ export default class MainGame extends Phaser.Scene {
             console.log("Recieved yt video state %s ", p_data);
         });
 
+        this.socketClient.socket.on('muted_self', function (p_data) {
+            if (self.player_id == p_data.p) {
+                return;
+            }
+
+            let tmp_player = self.playerMap[p_data.p];
+            if (!tmp_player)
+                return console.error("No player exists for this mute state");
+
+            tmp_player.muted_mic_sprite.setVisible(!!p_data.s);
+
+            console.log("Recieved muted_self state %s ", p_data);
+        });
+
         this.socketClient.socket.on('newplayer', function (data) {
             self.addNewPlayer(data.rt.id, data.rt.px, data.rt.py, data.sprite, data.uname);
             console.log("Recieved newplayer %s ", JSON.stringify(data));
@@ -484,11 +498,11 @@ export default class MainGame extends Phaser.Scene {
         }).on('pause', function () {
             console.log("Youtube Video pressed paused");
 
-            self.socketClient.sendYoutubeState("pause");
+            self.socketClient.sendYoutubeState(self.player_id, "pause");
         }).on('playing', function () {
             console.log("Youtube Video pressed play");
 
-            self.socketClient.sendYoutubeState("playing");
+            self.socketClient.sendYoutubeState(self.player_id, "playing");
         });
 
         this.youtubePlayer.original_config = yt_original_config;
@@ -894,7 +908,9 @@ export default class MainGame extends Phaser.Scene {
 
 
         if (Phaser.Input.Keyboard.JustDown(this.keys_arrows.space)) {
-            this.current_player.muted_mic_sprite.setVisible(this.peerChat.toggleMicMute());
+            let new_mute_state = this.peerChat.toggleMicMute();
+            this.current_player.muted_mic_sprite.setVisible(new_mute_state);
+            this.socketClient.sendMutedSelfState(this.player_id, new_mute_state);
 
             // This check was a temporary hack until the desk collisions were added
             // if (!this.cameras.main.following_player) { // The camera is following the player at all times except when in range of a video
@@ -1278,7 +1294,7 @@ export default class MainGame extends Phaser.Scene {
                         // console.log("Matched video ID %s", videoId);
                         self.current_video_id = videoId;
                         self.youtubePlayer.load(videoId);
-                        self.socketClient.sendYoutubeChangeURL(videoId)
+                        self.socketClient.sendYoutubeChangeURL(self.player_id, videoId)
                         // TODO Network this to everyone in the room
                     } else {
                         console.log("Did not match video IDs");

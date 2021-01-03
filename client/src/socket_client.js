@@ -8,6 +8,8 @@ export default class SocketClient extends Phaser.Plugins.BasePlugin {
 
   is_connected = false;
 
+  player_id;
+
   constructor(pluginManager) {
     super(pluginManager);
 
@@ -97,18 +99,22 @@ export default class SocketClient extends Phaser.Plugins.BasePlugin {
       })
     };
 
-    this.sendYoutubeChangeURL = function (p_new_v_id) {
+    this.sendYoutubeChangeURL = function (p_player_id, p_new_v_id) {
 
       // TODO Send empty object of the velocity is 0 and rounded positions are same as last frame
       self.socket.emit(
-        'yt_url', { p: self.player_id, v: p_new_v_id });
+        'yt_url', { p: p_player_id, v: p_new_v_id });
     };
 
-    this.sendYoutubeState = function (p_new_state) {
+    this.sendYoutubeState = function (p_player_id, p_new_state) {
       // TODO Send empty object of the velocity is 0 and rounded positions are same as last frame
       self.socket.emit(
-        'yt_state', { p: self.player_id, s: p_new_state });
+        'yt_state', { p: p_player_id, s: p_new_state });
     };
 
+    this.sendMutedSelfState = function (p_player_id, p_new_state) {
+      self.socket.emit(
+        'muted_self', { p: p_player_id, s: p_new_state });
+    };
   }
 }
