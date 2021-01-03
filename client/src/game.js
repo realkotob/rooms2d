@@ -663,6 +663,15 @@ export default class MainGame extends Phaser.Scene {
         this.input.on('pointerdown', function (pointer) {
             if (pointer.leftButtonDown()) {
                 let world_pointer = self.cameras.main.getWorldPoint(pointer.x, pointer.y);
+
+                // Stretch the click point a bit for better raycasting
+                let end_vec = new Phaser.Math.Vector2(world_pointer.x - self.current_player.x, world_pointer.y - self.current_player.y);
+                let t_mag = end_vec.length();
+                end_vec = end_vec.normalize();
+                end_vec = end_vec.scale(t_mag + 16);
+                world_pointer.x = self.current_player.x + end_vec.x;
+                world_pointer.y = self.current_player.y + end_vec.y;
+
                 let t_line_center = new Phaser.Geom.Line(self.current_player.x, self.current_player.y + 10, world_pointer.x, world_pointer.y);
                 let t_line_top = new Phaser.Geom.Line(self.current_player.x, self.current_player.y + 10 - raycast_offset, world_pointer.x, world_pointer.y);
                 let t_line_bot = new Phaser.Geom.Line(self.current_player.x, self.current_player.y + 10 + raycast_offset, world_pointer.x, world_pointer.y);
@@ -694,7 +703,7 @@ export default class MainGame extends Phaser.Scene {
                     let closest_vec = new Phaser.Math.Vector2(closest_pos.x - self.current_player.x, closest_pos.y - self.current_player.y);
                     let t_mag = closest_vec.length();
                     closest_vec = closest_vec.normalize();
-                    closest_vec = closest_vec.scale(t_mag - 48);
+                    closest_vec = closest_vec.scale(t_mag - 32);
                     world_pointer.x = self.current_player.x + closest_vec.x;
                     world_pointer.y = self.current_player.y + closest_vec.y;
                     // world_pointer.y = closest_pos.y;
