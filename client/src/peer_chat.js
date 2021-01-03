@@ -12,6 +12,8 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
 
   _can_call = false;
 
+  muted_status = false;
+
   _queued_peer_ids = [];
 
   _connected_peer_ids = [];
@@ -103,12 +105,13 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
 
       self._connected_peer_ids.push(peer_id);
 
-      getUserMedia_({ video: false, audio: true }, (own_stream) => {
+      getUserMedia_({ video: false, audio: true }, (t_own_stream) => {
+        self.own_stream = t_own_stream;
 
-        call.answer(own_stream); // Answer the call with an A/V stream.
+        call.answer(t_own_stream); // Answer the call with an A/V stream.
 
         if (!self.peer_volume_meter_map.get(self.peer.id)) {
-          self.setup_voice_activity_meter(self.peer.id, own_stream.clone());
+          self.setup_voice_activity_meter(self.peer.id, t_own_stream.clone());
         }
       }, (err) => {
         console.error(
@@ -190,8 +193,9 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
         self.conn.send(`Hello from ${self.peer.id} !`);
       });
 
-      getUserMedia_({ video: false, audio: true }, (own_stream) => {
-        const call = self.peer.call(next_peer_id.toString(), own_stream);
+      getUserMedia_({ video: false, audio: true }, (t_own_stream) => {
+        const call = self.peer.call(next_peer_id.toString(), t_own_stream);
+        self.own_stream = t_own_stream;
         call.on('stream', (remoteStream) => {
           if (!next_peer_id) {
             return;
@@ -220,7 +224,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
         });
 
         if (!self.peer_volume_meter_map.get(self.peer.id)) {
-          self.setup_voice_activity_meter(self.peer.id, own_stream.clone());
+          self.setup_voice_activity_meter(self.peer.id, t_own_stream.clone());
         }
       }, (err) => {
         console.error(
@@ -265,6 +269,22 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
 
     // streamRecorder = mixedOutput.stream.record();
     // peerConnection.addStream(mixedOutput.stream);
+  }
+
+  toggleMicMute() {
+    this.setMicMute(!this.muted_status);
+  }
+
+  setMicMute(p_is_muted) {
+    if (!this.own_stream || !this.own_stream.getAudioTracks)
+      return console.error('Could not mute mic, error getting stream');
+
+    const self = this;
+    this.own_stream.getAudioTracks().forEach(function (t_track) {
+      t_track.enabled = !p_is_muted;
+      self.muted_status = !!p_is_muted;
+    });
+    console.log("Mic mute status %s", self.muted_status);
   }
 
 }

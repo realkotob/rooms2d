@@ -891,8 +891,8 @@ export default class MainGame extends Phaser.Scene {
 
 
         if (Phaser.Input.Keyboard.JustDown(this.keys_arrows.space)) {
-            // TODO Mute player audio
-
+            // TODO Add visual indication that mic was muted
+            this.peerChat.toggleMicMute();
 
             // This check was a temporary hack until the desk collisions were added
             // if (!this.cameras.main.following_player) { // The camera is following the player at all times except when in range of a video
