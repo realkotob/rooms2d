@@ -658,25 +658,26 @@ export default class MainGame extends Phaser.Scene {
 
         this.input.mouse.disableContextMenu();
 
-        let raycast_offset = 8;
+        let raycast_offset = 4;
 
         this.input.on('pointerdown', function (pointer) {
             if (pointer.leftButtonDown()) {
                 let world_pointer = self.cameras.main.getWorldPoint(pointer.x, pointer.y);
+                let test_point = world_pointer;
 
                 // Stretch the click point a bit for better raycasting
-                let end_vec = new Phaser.Math.Vector2(world_pointer.x - self.current_player.x, world_pointer.y - self.current_player.y);
+                let end_vec = new Phaser.Math.Vector2(test_point.x - self.current_player.x, test_point.y - self.current_player.y);
                 let t_mag = end_vec.length();
                 end_vec = end_vec.normalize();
-                end_vec = end_vec.scale(t_mag + 16);
-                world_pointer.x = self.current_player.x + end_vec.x;
-                world_pointer.y = self.current_player.y + end_vec.y;
+                end_vec = end_vec.scale(t_mag + 32);
+                test_point.x = self.current_player.x + end_vec.x;
+                test_point.y = self.current_player.y + end_vec.y;
 
-                let t_line_center = new Phaser.Geom.Line(self.current_player.x, self.current_player.y + 10, world_pointer.x, world_pointer.y);
-                let t_line_top = new Phaser.Geom.Line(self.current_player.x, self.current_player.y + 10 - raycast_offset, world_pointer.x, world_pointer.y);
-                let t_line_bot = new Phaser.Geom.Line(self.current_player.x, self.current_player.y + 10 + raycast_offset, world_pointer.x, world_pointer.y);
-                let t_line_left = new Phaser.Geom.Line(self.current_player.x + raycast_offset, self.current_player.y + 10, world_pointer.x, world_pointer.y);
-                let t_line_right = new Phaser.Geom.Line(self.current_player.x - raycast_offset, self.current_player.y + 10, world_pointer.x, world_pointer.y);
+                let t_line_center = new Phaser.Geom.Line(self.current_player.x, self.current_player.y + 10, test_point.x, test_point.y);
+                let t_line_top = new Phaser.Geom.Line(self.current_player.x, self.current_player.y + 10 - raycast_offset, test_point.x, test_point.y);
+                let t_line_bot = new Phaser.Geom.Line(self.current_player.x, self.current_player.y + 10 + raycast_offset, test_point.x, test_point.y);
+                let t_line_left = new Phaser.Geom.Line(self.current_player.x + raycast_offset, self.current_player.y + 10, test_point.x, test_point.y);
+                let t_line_right = new Phaser.Geom.Line(self.current_player.x - raycast_offset, self.current_player.y + 10, test_point.x, test_point.y);
                 let all_test_lines = [t_line_center, t_line_top, t_line_bot, t_line_left, t_line_right];
                 let closest_tile = null;
                 let closest_distance = Number.POSITIVE_INFINITY;
@@ -703,7 +704,7 @@ export default class MainGame extends Phaser.Scene {
                     let closest_vec = new Phaser.Math.Vector2(closest_pos.x - self.current_player.x, closest_pos.y - self.current_player.y);
                     let t_mag = closest_vec.length();
                     closest_vec = closest_vec.normalize();
-                    closest_vec = closest_vec.scale(t_mag - 32);
+                    closest_vec = closest_vec.scale(t_mag - 48);
                     world_pointer.x = self.current_player.x + closest_vec.x;
                     world_pointer.y = self.current_player.y + closest_vec.y;
                     // world_pointer.y = closest_pos.y;
