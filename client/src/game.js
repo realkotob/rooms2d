@@ -658,34 +658,43 @@ export default class MainGame extends Phaser.Scene {
 
         this.input.mouse.disableContextMenu();
 
+        let raycast_offset = 8;
+
         this.input.on('pointerdown', function (pointer) {
             if (pointer.leftButtonDown()) {
                 let world_pointer = self.cameras.main.getWorldPoint(pointer.x, pointer.y);
-                let t_line = new Phaser.Geom.Line(self.current_player.x, self.current_player.y + 10, world_pointer.x, world_pointer.y);
+                let t_line_center = new Phaser.Geom.Line(self.current_player.x, self.current_player.y + 10, world_pointer.x, world_pointer.y);
+                let t_line_top = new Phaser.Geom.Line(self.current_player.x, self.current_player.y + 10 - raycast_offset, world_pointer.x, world_pointer.y);
+                let t_line_bot = new Phaser.Geom.Line(self.current_player.x, self.current_player.y + 10 + raycast_offset, world_pointer.x, world_pointer.y);
+                let t_line_left = new Phaser.Geom.Line(self.current_player.x + raycast_offset, self.current_player.y + 10, world_pointer.x, world_pointer.y);
+                let t_line_right = new Phaser.Geom.Line(self.current_player.x - raycast_offset, self.current_player.y + 10, world_pointer.x, world_pointer.y);
+                let all_test_lines = [t_line_center, t_line_top, t_line_bot, t_line_left, t_line_right];
                 let closest_tile = null;
                 let closest_distance = Number.POSITIVE_INFINITY;
                 let closest_pos = null;
-                self.col_layers.forEach(t_layer => {
-                    let overlappingTiles = t_layer.getTilesWithinShape(t_line, { isColliding: true });
-                    if (!!overlappingTiles && overlappingTiles.length > 0) {
-                        overlappingTiles.forEach(t_tile => {
-                            let tmp_pos = t_layer.tileToWorldXY(t_tile.x, t_tile.y);
-                            let new_dist = Phaser.Math.Distance.Between(
-                                self.current_player.x, self.current_player.y, tmp_pos.x, tmp_pos.y);
-                            if (new_dist < closest_distance) {
-                                closest_tile = t_tile;
-                                closest_distance = new_dist;
-                                closest_pos = tmp_pos;
-                            }
-                        });
+                all_test_lines.forEach(test_line => {
+                    self.col_layers.forEach(t_layer => {
+                        let overlappingTiles = t_layer.getTilesWithinShape(test_line, { isColliding: true });
+                        if (!!overlappingTiles && overlappingTiles.length > 0) {
+                            overlappingTiles.forEach(t_tile => {
+                                let tmp_pos = t_layer.tileToWorldXY(t_tile.x, t_tile.y);
+                                let new_dist = Phaser.Math.Distance.Between(
+                                    self.current_player.x, self.current_player.y, tmp_pos.x, tmp_pos.y);
+                                if (new_dist < closest_distance) {
+                                    closest_tile = t_tile;
+                                    closest_distance = new_dist;
+                                    closest_pos = tmp_pos;
+                                }
+                            });
 
-                    }
+                        }
+                    });
                 });
                 if (!!closest_tile) {
                     let closest_vec = new Phaser.Math.Vector2(closest_pos.x - self.current_player.x, closest_pos.y - self.current_player.y);
                     let t_mag = closest_vec.length();
                     closest_vec = closest_vec.normalize();
-                    closest_vec = closest_vec.scale(t_mag - 32);
+                    closest_vec = closest_vec.scale(t_mag - 48);
                     world_pointer.x = self.current_player.x + closest_vec.x;
                     world_pointer.y = self.current_player.y + closest_vec.y;
                     // world_pointer.y = closest_pos.y;
