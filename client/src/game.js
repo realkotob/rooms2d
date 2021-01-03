@@ -21,6 +21,7 @@ import r_village_bot_center_json from './assets/map/village_bot_center.json';
 import r_sprite from './assets/sprites/sprite.png';
 import r_ball from './assets/sprites/ball.png';
 import r_crosshair from './assets/sprites/crosshair.png';
+import r_muted_mic from './assets/interface/muted-mic-b.png';
 import r_characters from './assets/sprites/characters/other/All.png';
 import r_slime from './assets/sprites/slime_monster/slime_monster_spritesheet.png';
 
@@ -190,6 +191,7 @@ export default class MainGame extends Phaser.Scene {
         this.load.image('sprite', r_sprite);
         this.load.image('ball', r_ball);
         this.load.image('crosshair', r_crosshair);
+        this.load.image('muted_mic', r_muted_mic);
         this.load.spritesheet('characters', r_characters, { frameWidth: 48, frameHeight: 51 });
         this.load.spritesheet('slime', r_slime, { frameWidth: 24, frameHeight: 24 });
 
@@ -736,6 +738,7 @@ export default class MainGame extends Phaser.Scene {
                 tmp_player.name_label.setPosition(tmp_player.x - + tmp_player.name_label.width / 2, tmp_player.y + (tmp_player.height * tmp_player.scale) / 2); //Phaser.Math.Linear(tmp_player.name_label.x, tmp_player.x - + tmp_player.name_label.width / 2, 0.9);
                 // tmp_player.name_label.y =; //Phaser.Math.Linear(tmp_player.name_label.y, tmp_player.y + (tmp_player.height * tmp_player.scale) / 2, 0.9);
                 tmp_player.chat_bubble.setPosition(tmp_player.x, tmp_player.y - (tmp_player.height * tmp_player.scale) / 2 - tmp_player.chat_bubble.height / 2);
+                tmp_player.muted_mic_sprite.setPosition(tmp_player.chat_bubble.x, tmp_player.chat_bubble.y - 3);
 
             }
         });
@@ -891,8 +894,7 @@ export default class MainGame extends Phaser.Scene {
 
 
         if (Phaser.Input.Keyboard.JustDown(this.keys_arrows.space)) {
-            // TODO Add visual indication that mic was muted
-            this.peerChat.toggleMicMute();
+            this.current_player.muted_mic_sprite.setVisible(this.peerChat.toggleMicMute());
 
             // This check was a temporary hack until the desk collisions were added
             // if (!this.cameras.main.following_player) { // The camera is following the player at all times except when in range of a video
@@ -1155,6 +1157,11 @@ export default class MainGame extends Phaser.Scene {
 
         _new_player.chat_bubble = this.add.sprite(0, 0, "speech_bubble");
         _new_player.chat_bubble.alpha = 0;
+        _new_player.muted_mic_sprite = this.add.sprite(0, 0, 'muted_mic');
+        _new_player.muted_mic_sprite.alpha = 0.8;
+        _new_player.muted_mic_sprite.scale = 0.25;
+        _new_player.muted_mic_sprite.setVisible(false);
+
     };
 
     entered_screen_control_trigger(p_player, p_area_layer) {

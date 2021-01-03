@@ -273,6 +273,8 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
 
   toggleMicMute() {
     this.setMicMute(!this.muted_status);
+
+    return !!this.muted_status;
   }
 
   setMicMute(p_is_muted) {
