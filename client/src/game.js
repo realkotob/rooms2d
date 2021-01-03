@@ -525,6 +525,7 @@ export default class MainGame extends Phaser.Scene {
         let tileset = map_top_left.addTilesetImage('tilesheet');
 
         let col_layers = [];
+        this.col_layers = col_layers;
 
         let layer;
 
@@ -660,6 +661,35 @@ export default class MainGame extends Phaser.Scene {
         this.input.on('pointerdown', function (pointer) {
             if (pointer.leftButtonDown()) {
                 let world_pointer = self.cameras.main.getWorldPoint(pointer.x, pointer.y);
+                let t_line = new Phaser.Geom.Line(self.current_player.x, self.current_player.y + 10, world_pointer.x, world_pointer.y);
+                let closest_tile = null;
+                let closest_distance = Number.POSITIVE_INFINITY;
+                let closest_pos = null;
+                self.col_layers.forEach(t_layer => {
+                    let overlappingTiles = t_layer.getTilesWithinShape(t_line, { isColliding: true });
+                    if (!!overlappingTiles && overlappingTiles.length > 0) {
+                        overlappingTiles.forEach(t_tile => {
+                            let tmp_pos = t_layer.tileToWorldXY(t_tile.x, t_tile.y);
+                            let new_dist = Phaser.Math.Distance.Between(
+                                self.current_player.x, self.current_player.y, tmp_pos.x, tmp_pos.y);
+                            if (new_dist < closest_distance) {
+                                closest_tile = t_tile;
+                                closest_distance = new_dist;
+                                closest_pos = tmp_pos;
+                            }
+                        });
+
+                    }
+                });
+                if (!!closest_tile) {
+                    let closest_vec = new Phaser.Math.Vector2(closest_pos.x - self.current_player.x, closest_pos.y - self.current_player.y);
+                    let t_mag = closest_vec.length();
+                    closest_vec = closest_vec.normalize();
+                    closest_vec = closest_vec.scale(t_mag - 32);
+                    world_pointer.x = self.current_player.x + closest_vec.x;
+                    world_pointer.y = self.current_player.y + closest_vec.y;
+                    // world_pointer.y = closest_pos.y;
+                }
                 // console.log("Pressed local: %s %s world: %s %s", pointer.x, pointer.y, world_pointer.x, world_pointer.y);
                 let _player = self.movePlayerToPos(self.player_id, world_pointer.x, world_pointer.y);
                 if (_player)
@@ -676,7 +706,7 @@ export default class MainGame extends Phaser.Scene {
                     tmp_ball.thrower_player_id = self.player_id;
                     console.log("Player %s throwing %s", tmp_ball.thrower_player_id, tmp_ball.id);
                     let world_pointer = self.cameras.main.getWorldPoint(pointer.x, pointer.y);
-                    let direction = new Phaser.Math.Vector2(world_pointer.x - self.current_player.x, world_pointer.y - self.current_player.y)
+                    let direction = new Phaser.Math.Vector2(world_pointer.x - self.current_player.x, world_pointer.y - self.current_player.y);
                     direction = direction.normalize();
                     let pos_x = self.current_player.x + Math.sign(direction.x) * self.current_player.width;
                     let pos_y = self.current_player.y + Math.sign(direction.y) * self.current_player.height;
@@ -1062,10 +1092,10 @@ export default class MainGame extends Phaser.Scene {
                 if (!!tmp_player.click_move_target) {
                     let distance = Phaser.Math.Distance.Between(tmp_player.x, tmp_player.y, tmp_player.click_move_target.x, tmp_player.click_move_target.y);
 
-                    //  4 is our distance tolerance, i.e. how close the source can get to the target
+                    //  The distance tolerance is half the tile size (8), i.e. how close the source can get to the target
                     //  before it is considered as being there. The faster it moves, the more tolerance is required.
-                    if (distance < 10) {
-                        tmp_player.body.reset(tmp_player.click_move_target.x, tmp_player.click_move_target.y);
+                    if (distance < 8) {
+                        tmp_player.body.reset(tmp_player.x, tmp_player.y);
                         tmp_player.click_move_target = null;
                         this.crosshair.setVisible(false);
                     }
