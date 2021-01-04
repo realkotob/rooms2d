@@ -127,7 +127,7 @@ export default class MainGame extends Phaser.Scene {
         // TODO Move these two callbacks to socket_client.js
         this.socketClient.socket.on('new_peer_id', function (p_data) {
             self.peerChat.player_peer_map.set(p_data.id, p_data.pid);
-            console.log("Recieved new_peer_id %s ", JSON.stringify(p_data));
+            // console.log("Recieved new_peer_id %s ", JSON.stringify(p_data));
         });
 
         this.socketClient.socket.on('allpeers', function (p_all_peers) {
