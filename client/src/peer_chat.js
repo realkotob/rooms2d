@@ -50,6 +50,8 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
   init_new_peer() {
     const self = this;
 
+    this.connected_peer_ids = [];
+
     // self.peer = new Peer();
     self.peer = new Peer(null, {
       host: window.location.hostname,
