@@ -145,7 +145,8 @@ export default class MainGame extends Phaser.Scene {
             // console.log("Recieved throw_ball %s ", JSON.stringify(p_data));
         });
         this.socketClient.socket.on('start_throw_ball', function (p_data) {
-            self.on_start_throw_ball(p_data.p, p_data.b, p_data.x, p_data.y, p_data.v, p_data.w);
+            const data = decode(p_data);
+            self.on_start_throw_ball(data.p, data.b, data.x, data.y, data.v, data.w);
             // console.log("Recieved throw_ball %s ", JSON.stringify(p_data));
         });
 
