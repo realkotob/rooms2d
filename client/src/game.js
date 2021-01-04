@@ -1,3 +1,5 @@
+"use strict";
+
 import { encode, decode } from "@msgpack/msgpack";
 import Phaser, { Utils } from 'phaser';
 import { Queue } from "./utils.js"

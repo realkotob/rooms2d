@@ -1,4 +1,4 @@
-
+"use strict";
 
 import Peer from 'peerjs';
 import createAudioMeter from './lib/volume-meter.js';
@@ -100,6 +100,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
     // 'peer-unavailable' = maybe they left?
     // 'disconnected' = this means the Peering server disconnected, we have a seperate retry for that on('disconnect')
     // pretty much all of the rest are fatal.
+    // Error handling adapted from https://github.com/peers/peerjs/issues/650
     const FATAL_ERRORS = ['invalid-id', 'invalid-key', 'network', 'ssl-unavailable', 'server-error', 'socket-error', 'socket-closed', 'unavailable-id', 'webrtc'];
     this.peer.on('error', function (err) {
       // Errors on the peer are almost always fatal and will destroy the peer

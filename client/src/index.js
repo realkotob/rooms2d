@@ -1,3 +1,5 @@
+"use strict";
+
 //noinspection JSCheckFunctionSignatures,JSCheckFunctionSignatures,JSCheckFunctionSignatures
 import MainGame from './game.js';
 import Login from './login.js';
