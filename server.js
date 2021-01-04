@@ -190,7 +190,7 @@ io.on('connection', function (socket) {
                     }
                 }
 
-                if (existing_player) {
+                if (!!existing_player) {
                     socket.player = existing_player;
                 } else {
 
@@ -246,7 +246,7 @@ io.on('connection', function (socket) {
     socket.on('move', function (p_data) {
         try {
             if (!socket.player)
-                return;
+                return logger.warn(`player does not exist in move`);
             // console.log('move to ' + data.x + ', ' + data.y);
             const data = decode(p_data);
             socket.player.rt.px = data.px;

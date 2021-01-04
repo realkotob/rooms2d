@@ -614,12 +614,13 @@ export default class MainGame extends Phaser.Scene {
         //     self.youtubePlayer.y = self.youtubePlayer.original_config.y - _zoom_change * 70;
         // });
 
+        this.stored_name = localStorage.getItem("username");
 
         // layer.inputEnabled = true; // Allows clicking on the map ; it's enough to do it on the last layer
-        this.socketClient.whatsUp();
+        this.socketClient.whatsUp(this.stored_name, this.player_id);
 
         setInterval(() => {
-            self.socketClient.whatsUp();
+            self.socketClient.whatsUp(self.stored_name, self.player_id);
         }, 10000);
 
         this.crosshair = this.add.sprite(-100, -100, 'crosshair');
