@@ -246,8 +246,9 @@ io.on('connection', function (socket) {
     socket.on('move', function (p_data) {
         try {
             if (!socket.player)
-                return logger.warn(`player does not exist in move`);
-            // console.log('move to ' + data.x + ', ' + data.y);
+                return;
+            // return logger.warn(`player does not exist in move`);
+
             const data = decode(p_data);
             socket.player.rt.px = data.px;
             socket.player.rt.py = data.py;

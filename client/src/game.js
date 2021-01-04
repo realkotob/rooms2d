@@ -132,7 +132,6 @@ export default class MainGame extends Phaser.Scene {
 
         this.socketClient.socket.on('allpeers', function (p_all_peers) {
             self.peerChat.receive_all_peers(p_all_peers);
-            console.log("Recieved allpeers %s ", JSON.stringify(p_all_peers));
         });
 
         this.socketClient.socket.on('catch_ball', function (p_data) {
@@ -158,6 +157,7 @@ export default class MainGame extends Phaser.Scene {
             const data = decode(p_data);
             if (!self.player_id) {
                 console.log("My new player id is ", self.player_id);
+                console.log("Recieved allplayers %s ", JSON.stringify(data));
                 self.player_id = data.you.rt.id.toString();
             }
 
@@ -178,7 +178,6 @@ export default class MainGame extends Phaser.Scene {
             const _all = data.all;
             let tmp_player_ids = [];
             for (let i = 0; i < _all.length; i++) {
-                console.log("Recieved allplayers %s ", JSON.stringify(data));
                 tmp_player_ids.push(_all[i].rt.id);
                 self.addNewPlayer(_all[i].rt.id, _all[i].rt.px, _all[i].rt.py, _all[i].sprite, _all[i].uname);
                 // self.peerChat.request_call_peer(_all[i].peer_id);

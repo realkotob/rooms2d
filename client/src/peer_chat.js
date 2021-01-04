@@ -127,14 +127,14 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
             remoteVideo.play();
             // remoteVideo.src = (URL || webkitURL || mozURL).createObjectURL(remoteStream);
           } else {
-          let video = document.createElement('audio');
-          video.srcObject = remoteStream;
-          // video.src = (URL || webkitURL || mozURL).createObjectURL(remoteStream);
-          video.autoplay = true;
-          video.id = "p" + peer_id;
-          video.play();
-          let element = document.getElementById("media-container");
-          element.appendChild(video);
+            let video = document.createElement('audio');
+            video.srcObject = remoteStream;
+            // video.src = (URL || webkitURL || mozURL).createObjectURL(remoteStream);
+            video.autoplay = true;
+            video.id = "p" + peer_id;
+            video.play();
+            let element = document.getElementById("media-container");
+            element.appendChild(video);
           }
           self.setup_voice_activity_meter(peer_id, remoteStream.clone());
 
