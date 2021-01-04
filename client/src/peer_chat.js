@@ -73,14 +73,24 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
           self.callback_on_connect();
         }
       } catch (error) {
-        console.error("Errer in callback_on_connect", error);
+        console.error("Error in callback_on_connect", error);
       }
+
+    });
+
+    this.peer.on('close', function () {
+      console.error('close in PeerChat');
+
+    });
+
+    this.peer.on('disconnected', function () {
+      console.error('disconnected in PeerChat');
 
     });
 
     this.peer.on('error', function (err) {
       // Errors on the peer are almost always fatal and will destroy the peer
-      console.error('Error in PeerChat', err);
+      console.error('error in PeerChat', err);
 
       // self._can_call = false;
 
