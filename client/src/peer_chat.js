@@ -43,13 +43,15 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
 
     });
 
-
   }
 
   callback_on_connect = null;
   init_new_peer() {
+    console.log("init_new_peer");
+
     const self = this;
 
+    // When the peer is recreated, call everyone again
     this.connected_peer_ids = [];
 
     // self.peer = new Peer();
@@ -87,11 +89,26 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
 
     this.peer.on('disconnected', function () {
       console.error('disconnected in PeerChat');
+      // where backoff is a value in seconds which I increment everytime I try up to a maximum.
+      // this.disconnectBackoff = 1;
+      // this.retrySocketConnection();
+      self.init_new_peer();
 
     });
 
+    // Non-Fatal error:
+    // 'peer-unavailable' = maybe they left?
+    // 'disconnected' = this means the Peering server disconnected, we have a seperate retry for that on('disconnect')
+    // pretty much all of the rest are fatal.
+    const FATAL_ERRORS = ['invalid-id', 'invalid-key', 'network', 'ssl-unavailable', 'server-error', 'socket-error', 'socket-closed', 'unavailable-id', 'webrtc'];
     this.peer.on('error', function (err) {
       // Errors on the peer are almost always fatal and will destroy the peer
+      if (FATAL_ERRORS.includes(e.type)) {
+        self.init_new_peer();
+        // this.reconnectTimeout(e); // this function waits then tries the entire connection over again
+      } else {
+        console.log('Non fatal error: ', e.type);
+      }
       console.error('error in PeerChat', err);
 
       // self._can_call = false;
@@ -245,6 +262,19 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
         if (!self.peer_volume_meter_map.get(self.peer.id)) {
           self.setup_voice_activity_meter(self.peer.id, t_own_stream.clone());
         }
+
+        call.on('error', (e) => {
+          console.warn('error with stream', e);
+          // if (initiator) { // initiator is a value I set myself
+          // Optionally this should call only the user that failed instead of the whole thing
+          self.queued_peer_ids.push(next_peer_id);
+
+          if (!!self._can_call) {
+            self.call_next_peer();
+          }
+          // self.reconnectTimeout();
+          // }
+        });
       }, (err) => {
         console.error(
           'Failed to get local stream.', err);
