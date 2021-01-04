@@ -227,6 +227,8 @@ io.on('connection', function (socket) {
 
     socket.on('move', function (p_data) {
         try {
+            if (!socket.player)
+                return;
             // console.log('move to ' + data.x + ', ' + data.y);
             const data = decode(p_data);
             socket.player.rt.px = data.px;
@@ -337,6 +339,8 @@ io.on('connection', function (socket) {
 
     socket.on('disconnect', function () {
         try {
+            if (!socket.player)
+                return;
             io.in(_room).emit('remove', socket.player.rt.id);
         } catch (error) {
             logger.error(`error in socket on disconnect ${error}`);
