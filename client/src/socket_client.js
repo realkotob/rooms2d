@@ -15,6 +15,10 @@ export default class SocketClient extends Phaser.Plugins.BasePlugin {
 
     this.init_new_socket();
 
+    const self = this;
+
+
+
   }
 
   send_encoded(p_msg, p_obj) {
@@ -60,15 +64,16 @@ export default class SocketClient extends Phaser.Plugins.BasePlugin {
       self.socket.emit('test');
     };
 
-    this.askNewPlayer = function () {
-      let pos = window.location.pathname.indexOf('/r/');
-      if (pos !== -1) {
-        self.room_id = window.location.pathname.slice(pos + 3);
+    this.whatsUp = function () {
+      // Ask about everything
+      if (!self.room_id) {
+        let pos = window.location.pathname.indexOf('/r/');
+        if (pos !== -1) {
+          self.room_id = window.location.pathname.slice(pos + 3);
+        }
       }
-      // console.log("Room ID %s", self.room_id);
       let _name = localStorage.getItem("username");
-      console.log("Selected name %s", _name);
-      self.socket.emit('newplayer', { room: self.room_id, username: _name });
+      self.socket.emit('whatsUp', { room: self.room_id, username: _name });
     };
 
 

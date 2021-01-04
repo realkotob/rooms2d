@@ -165,15 +165,19 @@ io.on('connection', function (socket) {
         // logger.info("Send ping event ");
     }, 5000);
 
-    socket.on('newplayer', async function (p_data) {
-        try {
-            let _room = DEFAULT_ROOM;
-            if (!!p_data && !!p_data.room && !(/[^\w.]/.test(p_data.room))) {  // from https://stackoverflow.com/a/46125634
-                _room = p_data.room;
-            }
-            // (newplayer_data && newplayer_data.room) || DEFAULT_ROOM);
+    let _room = null;
 
-            await socket.join(_room);
+    socket.on('whatsUp', async function (p_data) {
+        try {
+            if (!_room) {
+                _room = DEFAULT_ROOM;
+                if (!!p_data && !!p_data.room && !(/[^\w.]/.test(p_data.room))) {  // from https://stackoverflow.com/a/46125634
+                    _room = p_data.room;
+                }
+                // (newplayer_data && newplayer_data.room) || DEFAULT_ROOM);
+
+                await socket.join(_room);
+            }
 
             if (!room_balls.get(_room)) {
                 let room_ball_map = new Map();
@@ -189,153 +193,156 @@ io.on('connection', function (socket) {
                 room_balls.set(_room, room_ball_map);
             }
 
-            server.lastPlayderID += 1;
-            let _name = p_data.username && p_data.username.length > 0 ? p_data.username : ("P" + server.lastPlayderID);
-            // console.log("Player name is %s", _name);
-            socket.player = {
-                room: _room,
-                sprite: server.lastPlayderID % CHARACTER_SPRITE_COUNT,
-                uname: _name,
-                rt: {
-                    id: server.lastPlayderID,
-                    px: randomInt(150, 450),
-                    py: randomInt(150, 400),
-                    vx: 0,
-                    vy: 0,
-                }
-            };
-            // console.log("Room for %s is %s", socket.player.id, socket.player.room);
+            if (!socket.player) {
+                server.lastPlayderID += 1;
+                let _name = p_data.username && p_data.username.length > 0 ? p_data.username : ("P" + server.lastPlayderID);
+                // console.log("Player name is %s", _name);
+                socket.player = {
+                    room: _room,
+                    sprite: server.lastPlayderID % CHARACTER_SPRITE_COUNT,
+                    uname: _name,
+                    rt: {
+                        id: server.lastPlayderID,
+                        px: randomInt(150, 450),
+                        py: randomInt(150, 400),
+                        vx: 0,
+                        vy: 0,
+                    }
+                };
 
-            // console.log(socket.rooms); // Set { <socket.id>, "room1" }
+                socket.to(_room).emit('newplayer', socket.player);
+            }
 
-            socket.emit(
-                'room_info', {
+            const enc_room_info = encode({
                 you: socket.player, all: await getAllPlayers(_room), room_data: {
                     vid_id: room_videos.get(_room), balls: room_balls.get(_room)
                 }
             });
-            socket.to(_room).emit('newplayer', socket.player);
 
-            socket.on('move', function (p_data) {
-                try {
-                    // console.log('move to ' + data.x + ', ' + data.y);
-                    const data = decode(p_data);
-                    socket.player.rt.px = data.px;
-                    socket.player.rt.py = data.py;
-                    socket.player.rt.vx = data.vx;
-                    socket.player.rt.vy = data.vy;
-                    const encoded = encode(socket.player.rt);
-                    io.in(_room).emit('moved', Buffer.from(encoded.buffer, encoded.byteOffset, encoded.byteLength));
-                } catch (error) {
-                    logger.error(`error in socket on move ${error}`);
-                }
-            });
+            socket.emit('room_info', Buffer.from(enc_room_info.buffer, enc_room_info.byteOffset, enc_room_info.byteLength));
 
-
-            socket.on('set_peer_id', async function (p_data) {
-                try {
-                    socket.player.peer_id = p_data.peer_id;
-                    let all_peers = await getAllPeerIDs(_room);
-                    socket.emit("allpeers", all_peers);
-                    io.in(_room).emit('new_peer_id', { id: socket.player.rt.id, pid: p_data.peer_id });
-                } catch (error) {
-                    logger.error(`error in socket on set_peer_id ${error}`);
-                }
-            });
-
-            socket.on('catchball', async function (p_data) {
-                try {
-                    io.in(_room).emit('catch_ball', p_data);
-                    const data = decode(p_data);
-                    let tmp_ball = room_balls.get(_room).get(data.b);
-                    if (!tmp_ball.holder_player_id) {
-                        tmp_ball.thrower_player_id = null;
-                        let other_socket = await getSocketForPlayer(_room, data.p);
-                        if (!!other_socket) {
-                            other_socket.player.holding_ball = data.b;
-                        }
-                    } else {
-                        logger.warn(
-                            `Player ${data.p} tried to catch ball ${data.b} already held by ${tmp_ball.holder_player_id}`)
-                    }
-
-                } catch (error) {
-                    logger.error(`error in socket on catchball ${error}`);
-                }
-            });
-
-
-            socket.on('startthrowball', async function (p_data) {
-                try {
-                    const data = decode(p_data);
-                    let tmp_ball = room_balls.get(_room).get(data.b);
-                    if (!tmp_ball.thrower_player_id) {
-                        tmp_ball.holder_player_id = null;
-                        tmp_ball.thrower_player_id = data.p;
-                        io.in(_room).emit('start_throw_ball', data);
-                        socket.player.holding_ball = null;
-                        // NOTE Maybe update internal map of ball position/velocity
-                    } else {
-                        logger.warn(
-                            `Player ${data.p} tried to throw ball ${data.b} already thrown by ${tmp_ball.thrower_player_id}`)
-                    }
-                } catch (error) {
-                    logger.error(`error in socket on startthrowball ${error}`);
-                }
-            });
-
-            socket.on('throwball', async function (p_data) {
-                try {
-                    io.in(_room).emit('throw_ball', p_data);
-
-                    // const data = decode(p_data);
-                    // const encoded = encode(data);
-                    // io.in(_room).emit('throw_ball', Buffer.from(encoded.buffer, encoded.byteOffset, encoded.byteLength));
-
-                    // io.in(_room).emit('throw_ball', data);
-                    // socket.player.holding_ball = null;
-                    // TODO Update internal map of ball position/velocity
-                } catch (error) {
-                    logger.error(`error in socket on throwball ${error}`);
-                }
-            });
-
-
-            socket.on('yt_url', function (p_v_id) {
-                try {
-                    room_videos.set(_room, p_v_id);
-                    io.in(_room).emit('yt_url', p_v_id);
-                } catch (error) {
-                    logger.error(`error in socket on yt_url ${error}`);
-                }
-            });
-            socket.on('yt_state', function (p_state) {
-                try {
-                    io.in(_room).emit('yt_state', p_state);
-                } catch (error) {
-                    logger.error(`error in socket on yt_state ${error}`);
-                }
-            });
-
-            socket.on('muted_self', function (p_state) {
-                try {
-                    io.in(_room).emit('muted_self', p_state);
-                } catch (error) {
-                    logger.error(`error in socket on muted_self ${error}`);
-                }
-            });
-
-            socket.on('disconnect', function () {
-                try {
-                    io.in(_room).emit('remove', socket.player.rt.id);
-                } catch (error) {
-                    logger.error(`error in socket on disconnect ${error}`);
-                }
-            });
         } catch (error) {
             logger.error(`error in socket on newplayer ${error}`);
         }
 
+    });
+
+    socket.on('move', function (p_data) {
+        try {
+            // console.log('move to ' + data.x + ', ' + data.y);
+            const data = decode(p_data);
+            socket.player.rt.px = data.px;
+            socket.player.rt.py = data.py;
+            socket.player.rt.vx = data.vx;
+            socket.player.rt.vy = data.vy;
+            const encoded = encode(socket.player.rt);
+            io.in(_room).emit('moved', Buffer.from(encoded.buffer, encoded.byteOffset, encoded.byteLength));
+        } catch (error) {
+            logger.error(`error in socket on move ${error}`);
+        }
+    });
+
+    socket.on('set_peer_id', async function (p_data) {
+        try {
+            socket.player.peer_id = p_data.peer_id;
+            let all_peers = await getAllPeerIDs(_room);
+            socket.emit("allpeers", all_peers);
+            io.in(_room).emit('new_peer_id', { id: socket.player.rt.id, pid: p_data.peer_id });
+        } catch (error) {
+            logger.error(`error in socket on set_peer_id ${error}`);
+        }
+    });
+
+    socket.on('catchball', async function (p_data) {
+        try {
+            io.in(_room).emit('catch_ball', p_data);
+
+            const data = decode(p_data);
+            let tmp_ball = room_balls.get(_room).get(data.b);
+            if (!tmp_ball.holder_player_id) {
+                tmp_ball.thrower_player_id = null;
+                let other_socket = await getSocketForPlayer(_room, data.p);
+                if (!!other_socket) {
+                    other_socket.player.holding_ball = data.b;
+                }
+            } else {
+                logger.warn(
+                    `Player ${data.p} tried to catch ball ${data.b} already held by ${tmp_ball.holder_player_id}`)
+            }
+
+        } catch (error) {
+            logger.error(`error in socket on catchball ${error}`);
+        }
+    });
+
+
+    socket.on('startthrowball', async function (p_data) {
+        try {
+            io.in(_room).emit('start_throw_ball', p_data);
+
+            const data = decode(p_data);
+            let tmp_ball = room_balls.get(_room).get(data.b);
+            if (!tmp_ball.thrower_player_id) {
+                tmp_ball.holder_player_id = null;
+                tmp_ball.thrower_player_id = data.p;
+                socket.player.holding_ball = null;
+                // NOTE Maybe update internal map of ball position/velocity
+            } else {
+                logger.warn(
+                    `Player ${data.p} tried to throw ball ${data.b} already thrown by ${tmp_ball.thrower_player_id}`)
+            }
+        } catch (error) {
+            logger.error(`error in socket on startthrowball ${error}`);
+        }
+    });
+
+    socket.on('throwball', async function (p_data) {
+        try {
+            io.in(_room).emit('throw_ball', p_data);
+
+            // const data = decode(p_data);
+            // const encoded = encode(data);
+            // io.in(_room).emit('throw_ball', Buffer.from(encoded.buffer, encoded.byteOffset, encoded.byteLength));
+
+            // io.in(_room).emit('throw_ball', data);
+            // socket.player.holding_ball = null;
+            // TODO Update internal map of ball position/velocity
+        } catch (error) {
+            logger.error(`error in socket on throwball ${error}`);
+        }
+    });
+
+
+    socket.on('yt_url', function (p_v_id) {
+        try {
+            room_videos.set(_room, p_v_id);
+            io.in(_room).emit('yt_url', p_v_id);
+        } catch (error) {
+            logger.error(`error in socket on yt_url ${error}`);
+        }
+    });
+    socket.on('yt_state', function (p_state) {
+        try {
+            io.in(_room).emit('yt_state', p_state);
+        } catch (error) {
+            logger.error(`error in socket on yt_state ${error}`);
+        }
+    });
+
+    socket.on('muted_self', function (p_state) {
+        try {
+            io.in(_room).emit('muted_self', p_state);
+        } catch (error) {
+            logger.error(`error in socket on muted_self ${error}`);
+        }
+    });
+
+    socket.on('disconnect', function () {
+        try {
+            io.in(_room).emit('remove', socket.player.rt.id);
+        } catch (error) {
+            logger.error(`error in socket on disconnect ${error}`);
+        }
     });
 });
 

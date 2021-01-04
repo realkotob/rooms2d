@@ -153,16 +153,18 @@ export default class MainGame extends Phaser.Scene {
             self.socketClient.setPeerID(self.player_id, self.peerChat.peer.id);
         };
 
-        this.socketClient.socket.on('room_info', function (data) {
+        this.socketClient.socket.on('room_info', function (p_data) {
+            const data = decode(p_data);
             self.player_id = data.you.rt.id.toString();
             self.youtubePlayer.load(data.room_data.vid_id);
             console.log("My new player id is ", self.player_id);
 
-            // if (self.socketClient.is_connected && self.peerChat.isAlive()) {
+            self.peerChat.callback_on_connect = send_peer_cb;
             if (self.peerChat.isAlive()) {
                 send_peer_cb();
             } else {
-                self.peerChat.callback_on_connect = send_peer_cb;
+                self.peerChat.init_new_peer();
+                // Maybe peer needs re-creating?
             }
 
             const _all = data.all;
@@ -171,21 +173,19 @@ export default class MainGame extends Phaser.Scene {
                 self.addNewPlayer(_all[i].rt.id, _all[i].rt.px, _all[i].rt.py, _all[i].sprite, _all[i].uname);
                 // self.peerChat.request_call_peer(_all[i].peer_id);
             }
-
-
-            self.socketClient.socket.on('moved', function (p_data) {
-                const data = decode(p_data);
-                if (self.player_id != data.id) {
-                    // console.log("player %s moved. current player %s", data.id, self.player_id)
-                    self.updatePlayerPhysics(data.id, data);
-                }
-            });
-
-            self.socketClient.socket.on('remove', function (id) {
-                self.removePlayer(id);
-            });
         });
 
+        self.socketClient.socket.on('moved', function (p_data) {
+            const data = decode(p_data);
+            if (self.player_id != data.id) {
+                // console.log("player %s moved. current player %s", data.id, self.player_id)
+                self.updatePlayerPhysics(data.id, data);
+            }
+        });
+
+        self.socketClient.socket.on('remove', function (id) {
+            self.removePlayer(id);
+        });
 
 
     };
@@ -600,7 +600,11 @@ export default class MainGame extends Phaser.Scene {
 
 
         // layer.inputEnabled = true; // Allows clicking on the map ; it's enough to do it on the last layer
-        this.socketClient.askNewPlayer();
+        this.socketClient.whatsUp();
+
+        setInterval(() => {
+            self.socketClient.whatsUp();
+        }, 10000);
 
         this.crosshair = this.add.sprite(-100, -100, 'crosshair');
         this.crosshair.setVisible(false);
@@ -1259,7 +1263,7 @@ export default class MainGame extends Phaser.Scene {
 
         let tmp_player = this.playerMap[p_id];
         if (!tmp_player) {
-            console.log("Warning! Player is null");
+            console.warn("Warning! Player is null");
             return;
         }
         tmp_player.received_frames.enqueue(p_data);
@@ -1292,15 +1296,20 @@ export default class MainGame extends Phaser.Scene {
     }
 
     removePlayer(id) {
-        for (let i = 0; i < this.players.length; i++) {
-            if (this.players[i] == id) { this.players.splice(i, 1); }
-        }
+        try {
+            for (let i = 0; i < this.players.length; i++) {
+                if (this.players[i] == id) { this.players.splice(i, 1); }
+            }
 
-        this.peerChat.peer_volume_meter_map.delete(this.peerChat.player_peer_map.get(id));
-        this.peerChat.player_peer_map.delete(id);
-        this.playerMap[id].name_label.destroy();
-        this.playerMap[id].destroy();
-        delete this.playerMap[id];
+            this.peerChat.peer_volume_meter_map.delete(this.peerChat.player_peer_map.get(id));
+            let what = new Map();
+            this.peerChat.player_peer_map.delete(id);
+            this.playerMap[id].name_label.destroy();
+            this.playerMap[id].destroy();
+            delete this.playerMap[id];
+        } catch (error) {
+            console.error("Error in removePlayer", error);
+        }
     };
 
     load_screen_controls() {
