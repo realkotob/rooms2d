@@ -159,6 +159,7 @@ if (SSL_FOUND) {
 var room_videos = new Map();
 const CHARACTER_SPRITE_COUNT = 24;
 var room_balls = new Map();
+var all_players = new Map();
 io.on('connection', function (socket) {
     setInterval(() => {
         socket.emit("ping", Date.now());
@@ -166,49 +167,66 @@ io.on('connection', function (socket) {
     }, 5000);
 
     let _room = null;
+    let _player_id = null;
 
     socket.on('whatsUp', async function (p_data) {
         try {
-            if (!_room) {
+            if (!_room) { // First time asking whatsUp on this connection
                 _room = DEFAULT_ROOM;
                 if (!!p_data && !!p_data.room && !(/[^\w.]/.test(p_data.room))) {  // from https://stackoverflow.com/a/46125634
                     _room = p_data.room;
                 }
-                // (newplayer_data && newplayer_data.room) || DEFAULT_ROOM);
-
                 await socket.join(_room);
 
-                server.lastPlayderID += 1;
-                let _name = p_data.username && p_data.username.length > 0 ? p_data.username : ("P" + server.lastPlayderID);
-                // console.log("Player name is %s", _name);
-                socket.player = {
-                    room: _room,
-                    sprite: server.lastPlayderID % CHARACTER_SPRITE_COUNT,
-                    uname: _name,
-                    rt: {
-                        id: server.lastPlayderID,
-                        px: randomInt(150, 450),
-                        py: randomInt(150, 400),
-                        vx: 0,
-                        vy: 0,
+                let existing_player = null;
+
+                if (!_player_id) {
+                    _player_id = p_data.id;
+                    if (!_player_id) {
+                        server.lastPlayderID += 1;
+                        _player_id = server.lastPlayderID;
+                    } else {
+                        existing_player = all_players.get(_player_id);
                     }
-                };
+                }
+
+                if (existing_player) {
+                    socket.player = existing_player;
+                } else {
+
+                    let _name = p_data.username && p_data.username.length > 0 ? p_data.username : ("P" + _player_id);
+                    // console.log("Player name is %s", _name);
+                    let new_player = {
+                        room: _room,
+                        sprite: _player_id % CHARACTER_SPRITE_COUNT,
+                        uname: _name,
+                        rt: {
+                            id: _player_id,
+                            px: randomInt(150, 450),
+                            py: randomInt(150, 400),
+                            vx: 0,
+                            vy: 0,
+                        }
+                    };;
+                    all_players.set(_player_id, new_player);
+                    socket.player = new_player;
+                }
 
                 socket.to(_room).emit('newplayer', socket.player);
-            }
 
-            if (!room_balls.get(_room)) {
-                let room_ball_map = new Map();
-                let new_ball_ids = [1, 2];
+                if (!room_balls.get(_room)) {
+                    let room_ball_map = new Map();
+                    let new_ball_ids = [1, 2];
 
-                new_ball_ids.forEach(t_ball_id => {
-                    room_ball_map.set(t_ball_id, {
-                        thrower_player_id: null,
-                        holder_player_id: null,
-                    })
-                });
+                    new_ball_ids.forEach(t_ball_id => {
+                        room_ball_map.set(t_ball_id, {
+                            thrower_player_id: null,
+                            holder_player_id: null,
+                        })
+                    });
 
-                room_balls.set(_room, room_ball_map);
+                    room_balls.set(_room, room_ball_map);
+                }
             }
 
             const enc_room_info = encode({
