@@ -1317,20 +1317,24 @@ export default class MainGame extends Phaser.Scene {
         return tmp_player;
     }
 
-    removePlayer(id) {
+    removePlayer(p_id) {
         try {
+            if (p_id == this.player_id) {
+                console.warn("Refused to delete own player. wtf is happening on the server?");
+                return;
+            }
             for (let i = 0; i < this.players.length; i++) {
-                if (this.players[i] == id) { this.players.splice(i, 1); }
+                if (this.players[i] == p_id) { this.players.splice(i, 1); }
             }
 
-            this.peerChat.peer_volume_meter_map.delete(this.peerChat.player_peer_map.get(id));
+            this.peerChat.peer_volume_meter_map.delete(this.peerChat.player_peer_map.get(p_id));
             let what = new Map();
-            this.peerChat.player_peer_map.delete(id);
-            this.playerMap[id].name_label.destroy();
-            this.playerMap[id].chat_bubble.destroy();
-            this.playerMap[id].muted_mic_sprite.destroy();
-            this.playerMap[id].destroy();
-            delete this.playerMap[id];
+            this.peerChat.player_peer_map.delete(p_id);
+            this.playerMap[p_id].name_label.destroy();
+            this.playerMap[p_id].chat_bubble.destroy();
+            this.playerMap[p_id].muted_mic_sprite.destroy();
+            this.playerMap[p_id].destroy();
+            delete this.playerMap[p_id];
         } catch (error) {
             console.error("Error in removePlayer", error);
         }
