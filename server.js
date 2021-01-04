@@ -177,23 +177,7 @@ io.on('connection', function (socket) {
                 // (newplayer_data && newplayer_data.room) || DEFAULT_ROOM);
 
                 await socket.join(_room);
-            }
 
-            if (!room_balls.get(_room)) {
-                let room_ball_map = new Map();
-                let new_ball_ids = [1, 2];
-
-                new_ball_ids.forEach(t_ball_id => {
-                    room_ball_map.set(t_ball_id, {
-                        thrower_player_id: null,
-                        holder_player_id: null,
-                    })
-                });
-
-                room_balls.set(_room, room_ball_map);
-            }
-
-            if (!socket.player) {
                 server.lastPlayderID += 1;
                 let _name = p_data.username && p_data.username.length > 0 ? p_data.username : ("P" + server.lastPlayderID);
                 // console.log("Player name is %s", _name);
@@ -211,6 +195,20 @@ io.on('connection', function (socket) {
                 };
 
                 socket.to(_room).emit('newplayer', socket.player);
+            }
+
+            if (!room_balls.get(_room)) {
+                let room_ball_map = new Map();
+                let new_ball_ids = [1, 2];
+
+                new_ball_ids.forEach(t_ball_id => {
+                    room_ball_map.set(t_ball_id, {
+                        thrower_player_id: null,
+                        holder_player_id: null,
+                    })
+                });
+
+                room_balls.set(_room, room_ball_map);
             }
 
             const enc_room_info = encode({

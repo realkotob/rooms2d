@@ -156,7 +156,7 @@ export default class MainGame extends Phaser.Scene {
 
         this.socketClient.socket.on('room_info', function (p_data) {
             const data = decode(p_data);
-            if (!!self.player_id) {
+            if (!self.player_id) {
                 console.log("My new player id is ", self.player_id);
                 self.player_id = data.you.rt.id.toString();
             }
@@ -176,11 +176,19 @@ export default class MainGame extends Phaser.Scene {
             }
 
             const _all = data.all;
+            let tmp_player_ids = [];
             for (let i = 0; i < _all.length; i++) {
                 console.log("Recieved allplayers %s ", JSON.stringify(data));
+                tmp_player_ids.push(_all[i].rt.id);
                 self.addNewPlayer(_all[i].rt.id, _all[i].rt.px, _all[i].rt.py, _all[i].sprite, _all[i].uname);
                 // self.peerChat.request_call_peer(_all[i].peer_id);
             }
+
+            self.players.forEach(some_player_id => {
+                if (tmp_player_ids.indexOf(some_player_id) == -1) {
+                    self.removePlayer(some_player_id);
+                }
+            });
         });
 
         self.socketClient.socket.on('moved', function (p_data) {
@@ -1197,10 +1205,12 @@ export default class MainGame extends Phaser.Scene {
 
 
     addNewPlayer(p_id, p_pos_x, p_pos_y, p_sprite_id, p_username) {
-        if (this.players.indexOf(p_id) != -1) {
+        if (!!this.playerMap[p_id]) {
             // Player already exists in array, we're good
             return;
         }
+        console.log("Setting new player %s", p_id);
+
         this.players.push(p_id);
         let _new_player = this.physics.add.sprite(p_pos_x, p_pos_y, 'char_' + p_sprite_id, 0);
         // _new_player.body.velocity.x = p_vel_x;
