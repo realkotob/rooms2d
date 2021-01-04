@@ -14,9 +14,9 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
 
   muted_status = false;
 
-  _queued_peer_ids = [];
+  queued_peer_ids = [];
 
-  _connected_peer_ids = [];
+  connected_peer_ids = [];
 
   player_peer_map = new Map(); // This map is for updating dom volumes by distance
   peer_volume_meter_map = new Map(); // This map is for updating opacity by voice activity
@@ -103,7 +103,6 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
     this.peer.on('call', (call) => {
       try {
 
-
         let peer_id = call.peer.toString();
         if (peer_id == self.peer.id) {
           console.warn("Cannot answer call coming from self.");
@@ -112,7 +111,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
         console.log("Answering player ");
 
 
-        self._connected_peer_ids.push(peer_id);
+        self.connected_peer_ids.push(peer_id);
 
         getUserMedia_({ video: false, audio: true }, (t_own_stream) => {
           self.own_stream = t_own_stream;
@@ -168,7 +167,11 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
   }
 
   request_call_peer(p_peer_id) {
-    this._queued_peer_ids.push(p_peer_id);
+    if (this.connected_peer_ids.indexOf(p_peer_id) != -1) {
+      return;
+    }
+
+    this.queued_peer_ids.push(p_peer_id);
 
     if (!!this._can_call) {
       this.call_next_peer();
@@ -178,14 +181,14 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
   call_next_peer() {
     try {
 
-      if (this._queued_peer_ids.length <= 0) {
+      if (this.queued_peer_ids.length <= 0) {
         // No more peers to call
         return;
       }
 
       const self = this;
 
-      let next_peer_id = this._queued_peer_ids.shift();
+      let next_peer_id = this.queued_peer_ids.shift();
 
       if (next_peer_id == self.peer.id) {
         console.warn("Cannot call self.");
@@ -213,6 +216,8 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
             return;
           }
           console.log("Received stream");
+
+          self.connected_peer_ids.push(next_peer_id);
 
           // Show stream in some <video> element.
           let peer_id = next_peer_id.toString();
