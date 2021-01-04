@@ -85,6 +85,7 @@ export default class MainGame extends Phaser.Scene {
             }
             if (self.current_video_id != p_data.v) {
                 self.youtubePlayer.load(p_data.v);
+                self.current_video_id = p_data.v;
             }
             console.log("Recieved yt video ID %s ", p_data);
         });
@@ -155,16 +156,23 @@ export default class MainGame extends Phaser.Scene {
 
         this.socketClient.socket.on('room_info', function (p_data) {
             const data = decode(p_data);
-            self.player_id = data.you.rt.id.toString();
-            self.youtubePlayer.load(data.room_data.vid_id);
-            console.log("My new player id is ", self.player_id);
+            if (!!self.player_id) {
+                console.log("My new player id is ", self.player_id);
+                self.player_id = data.you.rt.id.toString();
+            }
+
+            let tmp_vid = data.room_data.vid_id;
+            if (!!tmp_vid && self.current_video_id != tmp_vid) {
+                self.youtubePlayer.load(tmp_vid);
+                self.current_video_id = tmp_vid;
+            }
 
             self.peerChat.callback_on_connect = send_peer_cb;
             if (self.peerChat.isAlive()) {
                 send_peer_cb();
             } else {
-                self.peerChat.init_new_peer();
                 // Maybe peer needs re-creating?
+                // self.peerChat.init_new_peer();
             }
 
             const _all = data.all;
@@ -1189,6 +1197,10 @@ export default class MainGame extends Phaser.Scene {
 
 
     addNewPlayer(p_id, p_pos_x, p_pos_y, p_sprite_id, p_username) {
+        if (this.players.indexOf(p_id) != -1) {
+            // Player already exists in array, we're good
+            return;
+        }
         this.players.push(p_id);
         let _new_player = this.physics.add.sprite(p_pos_x, p_pos_y, 'char_' + p_sprite_id, 0);
         // _new_player.body.velocity.x = p_vel_x;
@@ -1305,6 +1317,8 @@ export default class MainGame extends Phaser.Scene {
             let what = new Map();
             this.peerChat.player_peer_map.delete(id);
             this.playerMap[id].name_label.destroy();
+            this.playerMap[id].chat_bubble.destroy();
+            this.playerMap[id].muted_mic_sprite.destroy();
             this.playerMap[id].destroy();
             delete this.playerMap[id];
         } catch (error) {

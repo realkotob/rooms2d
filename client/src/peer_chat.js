@@ -121,12 +121,12 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
 
           console.log("Answered player " + peer_id);
           const remoteVideo = document.getElementById("p" + peer_id);
-          // if (!!remoteVideo) {
-          //   remoteVideo.srcObject = remoteStream;
-          //   remoteVideo.autoplay = true;
-          //   remoteVideo.play();
-          //   // remoteVideo.src = (URL || webkitURL || mozURL).createObjectURL(remoteStream);
-          // } else {
+          if (!!remoteVideo) {
+            remoteVideo.srcObject = remoteStream;
+            remoteVideo.autoplay = true;
+            remoteVideo.play();
+            // remoteVideo.src = (URL || webkitURL || mozURL).createObjectURL(remoteStream);
+          } else {
           let video = document.createElement('audio');
           video.srcObject = remoteStream;
           // video.src = (URL || webkitURL || mozURL).createObjectURL(remoteStream);
@@ -135,7 +135,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
           video.play();
           let element = document.getElementById("media-container");
           element.appendChild(video);
-          // }
+          }
           self.setup_voice_activity_meter(peer_id, remoteStream.clone());
 
 
