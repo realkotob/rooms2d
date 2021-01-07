@@ -167,7 +167,21 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
           }
           self.setup_voice_activity_meter(peer_id, remoteStream.clone());
 
+        });
 
+        call.on('error', (e) => {
+          console.warn('error with stream', e);
+          // if (initiator) { // initiator is a value I set myself
+          let index_peer = self.connected_peer_ids.indexOf(peer_id);
+          if (index_peer != -1)
+            self.connected_peer_ids.splice(index_peer, 1);
+          self.queued_peer_ids.push(peer_id);
+
+          if (!!self._can_call) {
+            self.call_next_peer();
+          }
+          // self.reconnectTimeout();
+          // }
         });
       } catch (error) {
         console.error(
@@ -267,7 +281,9 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
         call.on('error', (e) => {
           console.warn('error with stream', e);
           // if (initiator) { // initiator is a value I set myself
-          // Optionally this should call only the user that failed instead of the whole thing
+          let index_peer = self.connected_peer_ids.indexOf(next_peer_id);
+          if (index_peer != -1)
+            self.connected_peer_ids.splice(index_peer, 1);
           self.queued_peer_ids.push(next_peer_id);
 
           if (!!self._can_call) {

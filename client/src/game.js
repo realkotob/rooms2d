@@ -898,7 +898,7 @@ export default class MainGame extends Phaser.Scene {
         const self = this;
         for (let [player_id, peer_id] of self.peerChat.player_peer_map) {
             let player = self.playerMap[player_id];
-            if (player) {
+            if (!!player) {
                 let meter = self.peerChat.peer_volume_meter_map.get(peer_id);
                 if (!!meter) {
                     // console.log(`Volume of ${player.username} is ${meter.volume}`);
@@ -1326,13 +1326,11 @@ export default class MainGame extends Phaser.Scene {
                 console.warn("Refused to delete own player. wtf is happening on the server?");
                 return;
             }
-            for (let i = 0; i < this.players.length; i++) {
-                if (this.players[i] == p_id) { this.players.splice(i, 1); }
-            }
+            let index_thing = this.players.indexOf(p_id);
+            if (index_thing != -1) { this.players.splice(index_thing, 1); }
 
-            this.peerChat.peer_volume_meter_map.delete(this.peerChat.player_peer_map.get(p_id));
-            let what = new Map();
-            this.peerChat.player_peer_map.delete(p_id);
+            // this.peerChat.peer_volume_meter_map.delete(this.peerChat.player_peer_map.get(p_id));
+            // this.peerChat.player_peer_map.delete(p_id);
             this.playerMap[p_id].name_label.destroy();
             this.playerMap[p_id].chat_bubble.destroy();
             this.playerMap[p_id].muted_mic_sprite.destroy();
