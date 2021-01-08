@@ -512,6 +512,7 @@ export default class MainGame extends Phaser.Scene {
             controls: true,
         }).on('ready', function () {
             console.log("Youtube Video ready");
+            self.load_screen_controls();
 
             // self.youtubePlayer.setPosition(600, 300);
         }).on('pause', function () {
@@ -524,7 +525,6 @@ export default class MainGame extends Phaser.Scene {
 
         this.youtubePlayer.original_config = yt_original_config;
 
-        self.load_screen_controls();
 
 
         this.player_group = this.physics.add.group();
@@ -1377,7 +1377,7 @@ export default class MainGame extends Phaser.Scene {
                     self.videolink_validhint.innerHTML = "✖"
                     self.videolink_validhint.style.color = "#f01c63";
                 }
-                console.log("Changed hint for valid url.");
+                // console.log("Changed hint for valid url.");
             }
         };
 
@@ -1402,10 +1402,10 @@ export default class MainGame extends Phaser.Scene {
 
                     let videoId = get_yt_id_from_link(new_entered);
                     if (!!videoId) {
-                        // console.log("Matched video ID %s", videoId);
+                        console.log("Loading video with ID %s", videoId);
                         self.current_video_id = videoId;
                         self.youtubePlayer.load(videoId);
-                        self.socketClient.sendYoutubeChangeURL(self.player_id, videoId);
+                        // self.socketClient.sendYoutubeChangeURL(self.player_id, videoId);
                         // TODO Network this to everyone in the room
                     } else {
                         console.log("Did not match video IDs");
