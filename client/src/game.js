@@ -1407,7 +1407,7 @@ export default class MainGame extends Phaser.Scene {
                         console.log("Loading video with ID %s", videoId);
                         self.current_video_id = videoId;
                         self.youtubePlayer.load(videoId);
-                        // self.socketClient.sendYoutubeChangeURL(self.player_id, videoId);
+                        self.socketClient.sendYoutubeChangeURL(self.player_id, videoId);
                         // TODO Network this to everyone in the room
                     } else {
                         console.log("Did not match video IDs");
