@@ -689,7 +689,7 @@ export default class MainGame extends Phaser.Scene {
 
             if (pointer.leftButtonDown()) {
                 let world_pointer = self.cameras.main.getWorldPoint(pointer.x, pointer.y);
-                let test_point = world_pointer;
+                let test_point = self.cameras.main.getWorldPoint(pointer.x, pointer.y);
 
                 // Stretch the click point a bit for better raycasting
                 let end_vec = new Phaser.Math.Vector2(test_point.x - self.current_player.x, test_point.y - self.current_player.y);
