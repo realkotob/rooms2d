@@ -334,10 +334,10 @@ io.on('connection', function (socket) {
     });
 
 
-    socket.on('yt_url', function (p_v_id) {
+    socket.on('yt_url', function (p_data) {
         try {
-            room_videos.set(_room, p_v_id);
-            io.in(_room).emit('yt_url', p_v_id);
+            room_videos.set(_room, p_data.v);
+            io.in(_room).emit('yt_url', p_data);
         } catch (error) {
             logger.error(`error in socket on yt_url ${error}`);
         }
