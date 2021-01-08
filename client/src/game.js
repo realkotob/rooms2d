@@ -512,7 +512,6 @@ export default class MainGame extends Phaser.Scene {
             controls: true,
         }).on('ready', function () {
             console.log("Youtube Video ready");
-            self.load_screen_controls();
 
             // self.youtubePlayer.setPosition(600, 300);
         }).on('pause', function () {
@@ -525,6 +524,7 @@ export default class MainGame extends Phaser.Scene {
 
         this.youtubePlayer.original_config = yt_original_config;
 
+        self.load_screen_controls();
 
 
         this.player_group = this.physics.add.group();
