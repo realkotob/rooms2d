@@ -231,9 +231,11 @@ io.on('connection', function (socket) {
                 }
             }
 
+            let tmp_vid = room_videos.get(_room);
+
             const enc_room_info = encode({
                 you: socket.player, all: await getAllPlayers(_room), room_data: {
-                    vid_id: room_videos.get(_room), balls: room_balls.get(_room)
+                    vid_id: !!tmp_vid ? tmp_vid : "", balls: room_balls.get(_room)
                 }
             });
 
