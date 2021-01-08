@@ -1361,6 +1361,8 @@ export default class MainGame extends Phaser.Scene {
         this.showing_focused_ui = true;
         this.screen_controls.node.style.visibility = "visible";
 
+        self.videolink.value = `https://www.youtube.com/watch?v=${self.current_video_id}`;
+
         let string_before_open = self.videolink.value;
 
         var on_change_fn = function (event) {
