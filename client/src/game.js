@@ -86,10 +86,10 @@ export default class MainGame extends Phaser.Scene {
                 return;
             }
             if (self.current_video_id != p_data.v) {
+                console.log("yt_url: Loaded video ID %s ", p_data.v);
                 self.youtubePlayer.load(p_data.v);
                 self.current_video_id = p_data.v;
             }
-            console.log("Recieved yt video ID %s ", p_data);
         });
 
         this.socketClient.socket.on('yt_state', function (p_data) {
@@ -99,12 +99,13 @@ export default class MainGame extends Phaser.Scene {
 
             if (self.youtubePlayer.videoStateString != p_data.s) { // Not sure if this is the best check I can do
                 if (p_data.s == "pause") {
+                    console.log("Set yt video state %s", p_data.s);
                     self.youtubePlayer.pause();
                 } else if (p_data.s == "playing") {
+                    console.log("Set yt video state %s", p_data.s);
                     self.youtubePlayer.play();
                 }
             }
-            console.log("Recieved yt video state %s", p_data);
         });
 
         this.socketClient.socket.on('muted_self', function (p_data) {
@@ -166,7 +167,7 @@ export default class MainGame extends Phaser.Scene {
 
             let tmp_vid = data.room_data.vid_id;
             if (!!tmp_vid && tmp_vid.length() > 0 && self.current_video_id != tmp_vid) {
-                console.log("Setting video id from room_info ", tmp_vid);
+                console.log("Set video id from room_info ", tmp_vid);
                 self.youtubePlayer.load(tmp_vid);
                 self.current_video_id = tmp_vid;
             }
@@ -1405,7 +1406,7 @@ export default class MainGame extends Phaser.Scene {
 
                     let videoId = get_yt_id_from_link(new_entered);
                     if (!!videoId && self.current_video_id != videoId) {
-                        console.log("Loading video with ID %s", videoId);
+                        console.log("Apply loading video with ID %s", videoId);
                         self.current_video_id = videoId;
                         self.youtubePlayer.load(videoId);
                         self.socketClient.sendYoutubeChangeURL(self.player_id, videoId);
