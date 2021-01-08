@@ -110,10 +110,13 @@ export default class SocketClient extends Phaser.Plugins.BasePlugin {
       // TODO Send empty object of the velocity is 0 and rounded positions are same as last frame
       self.socket.emit(
         'yt_url', { p: p_player_id, v: p_new_v_id });
+      console.log("Send yt_url");
     };
 
     this.sendYoutubeState = function (p_player_id, p_new_state) {
+      return;
       // TODO Send empty object of the velocity is 0 and rounded positions are same as last frame
+      console.log("Send yt_state %s", p_new_state);
       self.socket.emit(
         'yt_state', { p: p_player_id, s: p_new_state });
     };

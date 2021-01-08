@@ -516,11 +516,9 @@ export default class MainGame extends Phaser.Scene {
 
             // self.youtubePlayer.setPosition(600, 300);
         }).on('pause', function () {
-            console.log("Youtube Video pressed paused");
 
             self.socketClient.sendYoutubeState(self.player_id, "pause");
         }).on('playing', function () {
-            console.log("Youtube Video pressed play");
 
             self.socketClient.sendYoutubeState(self.player_id, "playing");
         });
@@ -1407,7 +1405,7 @@ export default class MainGame extends Phaser.Scene {
                         // console.log("Matched video ID %s", videoId);
                         self.current_video_id = videoId;
                         self.youtubePlayer.load(videoId);
-                        self.socketClient.sendYoutubeChangeURL(self.player_id, videoId)
+                        self.socketClient.sendYoutubeChangeURL(self.player_id, videoId);
                         // TODO Network this to everyone in the room
                     } else {
                         console.log("Did not match video IDs");
