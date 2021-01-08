@@ -167,13 +167,13 @@ export default class MainGame extends Phaser.Scene {
 
             try {
                 let tmp_vid = data.room_data.vid_id;
-                if (!!tmp_vid && !!tmp_vid.length && tmp_vid.length() > 0 && self.current_video_id != tmp_vid) {
+                if (!!tmp_vid && !!tmp_vid.length && tmp_vid.length > 0 && self.current_video_id != tmp_vid) {
                     console.log("Set video id from room_info ", tmp_vid);
                     self.youtubePlayer.load(tmp_vid);
                     self.current_video_id = tmp_vid;
                 }
             } catch (error) {
-                console.log("Error setting vid from room_info", error);
+                console.warn("Error setting vid from room_info", error);
             }
 
             self.peerChat.callback_on_connect = send_peer_cb;
