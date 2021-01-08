@@ -1403,14 +1403,15 @@ export default class MainGame extends Phaser.Scene {
                     // and https://stackoverflow.com/questions/2936467/parse-youtube-video-id-using-preg-match/6382259#6382259
 
                     let videoId = get_yt_id_from_link(new_entered);
-                    if (!!videoId) {
-                        console.log("Loading video with ID %s", videoId);
+                    if (!!videoId && self.current_video_id == videoId) {
                         self.current_video_id = videoId;
+                        console.log("Loading video with ID %s", videoId);
                         self.youtubePlayer.load(videoId);
                         self.socketClient.sendYoutubeChangeURL(self.player_id, videoId);
                         // TODO Network this to everyone in the room
                     } else {
-                        console.log("Did not match video IDs");
+                        if (!videoId)
+                            console.log("Did not match video IDs");
                     }
                 }
 
