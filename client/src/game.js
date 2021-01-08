@@ -888,8 +888,10 @@ export default class MainGame extends Phaser.Scene {
                 tmp_player.holding_ball = null;
                 return;
             }
+            let direction_walk = new Phaser.Math.Vector2(tmp_player.body.velocity.x, tmp_player.body.velocity.y);
+            direction_walk = direction_walk.normalize();
             tmp_player.holding_ball.setPosition(
-                tmp_player.x + Math.sign(tmp_player.body.velocity.x) * tmp_player.width, tmp_player.y + Math.sign(tmp_player.body.velocity.y) * tmp_player.height);
+                tmp_player.x + direction_walk.x * tmp_player.width, tmp_player.y + direction_walk.y * tmp_player.height);
         });
 
     }
