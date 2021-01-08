@@ -104,7 +104,7 @@ export default class MainGame extends Phaser.Scene {
                     self.youtubePlayer.play();
                 }
             }
-            console.log("Recieved yt video state %s ", p_data);
+            console.log("Recieved yt video state %s", p_data);
         });
 
         this.socketClient.socket.on('muted_self', function (p_data) {
@@ -507,7 +507,7 @@ export default class MainGame extends Phaser.Scene {
             videoId: this.current_video_id,
             modestBranding: true,
             loop: false,
-            autoPlay: false,
+            autoPlay: true,
             keyboardControl: false,
             controls: true,
         }).on('ready', function () {
