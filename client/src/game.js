@@ -909,7 +909,7 @@ export default class MainGame extends Phaser.Scene {
                     // }
                 }
             } else {
-                console.warn(`Player object is null but player_id ${player_id} is in the player_peer_map.`);
+                // console.warn(`Player object is null but player_id ${player_id} is in the player_peer_map.`);
             }
         }
     }
@@ -1114,10 +1114,10 @@ export default class MainGame extends Phaser.Scene {
                             // console.log(`Set volume for ${tmp_player.username} to ${_volume}`);
                             child_video.volume = _volume;
                         } else {
-                            console.warn(`Could not find player obj for peer audio ${peer_id}`)
+                            // console.warn(`Could not find player obj for peer audio ${peer_id}`)
                         }
                     } else {
-                        console.warn(`Could not find the DOM element for peer audio ${peer_id}`)
+                        // console.warn(`Could not find the DOM element for peer audio ${peer_id}`)
                     }
                 }
             };
