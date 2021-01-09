@@ -178,7 +178,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
           self.queued_peer_ids.push(peer_id);
 
           if (!!self._can_call) {
-            self.call_next_peer();
+            setTimeout(self.call_next_peer, 5000);
           }
           // self.reconnectTimeout();
           // }
@@ -287,7 +287,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
           self.queued_peer_ids.push(next_peer_id);
 
           if (!!self._can_call) {
-            self.call_next_peer();
+            setTimeout(self.call_next_peer, 5000);
           }
           // self.reconnectTimeout();
           // }
