@@ -254,8 +254,19 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
         self.conn.send(`Hello from ${self.peer.id} !`);
       });
 
+      let options_call = {
+        'constraints': {
+          'mandatory': {
+            'OfferToReceiveAudio': true,
+            'OfferToReceiveVideo': false
+          },
+          offerToReceiveAudio: 1,
+          offerToReceiveVideo: 0,
+        }
+      };
+
       getUserMedia_({ video: false, audio: true }, (t_own_stream) => {
-        const call = self.peer.call(next_peer_id.toString(), t_own_stream);
+        const call = self.peer.call(next_peer_id.toString(), t_own_stream, options_call);
         self.own_stream = t_own_stream;
         call.on('stream', (remoteStream) => {
           if (!next_peer_id) {
