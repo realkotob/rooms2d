@@ -165,6 +165,10 @@ export default class MainGame extends Phaser.Scene {
                 self.player_id = data.you.rt.id.toString();
             }
 
+            if (!self.player_id) {
+                console.error("Player ID not given by server!")
+            }
+
             try {
                 let tmp_vid = data.room_data.vid_id;
                 if (!!tmp_vid && !!tmp_vid.length && tmp_vid.length > 0 && self.current_video_id != tmp_vid) {

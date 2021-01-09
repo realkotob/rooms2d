@@ -163,6 +163,7 @@ var room_videos = new Map();
 const CHARACTER_SPRITE_COUNT = 24;
 var room_balls = new Map();
 var all_players = new Map();
+var peer_map = new Map();
 io.on('connection', function (socket) {
     setInterval(() => {
         socket.emit("ping", Date.now());
@@ -193,6 +194,9 @@ io.on('connection', function (socket) {
                         existing_player = all_players.get(_player_id);
                     }
                 }
+                if (!_player_id) {
+                    console.error("Player ID not assigned at all, everything will be broken.");
+                }
 
                 if (!!p_data.pic_id) {
                     _pic_id = p_data.pic_id;
@@ -217,7 +221,7 @@ io.on('connection', function (socket) {
                             vx: 0,
                             vy: 0,
                         }
-                    };;
+                    };
                     all_players.set(_player_id, new_player);
                     socket.player = new_player;
                 }
@@ -275,10 +279,17 @@ io.on('connection', function (socket) {
 
     socket.on('set_peer_id', async function (p_data) {
         try {
-            socket.player.peer_id = p_data.peer_id;
+            if (!p_data.player_id) {
+                console.warn("Received empty Player ID when setting peer to map!");
+            }
+            if (!p_data.peer_id) {
+                console.warn("Received empty Peer ID when setting peer to map!");
+            }
+            peer_map.set(p_data.player_id, p_data.peer_id)
             let all_peers = await getAllPeerIDs(_room);
             socket.emit("allpeers", all_peers);
             io.in(_room).emit('new_peer_id', { id: socket.player.rt.id, pid: p_data.peer_id });
+            // socket.player.peer_id = p_data.peer_id;
         } catch (error) {
             logger.error(`error in socket on set_peer_id ${error}`);
         }
@@ -419,12 +430,15 @@ async function getSocketForPlayer(p_room, p_id) {
 async function getAllPeerIDs(p_room) {
     let peer_ids = [];
     try {
-        let players = await getAllPlayers(p_room);
-        players.forEach(e_player => {
-            if (!!e_player.peer_id) {
-                peer_ids.push({ id: e_player.rt.id, pid: e_player.peer_id });
-            }
-        });
+        for (let [player_id, peer_id] of peer_map) {
+            peer_ids.push({ id: player_id, pid: peer_id });
+        }
+        // let players = await getAllPlayers(p_room);
+        // players.forEach(e_player => {
+        //     if (!!e_player.peer_id) {
+        //         peer_ids.push({ id: e_player.rt.id, pid: e_player.peer_id });
+        //     }
+        // });
     } catch (error) {
         logger.error(`error in getAllPlayers ${error}`);
     }
