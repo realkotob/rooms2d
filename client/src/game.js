@@ -438,9 +438,9 @@ export default class MainGame extends Phaser.Scene {
         //     return;
         // }
 
-        // if (!tmp_ball.physics_buffer) {
-        //     tmp_ball.physics_buffer = []; // This probably never happens but 🤷
-        // }
+        if (!tmp_ball.physics_buffer) {
+            tmp_ball.physics_buffer = []; // This probably never happens but 🤷
+        }
         tmp_ball.physics_buffer.unshift({
             px: p_px,
             py: p_py,
