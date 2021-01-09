@@ -97,6 +97,8 @@ export default class Login extends Phaser.Scene {
 
         //  Have they entered anything?
         if (inputUsername.value !== '') { //&& inputPassword.value !== '') {
+          localStorage.setItem("pic_id", current_pic_id);
+
           //  Turn off the click events
           this.removeListener('click');
 
