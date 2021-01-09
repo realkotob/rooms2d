@@ -135,7 +135,7 @@ export default class Login extends Phaser.Scene {
 
 
 
-    // this.check_mic_allowed();
+    this.check_mic_allowed();
 
 
     // let print = this.add.text(0, 0, '');
