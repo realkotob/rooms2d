@@ -118,6 +118,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
 
         // Errors on the peer are almost always fatal and will destroy the peer
         if (FATAL_ERRORS.includes(err.type)) {
+          // TODO Add increasing timeout here to avoid thrashing the browser
           self.init_new_peer();
           // this.reconnectTimeout(e); // this function waits then tries the entire connection over again
         } else {
