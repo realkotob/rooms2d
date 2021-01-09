@@ -55,7 +55,36 @@ export default class Login extends Phaser.Scene {
 
     form_element.addListener('click');
     form_element.setPerspective(800);
+
+    let char_pic_element = document.querySelector('#pic_preview');
+    let MAX_PIC_COUNT = 24;
+    let current_pic_id = localStorage.getItem("pic_id") || Math.floor(Math.random() * MAX_PIC_COUNT);
+
+    let new_bg_url = `background: url('assets/sprites/characters/char_${current_pic_id}.png') 0 0`;
+    char_pic_element.style.background = new_bg_url;
+    console.log("Current bg url %s", new_bg_url);
+
     form_element.on('click', function (event) {
+      if (event.target.name === 'nextPic') {
+        current_pic_id += 1;
+        current_pic_id = current_pic_id % MAX_PIC_COUNT;
+        let new_bg_url = `background: url('assets/sprites/characters/char_${current_pic_id}.png') 0 0`;
+        char_pic_element.style.background = new_bg_url;
+        localStorage.setItem("pic_id", current_pic_id);
+        console.log("Nex bg url %s", new_bg_url);
+      }
+
+      if (event.target.name === 'prevPic') {
+        current_pic_id -= 1;
+        if (current_pic_id < 0) {
+          current_pic_id = MAX_PIC_COUNT - current_pic_id;
+        }
+        let new_bg_url = `background: url('assets/sprites/characters/char_${current_pic_id}.png') 0 0`;
+        char_pic_element.style.background = new_bg_url;
+        localStorage.setItem("pic_id", current_pic_id);
+        console.log("Prev bg url %s", new_bg_url);
+      }
+
 
       if (event.target.name === 'loginButton') {
         let inputUsername = this.getChildByName('username');

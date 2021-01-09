@@ -1348,6 +1348,10 @@ export default class MainGame extends Phaser.Scene {
     };
 
     load_screen_controls() {
+        if (!!this.screen_controls_hint)
+            return console.log("Refuse to load_screen_controls repeatedly");
+
+
         // TODO Maybe animate alpha for this
         this.screen_controls_hint = this.add.dom(1425, 80).createFromHTML(screen_controls_hint_html);
 

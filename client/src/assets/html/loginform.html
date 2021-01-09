@@ -180,7 +180,7 @@
     transform: scaleX(4) scaleY(4);
     image-rendering: pixelated;
     text-align: center;
-    background: url('../sprites/characters/char_1.png') 0 0;
+    /* background: url('../sprites/characters/char_1.png') 0 0; */
     /* animation: play_h 3s steps(4) infinite; */
     animation: play_v 2s steps(3) infinite;
     /* animation: play_v 1s steps(3) infinite, play_h 3s steps(4) infinite; */
@@ -223,9 +223,10 @@
   <!-- <table style="width: 90%; text-align: center;  padding-top: 10px;padding: bottom 0px;" class="center"> -->
   <!-- <tr style="text-align: center;"> -->
   <div class="flex-container">
-    <div><input type="submit" value="<" class="picButton" name="applyButton"></div>
-    <div><img id="pic_preview" src="../sprites/pixel_empty.png" align="middle"></div>
-    <div><input type="submit" value=">" class="picButton" name="cancelButton"></div>
+    <div><input type="submit" value="<" class="picButton" name="nextPic"></div>
+    <div><img id="pic_preview" src="../sprites/pixel_empty.png" align="middle"
+        style="background: url('../sprites/characters/char_1.png') 0 0;"></div>
+    <div><input type="submit" value=">" class="picButton" name="prevPic"></div>
   </div>
   <!-- </tr> -->
   <!-- </table> -->

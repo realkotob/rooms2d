@@ -117,6 +117,7 @@ app.use('/peerapp', peerServer);
 app.set('appPath', __dirname + '/public');
 // app.use(express.static(__dirname + '/public'));
 app.use('*/public', express.static(__dirname + '/public'));
+app.use('*/assets', express.static(__dirname + '/public/assets'));
 
 const FORCE_ROOM_IN_URL = true;
 const DEFAULT_ROOM = "general"
