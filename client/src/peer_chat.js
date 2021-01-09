@@ -103,20 +103,25 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
     // Error handling adapted from https://github.com/peers/peerjs/issues/650
     const FATAL_ERRORS = ['invalid-id', 'invalid-key', 'network', 'ssl-unavailable', 'server-error', 'socket-error', 'socket-closed', 'unavailable-id', 'webrtc'];
     this.peer.on('error', function (err) {
-      // Errors on the peer are almost always fatal and will destroy the peer
-      if (FATAL_ERRORS.includes(e.type)) {
-        self.init_new_peer();
-        // this.reconnectTimeout(e); // this function waits then tries the entire connection over again
-      } else {
-        console.log('Non fatal error: ', e.type);
+      try {
+        // console.warn('error in PeerChat', err);
+
+        // Errors on the peer are almost always fatal and will destroy the peer
+        if (FATAL_ERRORS.includes(err.type)) {
+          self.init_new_peer();
+          // this.reconnectTimeout(e); // this function waits then tries the entire connection over again
+        } else {
+          console.log('Non fatal error: ', e.type);
+        }
+
+        // self._can_call = false;
+
+        // TODO Tell the server about this
+        // self.init_new_peer();
+      } catch (error) {
+        console.warn('error in peer.on.error', err);
+
       }
-      console.error('error in PeerChat', err);
-
-      // self._can_call = false;
-
-      // TODO Tell the server about this
-      // self.init_new_peer();
-
     });
 
 
