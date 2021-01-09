@@ -1330,7 +1330,7 @@ export default class MainGame extends Phaser.Scene {
     removePlayer(p_id) {
         try {
             if (p_id == this.player_id) {
-                console.warn("Refused to delete own player. wtf is happening on the server?");
+                // console.warn("Refused to delete own player. wtf is happening on the server?");
                 return;
             }
             let index_thing = this.players.indexOf(p_id);
