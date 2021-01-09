@@ -177,7 +177,7 @@ export default class Login extends Phaser.Scene {
         // { name: 'push' } // without userVisibleOnly isn't supported in chrome M45, yet
       ).then(function (permissionStatus) {
 
-        console.log(permissionStatus.state); // granted, denied, prompt
+        console.log("Microphone permissionStatus %s", permissionStatus.state); // granted, denied, prompt
 
         permissionStatus.onchange = function () {
           try {
@@ -198,7 +198,7 @@ export default class Login extends Phaser.Scene {
               join_form_parent.hidden = false;
               mic_error.hidden = true;
               login_button.style.backgroundColor = "#7289DA";
-              clearInterval(self.mic_interval);
+              // clearInterval(self.mic_interval);
             }
           } catch (error) {
             console.error("Error in permissionStatus.onchange ", error);
@@ -213,16 +213,16 @@ export default class Login extends Phaser.Scene {
           login_button.value = "Microphone Needed";
           login_button.style.backgroundColor = "#8e93a3";
 
-          self.mic_interval = setInterval(() => {
-            self.check_mic_allowed();
-          }, 5000);
+          // self.mic_interval = setInterval(() => {
+          //   self.check_mic_allowed();
+          // }, 5000);
         } else {
           login_button.disabled = false;
           login_button.value = "Join!";
           join_form_parent.hidden = false;
           mic_error.hidden = true;
           login_button.style.backgroundColor = "#7289DA";
-          clearInterval(self.mic_interval);
+          // clearInterval(self.mic_interval);
         }
 
       });
