@@ -69,7 +69,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
           { url: 'stun:stun.mossylogs.com:5349' },
           { url: 'stun:stun.l.google.com:19302' },
           { url: 'turn:p2p.rambly.app:3478', username: 'rambly', credential: 'rambly' },
-          // { url: 'turn:turn.mossylogs.com:5349', username: 'guest', credential: 'somepassword' }
+          { url: 'turn:turn.mossylogs.com:5349', username: 'mossylogs', credential: 'mossylogs' }
         ]
       }
     });
