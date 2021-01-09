@@ -161,12 +161,12 @@ export default class MainGame extends Phaser.Scene {
             const data = decode(p_data);
             if (!self.player_id) {
                 console.log("Recieved allplayers %s ", JSON.stringify(data));
-                self.player_id = data.you.rt.id.toString();
+                self.player_id = data.you.rt.id;
                 console.log("My new player id is ", self.player_id);
             }
 
             if (!self.player_id) {
-                console.error("Player ID not given by server!")
+                console.error("Player ID not given by server!");
             }
 
             try {
