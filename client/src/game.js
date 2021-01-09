@@ -621,12 +621,13 @@ export default class MainGame extends Phaser.Scene {
         // });
 
         this.stored_name = localStorage.getItem("username");
+        this.stored_pic_id = localStorage.getItem("pic_id");
 
         // layer.inputEnabled = true; // Allows clicking on the map ; it's enough to do it on the last layer
-        this.socketClient.whatsUp(this.stored_name, this.player_id);
+        this.socketClient.whatsUp(this.stored_name, this.stored_pic_id, this.player_id);
 
         setInterval(() => {
-            self.socketClient.whatsUp(self.stored_name, self.player_id);
+            self.socketClient.whatsUp(self.stored_name, self.stored_pic_id, self.player_id);
         }, 10000);
 
         this.crosshair = this.add.sprite(-100, -100, 'crosshair');

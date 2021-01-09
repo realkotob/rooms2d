@@ -171,6 +171,7 @@ io.on('connection', function (socket) {
 
     let _room = null;
     let _player_id = null;
+    let _pic_id = null;
 
     socket.on('whatsUp', async function (p_data) {
         try {
@@ -193,6 +194,12 @@ io.on('connection', function (socket) {
                     }
                 }
 
+                if (!!p_data.pic_id) {
+                    _pic_id = p_data.pic_id;
+                } else {
+                    _pic_id = _player_id % CHARACTER_SPRITE_COUNT;
+                }
+
                 if (!!existing_player) {
                     socket.player = existing_player;
                 } else {
@@ -201,7 +208,7 @@ io.on('connection', function (socket) {
                     // console.log("Player name is %s", _name);
                     let new_player = {
                         room: _room,
-                        sprite: _player_id % CHARACTER_SPRITE_COUNT,
+                        sprite: _pic_id,
                         uname: _name,
                         rt: {
                             id: _player_id,

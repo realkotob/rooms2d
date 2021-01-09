@@ -178,7 +178,7 @@
     width: 16px;
     height: 17px;
     transform: scaleX(4) scaleY(4);
-    image-rendering: pixelated;
+    /* image-rendering: pixelated; */
     text-align: center;
     /* background: url('../sprites/characters/char_1.png') 0 0; */
     /* animation: play_h 3s steps(4) infinite; */
@@ -187,6 +187,23 @@
     /* animation: play 2s steps(5) infinite; */
     /* margin: 0px auto 0px; */
     display: block;
+
+    image-rendering: optimizeSpeed;
+    /* Legal fallback */
+    image-rendering: -moz-crisp-edges;
+    /* Firefox */
+    image-rendering: -o-crisp-edges;
+    /* Opera */
+    image-rendering: -webkit-optimize-contrast;
+    /* Safari */
+    image-rendering: optimize-contrast;
+    /* CSS3 Proposed */
+    image-rendering: crisp-edges;
+    /* CSS4 Proposed */
+    image-rendering: pixelated;
+    /* CSS4 Proposed */
+    -ms-interpolation-mode: nearest-neighbor;
+    /* IE8+ */
 
   }
 
@@ -215,6 +232,7 @@
     margin: 5px 10px;
     padding: 25px 20px 5px 20px;
     font-size: 30px;
+    image-rendering: pixelated;
   }
 </style>
 
@@ -223,10 +241,10 @@
   <!-- <table style="width: 90%; text-align: center;  padding-top: 10px;padding: bottom 0px;" class="center"> -->
   <!-- <tr style="text-align: center;"> -->
   <div class="flex-container">
-    <div><input type="submit" value="<" class="picButton" name="nextPic"></div>
+    <div><input type="submit" value="<" class="picButton" name="prevPic"></div>
     <div><img id="pic_preview" src="../sprites/pixel_empty.png" align="middle"
-        style="background: url('../sprites/characters/char_1.png') 0 0;"></div>
-    <div><input type="submit" value=">" class="picButton" name="prevPic"></div>
+        style="background: url('./assets/sprites/characters/char_1.png') 0 0; image-rendering: crisp-edges;"></div>
+    <div><input type="submit" value=">" class="picButton" name="nextPic"></div>
   </div>
   <!-- </tr> -->
   <!-- </table> -->

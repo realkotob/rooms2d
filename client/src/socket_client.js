@@ -66,7 +66,7 @@ export default class SocketClient extends Phaser.Plugins.BasePlugin {
       self.socket.emit('test');
     };
 
-    this.whatsUp = function (p_name, p_id) {
+    this.whatsUp = function (p_name, p_pic_id, p_id) {
       // Ask about everything
       if (!self.room_id) {
         let pos = window.location.pathname.indexOf('/r/');
@@ -74,7 +74,9 @@ export default class SocketClient extends Phaser.Plugins.BasePlugin {
           self.room_id = window.location.pathname.slice(pos + 3);
         }
       }
-      self.socket.emit('whatsUp', { room: self.room_id, username: p_name, id: p_id });
+      self.socket.emit('whatsUp', {
+        room: self.room_id, pic_id: p_pic_id, username: p_name, id: p_id
+      });
     };
 
 

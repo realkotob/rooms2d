@@ -59,8 +59,10 @@ export default class Login extends Phaser.Scene {
     let char_pic_element = document.querySelector('#pic_preview');
     let MAX_PIC_COUNT = 24;
     let current_pic_id = localStorage.getItem("pic_id") || Math.floor(Math.random() * MAX_PIC_COUNT);
+    current_pic_id = current_pic_id % MAX_PIC_COUNT;
 
-    let new_bg_url = `background: url('assets/sprites/characters/char_${current_pic_id}.png') 0 0`;
+    console.log("Start bg url %s", char_pic_element.style);
+    let new_bg_url = `url('assets/sprites/characters/char_${current_pic_id}.png') 0 0`;
     char_pic_element.style.background = new_bg_url;
     console.log("Current bg url %s", new_bg_url);
 
@@ -68,7 +70,7 @@ export default class Login extends Phaser.Scene {
       if (event.target.name === 'nextPic') {
         current_pic_id += 1;
         current_pic_id = current_pic_id % MAX_PIC_COUNT;
-        let new_bg_url = `background: url('assets/sprites/characters/char_${current_pic_id}.png') 0 0`;
+        let new_bg_url = `url('assets/sprites/characters/char_${current_pic_id}.png') 0 0`;
         char_pic_element.style.background = new_bg_url;
         localStorage.setItem("pic_id", current_pic_id);
         console.log("Nex bg url %s", new_bg_url);
@@ -77,9 +79,9 @@ export default class Login extends Phaser.Scene {
       if (event.target.name === 'prevPic') {
         current_pic_id -= 1;
         if (current_pic_id < 0) {
-          current_pic_id = MAX_PIC_COUNT - current_pic_id;
+          current_pic_id = MAX_PIC_COUNT - 1;
         }
-        let new_bg_url = `background: url('assets/sprites/characters/char_${current_pic_id}.png') 0 0`;
+        let new_bg_url = `url('assets/sprites/characters/char_${current_pic_id}.png') 0 0`;
         char_pic_element.style.background = new_bg_url;
         localStorage.setItem("pic_id", current_pic_id);
         console.log("Prev bg url %s", new_bg_url);
