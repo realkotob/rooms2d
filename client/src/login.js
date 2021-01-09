@@ -10,6 +10,9 @@ import r_pixel from './assets/sprites/pixel.png';
 import r_tilesheet from './assets/map/tilesheet.png';
 import r_map from './assets/map/example_map.json';
 
+
+
+
 export default class Login extends Phaser.Scene {
   constructor() {
     super();
@@ -132,6 +135,9 @@ export default class Login extends Phaser.Scene {
 
 
 
+    this.check_mic_allowed();
+
+
     // let print = this.add.text(0, 0, '');
 
     // let loginDialog = CreateLoginDialog(this, {
@@ -150,6 +156,89 @@ export default class Login extends Phaser.Scene {
     // this.add.text(0, 560, 'Click user name or password field to edit it\nClick Login button to show user name and password');
 
 
+  }
+
+  check_mic_allowed() {
+    const self = this;
+    try {
+      let login_button = document.querySelector('#loginButton');
+      let join_form_parent = document.querySelector('#join_form_parent');
+      let mic_error = document.querySelector('#mic_error');
+
+
+      navigator.permissions.query(
+        // { name: 'camera' }
+        { name: 'microphone' }
+        // { name: 'geolocation' }
+        // { name: 'notifications' } 
+        // { name: 'midi', sysex: false }
+        // { name: 'midi', sysex: true }
+        // { name: 'push', userVisibleOnly: true }
+        // { name: 'push' } // without userVisibleOnly isn't supported in chrome M45, yet
+      ).then(function (permissionStatus) {
+
+        console.log(permissionStatus.state); // granted, denied, prompt
+
+        permissionStatus.onchange = function () {
+          try {
+
+
+            console.log("Permission changed to " + this.state);
+
+            if (permissionStatus.state == "denied") {
+              join_form_parent.hidden = true;
+              mic_error.hidden = false;
+              login_button.disabled = true;
+              // login_button.value = "Enable Microphone Access in your system settings";
+              login_button.value = "Microphone Needed";
+              login_button.style.backgroundColor = "#8e93a3";
+            } else {
+              login_button.disabled = false;
+              login_button.value = "Join!";
+              join_form_parent.hidden = false;
+              mic_error.hidden = true;
+              login_button.style.backgroundColor = "#7289DA";
+              clearInterval(self.mic_interval);
+            }
+          } catch (error) {
+            console.error("Error in permissionStatus.onchange ", error);
+          }
+        };
+
+        if (permissionStatus.state == "denied") {
+          join_form_parent.hidden = true;
+          mic_error.hidden = false;
+          login_button.disabled = true;
+          // login_button.value = "Enable Microphone Access in your system settings";
+          login_button.value = "Microphone Needed";
+          login_button.style.backgroundColor = "#8e93a3";
+
+          self.mic_interval = setInterval(() => {
+            self.check_mic_allowed();
+          }, 5000);
+        } else {
+          login_button.disabled = false;
+          login_button.value = "Join!";
+          join_form_parent.hidden = false;
+          mic_error.hidden = true;
+          login_button.style.backgroundColor = "#7289DA";
+          clearInterval(self.mic_interval);
+        }
+
+      });
+      // t_getUserMedia({ video: false, audio: true }, (t_own_stream) => {
+      //   login_button.disabled = false;
+      //   login_button.value = "Join!";
+      //   login_button.style.backgroundColor = "#7289DA";
+      // }, (err) => {
+      //   login_button.style.backgroundColor = "#8e93a3";
+      //   login_button.disabled = false;
+      //   login_button.value = "Enable Microphone Access in your system settings";
+      //   console.error('Failed to get local stream.', err);
+      // });
+    } catch (error) {
+      console.error('Error verifying mic acces.', error);
+    }
   }
 
   update() { }

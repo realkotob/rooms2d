@@ -3,7 +3,8 @@
 import Peer from 'peerjs';
 import createAudioMeter from './lib/volume-meter.js';
 
-var getUserMedia_ = (navigator.getUserMedia
+var getUserMedia_ = ((!!navigator.mediaDevices && navigator.mediaDevices.getUserMedia
+) || navigator.getUserMedia
   || navigator.webkitGetUserMedia
   || navigator.mozGetUserMedia
   || navigator.msGetUserMedia);
