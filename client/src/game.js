@@ -1131,7 +1131,7 @@ export default class MainGame extends Phaser.Scene {
             };
 
         } catch (error) {
-            console.warn(error);
+            console.warn("handle_voice_proxomity", error);
         }
     }
 
@@ -1295,7 +1295,7 @@ export default class MainGame extends Phaser.Scene {
 
         let tmp_player = this.playerMap[p_id];
         if (!tmp_player) {
-            console.warn("Warning! Player is null");
+            // console.warn("updatePlayerPhysics Player is null");
             return;
         }
         tmp_player.received_frames.enqueue(p_data);
@@ -1309,7 +1309,7 @@ export default class MainGame extends Phaser.Scene {
 
         let tmp_player = this.playerMap[p_id];
         if (!tmp_player) {
-            console.log("Warning! Player is null");
+            // console.log("movePlayerToPos Player is null");
             return;
         }
 
