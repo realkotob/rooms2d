@@ -299,7 +299,7 @@ io.on('connection', function (socket) {
             rooms_peers.get(_room).set(p_data.player_id, p_data.peer_id)
             let all_peers = await getAllPeerIDs(_room);
             socket.emit("allpeers", all_peers);
-            io.in(_room).emit('new_peer_id', { id: socket.player.rt.id, pid: p_data.peer_id });
+            io.in(_room).emit('new_peer_id', { id: p_data.player_id, pid: p_data.peer_id });
             // socket.player.peer_id = p_data.peer_id;
         } catch (error) {
             logger.error(`error in socket on set_peer_id ${error}`);
