@@ -291,7 +291,12 @@ io.on('connection', function (socket) {
             if (!p_data.peer_id) {
                 console.warn("Received empty Peer ID when setting peer to map!");
             }
-            peer_map.set(p_data.player_id, p_data.peer_id)
+            if (!rooms_peers.get(_room)) {
+                let room_peer_map = new Map();
+                rooms_peers.set(_room, room_peer_map);
+            }
+
+            rooms_peers.get(_room).set(p_data.player_id, p_data.peer_id)
             let all_peers = await getAllPeerIDs(_room);
             socket.emit("allpeers", all_peers);
             io.in(_room).emit('new_peer_id', { id: socket.player.rt.id, pid: p_data.peer_id });
@@ -440,7 +445,7 @@ async function getAllPeerIDs(p_room) {
         if (!room_peer_map) {
             return peer_ids;
         }
-        for (let [player_id, peer_id] of peer_map) {
+        for (let [player_id, peer_id] of room_peer_map) {
             peer_ids.push({ id: player_id, pid: peer_id });
         }
         // let players = await getAllPlayers(p_room);
