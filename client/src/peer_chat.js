@@ -63,13 +63,15 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
       secure: true,
       port: 443,
       path: '/peerapp',
-      'iceServers': [ // Followed this guide to setup coturn service 
-        //https://ourcodeworld.com/articles/read/1175/how-to-create-and-configure-your-own-stun-turn-server-with-coturn-in-ubuntu-18-04
-        // { urls: 'stun:stun.mossylogs.com:5349' },
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'turn:p2p.rambly.app:3478', username: 'rambly', credential: 'rambly' },
-        // { urls: 'turn:turn.mossylogs.com:5349', username: 'guest', credential: 'somepassword' }
-      ]
+      config: {
+        'iceServers': [ // Followed this guide to setup coturn service 
+          //https://ourcodeworld.com/articles/read/1175/how-to-create-and-configure-your-own-stun-turn-server-with-coturn-in-ubuntu-18-04
+          { urls: 'stun:stun.mossylogs.com:5349' },
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'turn:p2p.rambly.app:3478', username: 'rambly', credential: 'rambly' },
+          { urls: 'turn:turn.mossylogs.com:5349', username: 'guest', credential: 'somepassword' }
+        ]
+      }
     });
 
     this.peer.on('open', function () {
