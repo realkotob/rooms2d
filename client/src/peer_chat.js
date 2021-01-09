@@ -62,6 +62,11 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
       secure: true,
       port: 443,
       path: '/peerapp',
+      'iceServers': [ // Followed this guide to setup coturn service 
+        //https://ourcodeworld.com/articles/read/1175/how-to-create-and-configure-your-own-stun-turn-server-with-coturn-in-ubuntu-18-04
+        { url: 'stun:stun.mossylogs.com:5349' },
+        { url: 'turn:turn.mossylogs.com:5349', username: 'guest', credential: 'somepassword' }
+      ]
     });
 
     this.peer.on('open', function () {
