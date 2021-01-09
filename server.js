@@ -159,11 +159,13 @@ if (SSL_FOUND) {
     // httpServer.listen(80);
 }
 
+const { v4: uuidv4 } = require('uuid');
+
 var room_videos = new Map();
 const CHARACTER_SPRITE_COUNT = 24;
-var room_balls = new Map();
+var rooms_balls = new Map();
 var all_players = new Map();
-var peer_map = new Map();
+var rooms_peers = new Map();
 io.on('connection', function (socket) {
     setInterval(() => {
         socket.emit("ping", Date.now());
@@ -189,7 +191,7 @@ io.on('connection', function (socket) {
                     _player_id = p_data.id;
                     if (!_player_id) {
                         server.lastPlayderID += 1;
-                        _player_id = server.lastPlayderID;
+                        _player_id = uuidv4();
                     } else {
                         existing_player = all_players.get(_player_id);
                     }
@@ -201,7 +203,7 @@ io.on('connection', function (socket) {
                 if (!!p_data.pic_id) {
                     _pic_id = p_data.pic_id;
                 } else {
-                    _pic_id = _player_id % CHARACTER_SPRITE_COUNT;
+                    _pic_id = server.lastPlayderID % CHARACTER_SPRITE_COUNT;
                 }
 
                 if (!!existing_player) {
@@ -228,7 +230,7 @@ io.on('connection', function (socket) {
 
                 socket.to(_room).emit('newplayer', socket.player);
 
-                if (!room_balls.get(_room)) {
+                if (!rooms_balls.get(_room)) {
                     let room_ball_map = new Map();
                     let new_ball_ids = [1, 2];
 
@@ -239,7 +241,11 @@ io.on('connection', function (socket) {
                         })
                     });
 
-                    room_balls.set(_room, room_ball_map);
+                    rooms_balls.set(_room, room_ball_map);
+                }
+                if (!rooms_peers.get(_room)) {
+                    let room_peer_map = new Map();
+                    rooms_peers.set(_room, room_peer_map);
                 }
             }
 
@@ -247,7 +253,7 @@ io.on('connection', function (socket) {
 
             const enc_room_info = encode({
                 you: socket.player, all: await getAllPlayers(_room), room_data: {
-                    vid_id: !!tmp_vid ? tmp_vid : "", balls: room_balls.get(_room)
+                    vid_id: !!tmp_vid ? tmp_vid : "", balls: rooms_balls.get(_room)
                 }
             });
 
@@ -300,7 +306,7 @@ io.on('connection', function (socket) {
             io.in(_room).emit('catch_ball', p_data);
 
             const data = decode(p_data);
-            let tmp_ball = room_balls.get(_room).get(data.b);
+            let tmp_ball = rooms_balls.get(_room).get(data.b);
             if (!tmp_ball.holder_player_id) {
                 tmp_ball.thrower_player_id = null;
                 let other_socket = await getSocketForPlayer(_room, data.p);
@@ -323,7 +329,7 @@ io.on('connection', function (socket) {
             io.in(_room).emit('start_throw_ball', p_data);
 
             const data = decode(p_data);
-            let tmp_ball = room_balls.get(_room).get(data.b);
+            let tmp_ball = rooms_balls.get(_room).get(data.b);
             if (!tmp_ball.thrower_player_id) {
                 tmp_ball.holder_player_id = null;
                 tmp_ball.thrower_player_id = data.p;
@@ -430,6 +436,10 @@ async function getSocketForPlayer(p_room, p_id) {
 async function getAllPeerIDs(p_room) {
     let peer_ids = [];
     try {
+        let room_peer_map = rooms_peers.get(p_room);
+        if (!room_peer_map) {
+            return peer_ids;
+        }
         for (let [player_id, peer_id] of peer_map) {
             peer_ids.push({ id: player_id, pid: peer_id });
         }
