@@ -160,9 +160,9 @@ export default class MainGame extends Phaser.Scene {
         this.socketClient.socket.on('room_info', function (p_data) {
             const data = decode(p_data);
             if (!self.player_id) {
-                console.log("My new player id is ", self.player_id);
                 console.log("Recieved allplayers %s ", JSON.stringify(data));
                 self.player_id = data.you.rt.id.toString();
+                console.log("My new player id is ", self.player_id);
             }
 
             if (!self.player_id) {
