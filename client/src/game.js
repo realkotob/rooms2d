@@ -759,7 +759,7 @@ export default class MainGame extends Phaser.Scene {
                 if (!!self.current_player && !!self.current_player.holding_ball && !self.current_player.holding_ball.thrower_player_id) {
                     // TODO Add animation delay? 
                     let tmp_ball = self.current_player.holding_ball;
-
+                    tmp_ball.physics_buffer = [];
                     tmp_ball.thrower_player_id = self.player_id;
                     console.log("Player %s throwing %s", tmp_ball.thrower_player_id, tmp_ball.id);
                     let world_pointer = self.cameras.main.getWorldPoint(pointer.x, pointer.y);
