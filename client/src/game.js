@@ -154,6 +154,7 @@ export default class MainGame extends Phaser.Scene {
         });
 
         var send_peer_cb = () => {
+            console.log("send_peer_cb");
             self.socketClient.setPeerID(self.player_id, self.peerChat.peer.id);
         };
 
