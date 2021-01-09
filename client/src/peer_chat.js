@@ -19,6 +19,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
   connected_peer_ids = [];
 
   player_peer_map = new Map(); // This map is for updating dom volumes by distance
+  timeout_count_map = new Map(); // This map is for updating dom volumes by distance
   peer_volume_meter_map = new Map(); // This map is for updating opacity by voice activity
 
   own_stream = null;
@@ -187,19 +188,30 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
           let index_peer = self.connected_peer_ids.indexOf(peer_id);
           if (index_peer != -1)
             self.connected_peer_ids.splice(index_peer, 1);
-          self.queued_peer_ids.push(peer_id);
 
           if (!!self._can_call) {
-            setTimeout(self.call_next_peer, 5000);
+            self.reconnectTimeout(next_peer_id);
           }
-          // self.reconnectTimeout();
+          // else {
+          // self.queued_peer_ids.push(next_peer_id);
           // }
+
         });
       } catch (error) {
         console.error(
           'Error in peer.on(call)', error);
       }
     });
+  }
+
+  reconnectTimeout(p_peer_id) {
+    let last_timeout = this.timeout_count_map.get(p_peer_id) || 3;
+    if (last_timeout > 30) {
+      // Give up on calling player
+      return;
+    }
+    setTimeout(self.call_next_peer, last_timeout * 1000);
+    this.timeout_count_map.set(p_peer_id, last_timeout + 5);
   }
 
   receive_all_peers(p_all_peers) {
@@ -307,12 +319,12 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
           let index_peer = self.connected_peer_ids.indexOf(next_peer_id);
           if (index_peer != -1)
             self.connected_peer_ids.splice(index_peer, 1);
-          self.queued_peer_ids.push(next_peer_id);
 
           if (!!self._can_call) {
-            setTimeout(self.call_next_peer, 5000);
+            self.reconnectTimeout(next_peer_id);
           }
-          // self.reconnectTimeout();
+          // else {
+          // self.queued_peer_ids.push(next_peer_id);
           // }
         });
       }, (err) => {
