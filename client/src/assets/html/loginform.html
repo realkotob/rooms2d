@@ -102,7 +102,7 @@
     color: #3b3b3b
   }
 
-  input[type="submit"] {
+  .loginButton {
     width: 240px;
     height: 35px;
     display: block;
@@ -115,12 +115,40 @@
     text-align: center;
     /* text-shadow: 1px 1px 0px #37a69b; */
     padding-top: 0px;
-    margin: 15px 0 0 29px;
+    margin: 20px 0 0 29px;
     position: relative;
     cursor: pointer;
     border: none;
     background-color: #7289DA;
     background-image: linear-gradient(top, #7289DA, #3111);
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    border-bottom-left-radius: 5px;
+    /* box-shadow: inset 0px 1px 0px #7289DA, 0px 5px 0px 0px #7289DA, 0px 10px 5px #7289DA; */
+  }
+
+  .picButton {
+    width: 40px;
+    height: 35px;
+    display: block;
+    font-family: Arial, "Helvetica", sans-serif;
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+    text-decoration: none;
+    text-transform: uppercase;
+    text-align: center;
+    /* text-shadow: 1px 1px 0px #37a69b; */
+    padding-top: 0px;
+    /* margin: 15px 0px 5px 0px; */
+    position: relative;
+    cursor: pointer;
+    border: none;
+    /* background-color: #7289DA; */
+    /* background-image: linear-gradient(top, #7289DA, #3111); */
+    background-color: #FF7F7F;
+    background-image: linear-gradient(top, #FF7F7F, #3111);
     border-top-left-radius: 5px;
     border-top-right-radius: 5px;
     border-bottom-right-radius: 5px;
@@ -143,13 +171,89 @@
     top: 3px;
     /* box-shadow: inset 0px 1px 0px #2ab7ec, 0px 2px 0px 0px #31524d, 0px 5px 3px #999; */
   }
+
+  #pic_preview {
+    /* left: 0px; */
+    position: relative;
+    width: 16px;
+    height: 17px;
+    transform: scaleX(4) scaleY(4);
+    image-rendering: pixelated;
+    text-align: center;
+    background: url('../sprites/characters/char_1.png') 0 0;
+    /* animation: play_h 3s steps(4) infinite; */
+    animation: play_v 2s steps(3) infinite;
+    /* animation: play_v 1s steps(3) infinite, play_h 3s steps(4) infinite; */
+    /* animation: play 2s steps(5) infinite; */
+    /* margin: 0px auto 0px; */
+    display: block;
+
+  }
+
+  /* @keyframes play_h {
+    100% {
+      background-position: -64px 0;
+    }
+  } */
+
+  @keyframes play_v {
+    100% {
+      background-position: 0 -51px;
+    }
+  }
+
+
+  /* @keyframes play {
+    0% {
+      background-position: 0 0px;
+    }
+
+    6.25% {
+      background-position: 0 -17px;
+    }
+
+    12.5% {
+      background-position: 0 -34px;
+    }
+
+    18.75% {
+      background-position: -16 -17px;
+    }
+
+    25% {
+      background-position: -16 -0px;
+    }
+  } */
+
+  .flex-container {
+    display: flex;
+    /* background-color: DodgerBlue; */
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  .flex-container>div {
+    /* background-color: #f1f1f1; */
+    margin: 5px 10px;
+    padding: 25px 20px 5px 20px;
+    font-size: 30px;
+  }
 </style>
 
 <div class="login" id="login">
   <p class="formtitle" id="formtitle">/r/ general</p>
-  <input type="text" placeholder="Nickname?" id="username" name="username">
+  <!-- <table style="width: 90%; text-align: center;  padding-top: 10px;padding: bottom 0px;" class="center"> -->
+  <!-- <tr style="text-align: center;"> -->
+  <div class="flex-container">
+    <div><input type="submit" value="<" class="picButton" name="applyButton"></div>
+    <div><img id="pic_preview" src="../sprites/pixel_empty.png" align="middle"></div>
+    <div><input type="submit" value=">" class="picButton" name="cancelButton"></div>
+  </div>
+  <!-- </tr> -->
+  <!-- </table> -->
+  <input type="text" placeholder="What is your name?" id="username" name="username">
   <!-- <input type="password" placeholder="password" id="password" name="password"> -->
   <!-- <a href="#" class="forgot">forgot password?</a> -->
-  <input type="submit" value="Join!" name="loginButton">
+  <input type="submit" value="Join!" class="loginButton" name="loginButton">
 </div>
 <div class="shadow"></div>
