@@ -3,7 +3,7 @@
 import Peer from 'peerjs';
 import createAudioMeter from './lib/volume-meter.js';
 import { Clamp } from "./utils.js"
-import { NO_HEAR_DISTANCE, FULL_HEAR_DISTANCE } from "./constants.js"
+import { NO_HEAR_DISTANCE, FULL_HEAR_DISTANCE, PAN_DISTANCE_START, PAN_ROLLOF } from "./constants.js"
 
 var getUserMedia_ = (navigator.getUserMedia
   || navigator.webkitGetUserMedia
@@ -24,6 +24,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
   timeout_count_map = new Map(); // This map is for updating dom volumes by distance
   peer_volume_meter_map = new Map(); // This map is for updating opacity by voice activity
   media_gain_map = new Map(); // This map is for updating opacity by voice activity
+  media_pan_map = new Map(); // This map is for updating opacity by voice activity
 
   own_stream = null;
   constructor(pluginManager) {
@@ -168,27 +169,10 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
         call.on('stream', (remoteStream) => {
           // Show stream in some <video> element.
 
-          let splitStream = self.split_media_stream(peer_id, remoteStream);
-
           console.log("Answered player " + peer_id);
-          const remoteVideo = document.getElementById("p" + peer_id);
-          if (!!remoteVideo) {
-            remoteVideo.srcObject = splitStream;
-            remoteVideo.autoplay = true;
-            remoteVideo.play();
-            remoteVideo.volume = 0;
-            // remoteVideo.src = (URL || webkitURL || mozURL).createObjectURL(split_stream);
-          } else {
-            let video = document.createElement('audio');
-            video.srcObject = splitStream;
-            // video.src = (URL || webkitURL || mozURL).createObjectURL(split_stream);
-            video.autoplay = true;
-            video.id = "p" + peer_id;
-            video.volume = 0;
-            video.play();
-            let element = document.getElementById("media-container");
-            element.appendChild(video);
-          }
+
+          self.add_stream_to_html(peer_id, remoteStream.clone());
+
           self.setup_voice_activity_meter(peer_id, remoteStream.clone());
 
         });
@@ -213,6 +197,46 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
           'Error in peer.on(call)', error);
       }
     });
+  }
+
+  add_stream_to_html(peer_id, remoteStream) {
+    let splitStream = this.split_media_stream(peer_id, remoteStream);
+
+    let media_container = document.getElementById("media-container");
+
+    let remoteVideo = document.getElementById("p" + peer_id);
+    let volumeControl = document.getElementById("v" + peer_id);
+    if (!!remoteVideo) {
+      remoteVideo.srcObject = remoteStream;
+      remoteVideo.autoplay = true;
+      remoteVideo.play();
+      remoteVideo.volume = 0;
+      // remoteVideo.src = (URL || webkitURL || mozURL).createObjectURL(split_stream);
+    } else {
+      remoteVideo = document.createElement('audio');
+      remoteVideo.srcObject = remoteStream;
+      // video.src = (URL || webkitURL || mozURL).createObjectURL(split_stream);
+      remoteVideo.autoplay = true;
+      remoteVideo.id = "p" + peer_id;
+      remoteVideo.volume = 0;
+      remoteVideo.play();
+      media_container.appendChild(remoteVideo);
+    }
+    if (!!volumeControl) {
+      volumeControl.srcObject = splitStream;
+      volumeControl.autoplay = true;
+      volumeControl.play();
+      volumeControl.volume = 1;
+    } else {
+      volumeControl = document.createElement('audio');
+      volumeControl.srcObject = splitStream;
+      // video.src = (URL || webkitURL || mozURL).createObjectURL(split_stream);
+      volumeControl.autoplay = true;
+      volumeControl.id = "v" + peer_id;
+      volumeControl.volume = 1;
+      volumeControl.play();
+      media_container.appendChild(volumeControl);
+    }
   }
 
   reconnectTimeout(p_peer_id) {
@@ -300,26 +324,8 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
           self.connected_peer_ids.push(next_peer_id);
           let peer_id = next_peer_id.toString();
 
-          let splitStream = self.split_media_stream(peer_id, remoteStream);
+          self.add_stream_to_html(peer_id, remoteStream.clone());
 
-          // Show stream in some <video> element.
-          const remoteVideo = document.getElementById("p" + peer_id);
-          if (remoteVideo) {
-            remoteVideo.srcObject = splitStream;
-            remoteVideo.autoplay = true;
-            remoteVideo.play();
-            remoteVideo.volume = 0;
-          } else {
-            let video = document.createElement('audio');
-            video.srcObject = splitStream;
-            // video.src = (URL || webkitURL || mozURL).createObjectURL(split_stream);
-            video.autoplay = true;
-            video.id = "p" + peer_id;
-            video.volume = 0;
-            let element = document.getElementById("media-container");
-            element.appendChild(video);
-            video.play();
-          }
           self.setup_voice_activity_meter(peer_id, remoteStream.clone());
           self.call_next_peer();
         });
@@ -379,13 +385,23 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
       let mediaStreamSource = this.audioContext.createMediaStreamSource(p_stream);
 
       let panNode = this.audioContext.createStereoPanner();
+      let destination = this.audioContext.createMediaStreamDestination();
+      let gainNode = this.audioContext.createGain();
 
       mediaStreamSource.connect(panNode);
+      panNode.connect(gainNode);
+      // gainNode.connect(this.audioContext.destination);
 
-      panNode.connect(this.audioContext.destination);
 
-      this.media_gain_map.set(p_peer_id, panNode);
-      return p_stream;
+      gainNode.connect(destination);
+
+      this.media_pan_map.set(p_peer_id, panNode);
+      this.media_gain_map.set(p_peer_id, gainNode);
+
+      // destination.connect(this.audioContext.destination);
+
+      // return p_stream; 
+      return destination.stream;
 
     } catch (error) {
       console.warn("Could not split media stream %s", error);
@@ -472,16 +488,26 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
         if (t_player_id != p_current_player.player_id) { // peer_id is null when player disconnects
           let tmp_player = p_player_map[t_player_id];
           if (!!tmp_player) {
-            let pan_node = self.media_gain_map.get(t_peer_id);
-            if (!pan_node) {
-              self.handle_voice_proximity_nogain(p_current_player, tmp_player);
-            } else {
+            let distance_to_other_player = Phaser.Math.Distance.Between(
+              tmp_player.x, tmp_player.y, p_current_player.x, p_current_player.y);
+            // TESTME Need to check if this is ok.
+            // I can optimize this by storing the DOMS in a map.
+            let volume_controller = document.getElementById('v' + t_peer_id);
+            let gain_node = self.media_gain_map.get(t_peer_id);
+            let _volume = 1 - Clamp((distance_to_other_player - FULL_HEAR_DISTANCE) / (NO_HEAR_DISTANCE - FULL_HEAR_DISTANCE), 0, 1);
+            console.log(`Set volume for ${tmp_player.username} to ${_volume}`);
+            if (!!gain_node) {
+              gain_node.gain.value = _volume;
+            }
+            if (!!volume_controller) {
+              volume_controller.volume = _volume;
+            }
 
-              let _distance = Phaser.Math.Distance.Between(
-                tmp_player.x, tmp_player.y, p_current_player.x, p_current_player.y);
+            let pan_node = self.media_pan_map.get(t_peer_id);
+            if (!!pan_node) {
 
               // let _volume = 1 - Clamp(_distance / MAX_HEAR_DISTANCE, 0, 1);
-              if (_distance < 50) {
+              if (distance_to_other_player < PAN_DISTANCE_START) {
                 pan_node.pan.value = 0;
               } else {
                 // let left_ear = {
@@ -496,12 +522,12 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
                 //   tmp_player.x, tmp_player.y, left_ear.x, left_ear.y);
                 // let right_dist = Phaser.Math.Distance.Between(
                 //   tmp_player.x, tmp_player.y, right_ear.x, right_ear.y);
-                // let left_vol = 0;
-                // let right_vol = 0;
                 let end_vec = new Phaser.Math.Vector2(tmp_player.x - p_current_player.x, tmp_player.y - p_current_player.y);
                 let final_pan = Math.cos(end_vec.angle());
+                final_pan = Phaser.Math.Linear(0, final_pan, Clamp(
+                  (distance_to_other_player - PAN_DISTANCE_START) / PAN_ROLLOF, 0, 1));
                 final_pan = Clamp(final_pan, -0.75, 0.75);
-                // console.log(`Set final_pan ${final_pan} for ${t_player_id}`);
+                console.log(`Set final_pan ${final_pan} for ${t_player_id}`);
                 pan_node.pan.value = final_pan;
               }
 
