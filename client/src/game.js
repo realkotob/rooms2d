@@ -2,7 +2,8 @@
 
 import { encode, decode } from "@msgpack/msgpack";
 import Phaser, { Utils } from 'phaser';
-import { Queue } from "./utils.js"
+import { Queue, Clamp } from "./utils.js"
+import { MAX_HEAR_DISTANCE } from "./constants.js"
 import rexYoutubePlayerURL from "../../rex-notes/plugins/youtubeplayer-plugin.js"
 
 import screen_controls_hint_html from './assets/html/screen_controls_hint.html';
@@ -55,7 +56,6 @@ import r_char_22 from './assets/sprites/characters/char_22.png';
 import r_char_23 from './assets/sprites/characters/char_23.png';
 
 export default class MainGame extends Phaser.Scene {
-    static MAX_HEAR_DISTANCE = 400;
     static MOVE_CLICK_SPEED = 0.25; // pixels per frame
     static MOVE_KB_SPEED = 60 / MainGame.MOVE_CLICK_SPEED;
     Client = {};
@@ -71,9 +71,6 @@ export default class MainGame extends Phaser.Scene {
         this.players = [];
 
     }
-
-    static clamp(val, min, max) { return Math.max(min, Math.min(max, val)); };
-
 
 
     init() {
@@ -457,7 +454,7 @@ export default class MainGame extends Phaser.Scene {
             return; // Don't bother checking to start simulation if it started
         }
 
-        if (tmp_ball.physics_buffer.length >= (60 - MainGame.clamp(this.socketClient.latency / 16, 0, 600)) && tmp_ball.thrower_player_id != this.player_id) { // Only trigger this once, to avoid overriding catch signal from other players
+        if (tmp_ball.physics_buffer.length >= (60 - Clamp(this.socketClient.latency / 16, 0, 600)) && tmp_ball.thrower_player_id != this.player_id) { // Only trigger this once, to avoid overriding catch signal from other players
             console.log("Started simulation on non-thrower");
             let tmp_player = this.playerMap[tmp_ball.thrower_player_id];
             if (!tmp_player) {
@@ -472,7 +469,7 @@ export default class MainGame extends Phaser.Scene {
             });
             tmp_ball.start_simulation = true;
         }
-        else if (tmp_ball.physics_buffer.length >= (60 - MainGame.clamp(this.socketClient.latency / 16, 0, 600)) && tmp_ball.thrower_player_id == this.player_id) {
+        else if (tmp_ball.physics_buffer.length >= (60 - Clamp(this.socketClient.latency / 16, 0, 600)) && tmp_ball.thrower_player_id == this.player_id) {
             console.log("Started simulation on thrower");
             let tmp_player = this.playerMap[tmp_ball.thrower_player_id];
             if (!tmp_player) {
@@ -618,7 +615,7 @@ export default class MainGame extends Phaser.Scene {
 
 
         // this.input.on('wheel', function (pointer, gameObjects, deltaX, deltaY, deltaZ) {
-        //     let _new_zoom = MainGame.clamp(self.cameras.main.zoom - deltaY * 0.025, 1.2, 1.6);
+        //     let _new_zoom = Clamp(self.cameras.main.zoom - deltaY * 0.025, 1.2, 1.6);
         //     self.cameras.main.zoom = _new_zoom;
         //     let _zoom_change = (self.youtubePlayer.original_config.zoom - _new_zoom) / self.youtubePlayer.original_config.zoom;
         //     self.youtubePlayer.x = self.youtubePlayer.original_config.x - _zoom_change * 130;
@@ -869,14 +866,14 @@ export default class MainGame extends Phaser.Scene {
 
         if (MainGame.COUNTER_DOM_UPDATE >= MainGame.INTERVAL_DOM_UPDATE) {
             MainGame.COUNTER_DOM_UPDATE = 0;
-            this.handle_voice_proxomity();
+            this.peerChat.handle_voice_proxomity(this.current_player, this.playerMap);
             this.handle_video_proximity();
         }
         if (MainGame.COUNTER_FOCUS_UPDATE >= MainGame.INTERVAL_FOCUS_UPDATE) {
             MainGame.COUNTER_FOCUS_UPDATE = 0;
             this.focus_game();
         }
-        this.handle_talk_activity();
+        this.peerChat.handle_talk_activity(this.playerMap);
 
         MainGame.COUNTER_DOM_UPDATE += 1;
         MainGame.COUNTER_FOCUS_UPDATE += 1;
@@ -902,30 +899,7 @@ export default class MainGame extends Phaser.Scene {
 
     }
 
-    handle_talk_activity() {
-        if (this.peerChat.player_peer_map.size <= 0) {
-            // console.warn(`player_peer_map is empty, skipping handle_talk_activity.`);
-            return;
-        }
-        const self = this;
-        for (let [player_id, peer_id] of self.peerChat.player_peer_map) {
-            let player = self.playerMap[player_id];
-            if (!!player) {
-                let meter = self.peerChat.peer_volume_meter_map.get(peer_id);
-                if (!!meter) {
-                    // console.log(`Volume of ${player.username} is ${meter.volume}`);
-                    player.chat_bubble.alpha = MainGame.clamp(0.1 + meter.volume * 5, 0, 1);
-                } else {
-                    // This usually happens while waiting for the peer to answer the call. No need for logs unless debugging.
-                    // if (this.peerChat.player_peer_map.size > 1) { // Don't show this error if player is alone
-                    //     console.warn(`Meter object is null but peer  ${peer_id} is in the player_peer_map.`);
-                    // }
-                }
-            } else {
-                // console.warn(`Player object is null but player_id ${player_id} is in the player_peer_map.`);
-            }
-        }
-    }
+
 
     setup_game_focus() {
         let game_dom = document.querySelector('#game');
@@ -948,7 +922,7 @@ export default class MainGame extends Phaser.Scene {
     handle_video_proximity() {
         let _distance_vid = Phaser.Math.Distance.Between(
             this.youtubePlayer.x, this.youtubePlayer.y, this.current_player.x, this.current_player.y);
-        this.youtubePlayer.setVolume(1 - MainGame.clamp(_distance_vid / (MainGame.MAX_HEAR_DISTANCE * 2), 0, 1));
+        this.youtubePlayer.setVolume(1 - Clamp(_distance_vid / (MAX_HEAR_DISTANCE * 2), 0, 1));
     }
 
     static WHY_IS_VIDEO_NOT_CENTERED_X = 45;
@@ -1104,41 +1078,7 @@ export default class MainGame extends Phaser.Scene {
     }
 
 
-    handle_voice_proxomity() {
-        try {
-            if (this.peerChat.player_peer_map.size <= 0) {
-                return;
-            }
-            const self = this;
-            // let video_parent = document.getElementById("media-container");
-            for (let [player_id, peer_id] of self.peerChat.player_peer_map) {
-                if (player_id != self.player_id) { // peer_id is null when player disconnects
-                    // TESTME Need to profile this and make sure it's ok. 
-                    // I can optimize this by storing the DOMS in a map.
-                    let child_video = document.getElementById('p' + peer_id);
-                    if (child_video) {
-                        let tmp_player = self.playerMap[player_id];
-                        if (!!tmp_player) {
-                            let _distance = Phaser.Math.Distance.Between(
-                                tmp_player.x, tmp_player.y, self.current_player.x, self.current_player.y);
 
-                            let _volume = 1 - MainGame.clamp(_distance / MainGame.MAX_HEAR_DISTANCE, 0, 1);
-                            // TODO I can store the last volume separately if the getter here is costly
-                            // console.log(`Set volume for ${tmp_player.username} to ${_volume}`);
-                            child_video.volume = _volume;
-                        } else {
-                            // console.warn(`Could not find player obj for peer audio ${peer_id}`)
-                        }
-                    } else {
-                        // console.warn(`Could not find the DOM element for peer audio ${peer_id}`)
-                    }
-                }
-            };
-
-        } catch (error) {
-            console.warn("handle_voice_proxomity", error);
-        }
-    }
 
     handleSimulationSync() {
         // This should be moved to physics loop callback

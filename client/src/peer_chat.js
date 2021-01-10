@@ -2,6 +2,9 @@
 
 import Peer from 'peerjs';
 import createAudioMeter from './lib/volume-meter.js';
+import { MainGame } from "./game.js"
+import { Clamp } from "./utils.js"
+import { MAX_HEAR_DISTANCE } from "./constants.js"
 
 var getUserMedia_ = (navigator.getUserMedia
   || navigator.webkitGetUserMedia
@@ -415,6 +418,67 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
       self.muted_status = !!p_is_muted;
     });
     console.log("Mic mute status %s", self.muted_status);
+  }
+
+  handle_voice_proxomity(p_current_player, p_player_map) {
+    try {
+      if (this.player_peer_map.size <= 0) {
+        return;
+      }
+      const self = this;
+      // let video_parent = document.getElementById("media-container");
+      for (let [player_id, peer_id] of self.player_peer_map) {
+        if (player_id != p_current_player.player_id) { // peer_id is null when player disconnects
+          // TESTME Need to profile this and make sure it's ok. 
+          // I can optimize this by storing the DOMS in a map.
+          let child_video = document.getElementById('p' + peer_id);
+          if (child_video) {
+            let tmp_player = p_player_map[player_id];
+            if (!!tmp_player) {
+              let _distance = Phaser.Math.Distance.Between(
+                tmp_player.x, tmp_player.y, p_current_player.x, p_current_player.y);
+
+              let _volume = 1 - Clamp(_distance / MAX_HEAR_DISTANCE, 0, 1);
+              // TODO I can store the last volume separately if the getter here is costly
+              // console.log(`Set volume for ${tmp_player.username} to ${_volume}`);
+              child_video.volume = _volume;
+            } else {
+              // console.warn(`Could not find player obj for peer audio ${peer_id}`)
+            }
+          } else {
+            // console.warn(`Could not find the DOM element for peer audio ${peer_id}`)
+          }
+        }
+      };
+
+    } catch (error) {
+      console.warn("handle_voice_proxomity", error);
+    }
+  }
+
+  handle_talk_activity(p_player_map) {
+    if (this.player_peer_map.size <= 0) {
+      // console.warn(`player_peer_map is empty, skipping handle_talk_activity.`);
+      return;
+    }
+    const self = this;
+    for (let [player_id, peer_id] of self.player_peer_map) {
+      let player = p_player_map[player_id];
+      if (!!player) {
+        let meter = self.peer_volume_meter_map.get(peer_id);
+        if (!!meter) {
+          // console.log(`Volume of ${player.username} is ${meter.volume}`);
+          player.chat_bubble.alpha = Clamp(0.1 + meter.volume * 5, 0, 1);
+        } else {
+          // This usually happens while waiting for the peer to answer the call. No need for logs unless debugging.
+          // if (this.peerChat.player_peer_map.size > 1) { // Don't show this error if player is alone
+          //     console.warn(`Meter object is null but peer  ${peer_id} is in the player_peer_map.`);
+          // }
+        }
+      } else {
+        // console.warn(`Player object is null but player_id ${player_id} is in the player_peer_map.`);
+      }
+    }
   }
 
 }
