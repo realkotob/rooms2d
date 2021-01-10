@@ -866,7 +866,7 @@ export default class MainGame extends Phaser.Scene {
 
         if (MainGame.COUNTER_DOM_UPDATE >= MainGame.INTERVAL_DOM_UPDATE) {
             MainGame.COUNTER_DOM_UPDATE = 0;
-            this.peerChat.handle_voice_proxomity(this.current_player, this.playerMap);
+            this.peerChat.handle_voice_proximity(this.current_player, this.playerMap);
             this.handle_video_proximity();
         }
         if (MainGame.COUNTER_FOCUS_UPDATE >= MainGame.INTERVAL_FOCUS_UPDATE) {
