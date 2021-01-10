@@ -392,6 +392,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
       merger.connect(dest);
 
       this.media_gain_map.set(p_peer_id, [gain_left, gain_right]);
+      dest.connect(this.audioContext.destination);
 
       return dest.stream;
 
