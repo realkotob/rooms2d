@@ -453,26 +453,6 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
     }
   }
 
-  calc_gain_for_pos(base_pos_x, base_pos_y, stream_pos_x, stream_pos_y) {
-    // NOTE Constants might need to be 1.5x
-    let BASE_PAN_DIST = 50;
-    let ROLL_OFF = 8;
-    let BASE_HEAR_DIST = 170;
-    let MAX_HEAR_DIST = 400;
-
-    let new_dist = Phaser.Math.Distance.Between(
-      base_pos_x, base_pos_y, stream_pos_x, stream_pos_y);
-
-    let clamped_dist = Math.max(new_dist, BASE_PAN_DIST);
-    let final_gain = BASE_PAN_DIST / (BASE_PAN_DIST + ROLL_OFF * (clamped_dist - BASE_PAN_DIST));
-    if (new_dist > BASE_HEAR_DIST) {
-      let prox_volume = (MAX_HEAR_DIST - new_dist) / (MAX_HEAR_DIST - BASE_HEAR_DIST);
-      if (prox_volume < 0) (prox_volume = 0);
-      if (prox_volume > 1) (prox_volume = 1);
-      final_gain *= prox_volume;
-    }
-    return final_gain;
-  }
 
   handle_voice_proximity(p_current_player, p_player_map) {
     try {
@@ -495,7 +475,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
             let volume_controller = document.getElementById('v' + t_peer_id);
             let gain_node = self.media_gain_map.get(t_peer_id);
             let _volume = 1 - Clamp((distance_to_other_player - FULL_HEAR_DISTANCE) / (NO_HEAR_DISTANCE - FULL_HEAR_DISTANCE), 0, 1);
-            console.log(`Set volume for ${tmp_player.username} to ${_volume}`);
+            // console.log(`Set volume for ${tmp_player.username} to ${_volume}`);
             if (!!gain_node) {
               gain_node.gain.value = _volume;
             }
@@ -505,23 +485,9 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
 
             let pan_node = self.media_pan_map.get(t_peer_id);
             if (!!pan_node) {
-
-              // let _volume = 1 - Clamp(_distance / MAX_HEAR_DISTANCE, 0, 1);
               if (distance_to_other_player < PAN_DISTANCE_START) {
                 pan_node.pan.value = 0;
               } else {
-                // let left_ear = {
-                //   x: p_current_player.x - 8,
-                //   y: p_current_player.y
-                // };
-                // let right_ear = {
-                //   x: p_current_player.x + 8,
-                //   y: p_current_player.y
-                // };
-                // let left_dist = Phaser.Math.Distance.Between(
-                //   tmp_player.x, tmp_player.y, left_ear.x, left_ear.y);
-                // let right_dist = Phaser.Math.Distance.Between(
-                //   tmp_player.x, tmp_player.y, right_ear.x, right_ear.y);
                 let end_vec = new Phaser.Math.Vector2(tmp_player.x - p_current_player.x, tmp_player.y - p_current_player.y);
                 let final_pan = Math.cos(end_vec.angle());
                 final_pan = Phaser.Math.Linear(0, final_pan, Clamp(
@@ -544,71 +510,24 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
   }
 
 
-  handle_voice_proximity_old(p_current_player, p_player_map) {
-    try {
-      if (this.player_peer_map.size <= 0) {
-        return;
-      }
-      const self = this;
-      // let video_parent = document.getElementById("media-container");
-      for (let [player_id, peer_id] of self.player_peer_map) {
-        if (player_id != p_current_player.player_id) { // peer_id is null when player disconnects
-          // TESTME Need to profile this and make sure it's ok. 
-          // I can optimize this by storing the DOMS in a map.
-          let child_video = document.getElementById('p' + peer_id);
-          if (child_video) {
-            let tmp_player = p_player_map[player_id];
-            if (!!tmp_player) {
-              let _distance = Phaser.Math.Distance.Between(
-                tmp_player.x, tmp_player.y, p_current_player.x, p_current_player.y);
+  calc_gain_for_pos(base_pos_x, base_pos_y, stream_pos_x, stream_pos_y) {
+    // NOTE Constants might need to be 1.5x
+    let BASE_PAN_DIST = 50;
+    let ROLL_OFF = 8;
+    let BASE_HEAR_DIST = 170;
+    let MAX_HEAR_DIST = 400;
 
-              let _volume = 1 - Clamp(_distance / NO_HEAR_DISTANCE, 0, 1);
-              // TODO I can store the last volume separately if the getter here is costly
-              // console.log(`Set volume for ${tmp_player.username} to ${_volume}`);
-              child_video.volume = _volume;
-            } else {
-              // console.warn(`Could not find player obj for peer audio ${peer_id}`)
-            }
-          } else {
-            // console.warn(`Could not find the DOM element for peer audio ${peer_id}`)
-          }
-        }
-      };
+    let new_dist = Phaser.Math.Distance.Between(
+      base_pos_x, base_pos_y, stream_pos_x, stream_pos_y);
 
-    } catch (error) {
-      console.warn("handle_voice_proxomity", error);
+    let clamped_dist = Math.max(new_dist, BASE_PAN_DIST);
+    let final_gain = BASE_PAN_DIST / (BASE_PAN_DIST + ROLL_OFF * (clamped_dist - BASE_PAN_DIST));
+    if (new_dist > BASE_HEAR_DIST) {
+      let prox_volume = (MAX_HEAR_DIST - new_dist) / (MAX_HEAR_DIST - BASE_HEAR_DIST);
+      if (prox_volume < 0) (prox_volume = 0);
+      if (prox_volume > 1) (prox_volume = 1);
+      final_gain *= prox_volume;
     }
-  }
-
-  handle_voice_proximity_nogain(p_current_player, p_other_player) {
-    try {
-      let player_id = p_other_player.player_id;
-      let peer_id = this.player_peer_map.get(player_id);
-      // let video_parent = document.getElementById("media-container");
-      if (player_id == p_current_player.player_id) { // peer_id is null when player disconnects
-        return;
-      }
-      if (!p_other_player) {
-        return;
-      }
-      // TESTME Need to profile this and make sure it's ok.
-      // I can optimize this by storing the DOMS in a map.
-      let child_video = document.getElementById('p' + peer_id);
-      if (child_video) {
-        let tmp_player = p_other_player;
-        let _distance = Phaser.Math.Distance.Between(
-          tmp_player.x, tmp_player.y, p_current_player.x, p_current_player.y);
-
-        let _volume = 1 - Clamp(_distance / NO_HEAR_DISTANCE, 0, 1);
-        // TODO I can store the last volume separately if the getter here is costly
-        // console.log(`Set volume for ${tmp_player.username} to ${_volume}`);
-        child_video.volume = _volume;
-      } else {
-        // console.warn(`Could not find the DOM element for peer audio ${peer_id}`)
-      }
-
-    } catch (error) {
-      console.warn("handle_voice_proxomity", error);
-    }
+    return final_gain;
   }
 }
