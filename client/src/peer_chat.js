@@ -2,7 +2,6 @@
 
 import Peer from 'peerjs';
 import createAudioMeter from './lib/volume-meter.js';
-import { MainGame } from "./game.js"
 import { Clamp } from "./utils.js"
 import { MAX_HEAR_DISTANCE } from "./constants.js"
 
@@ -392,7 +391,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
       // MediaRecorder, etc.
       merger.connect(dest);
 
-      media_gain_map.set(p_peer_id, [gain_left, gain_right]);
+      this.media_gain_map.set(p_peer_id, [gain_left, gain_right]);
 
       return dest.stream;
 
