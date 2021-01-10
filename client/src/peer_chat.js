@@ -176,6 +176,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
             remoteVideo.srcObject = splitStream;
             remoteVideo.autoplay = true;
             remoteVideo.play();
+            remoteVideo.volume = 0;
             // remoteVideo.src = (URL || webkitURL || mozURL).createObjectURL(split_stream);
           } else {
             let video = document.createElement('audio');
@@ -183,6 +184,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
             // video.src = (URL || webkitURL || mozURL).createObjectURL(split_stream);
             video.autoplay = true;
             video.id = "p" + peer_id;
+            video.volume = 0;
             video.play();
             let element = document.getElementById("media-container");
             element.appendChild(video);
@@ -306,12 +308,14 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
             remoteVideo.srcObject = splitStream;
             remoteVideo.autoplay = true;
             remoteVideo.play();
+            remoteVideo.volume = 0;
           } else {
             let video = document.createElement('audio');
             video.srcObject = splitStream;
             // video.src = (URL || webkitURL || mozURL).createObjectURL(split_stream);
             video.autoplay = true;
             video.id = "p" + peer_id;
+            video.volume = 0;
             let element = document.getElementById("media-container");
             element.appendChild(video);
             video.play();
@@ -374,28 +378,14 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
     try {
       let mediaStreamSource = this.audioContext.createMediaStreamSource(p_stream);
 
-      let splitter = this.audioContext.createChannelSplitter(2);
-      let merger = this.audioContext.createChannelMerger(2);
-      let gain_left = this.audioContext.createGain();
-      let gain_right = this.audioContext.createGain();
-      mediaStreamSource.connect(splitter);
-      splitter.connect(gain_left);
-      splitter.connect(gain_right);
-      gain_left.connect(merger, 0, 0);
-      gain_right.connect(merger, 0, 1);
-      // merger.connect(this.audioContext.destination);
+      let panNode = this.audioContext.createStereoPanner();
 
-      let dest = this.audioContext.createMediaStreamDestination();
+      mediaStreamSource.connect(panNode);
 
-      // Because we have used a ChannelMergerNode, we now have a stereo
-      // MediaStream we can use to pipe the Web Audio graph to WebRTC,
-      // MediaRecorder, etc.
-      merger.connect(dest);
+      panNode.connect(this.audioContext.destination);
 
-      dest.connect(this.audioContext.destination);
-
-      this.media_gain_map.set(p_peer_id, [gain_left, gain_right]);
-      return dest.stream;
+      this.media_gain_map.set(p_peer_id, panNode);
+      return p_stream;
 
     } catch (error) {
       console.warn("Could not split media stream %s", error);
@@ -482,8 +472,8 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
         if (t_player_id != p_current_player.player_id) { // peer_id is null when player disconnects
           let tmp_player = p_player_map[t_player_id];
           if (!!tmp_player) {
-            let gain_array = self.media_gain_map.get(t_peer_id);
-            if (!gain_array) {
+            let pan_node = self.media_gain_map.get(t_peer_id);
+            if (!pan_node) {
               self.handle_voice_proximity_nogain(p_current_player, tmp_player);
             } else {
 
@@ -503,8 +493,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
               let left_vol = this.calc_gain_for_pos(left_ear, tmp_player);// * r.volume,
               let right_vol = this.calc_gain_for_pos(right_ear, tmp_player);// * r.volume,
               console.log(`Set gain L ${left_vol} R ${right_vol} for ${t_player_id}`);
-              // gain_array[0].gain.value = left_vol;
-              // gain_array[1].gain.value = right_vol;
+              pan_node.pan.value = 1;
             }
           } else {
             console.warn(`Could not find player obj for peer audio ${t_peer_id}`)
