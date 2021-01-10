@@ -21,6 +21,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
   player_peer_map = new Map(); // This map is for updating dom volumes by distance
   timeout_count_map = new Map(); // This map is for updating dom volumes by distance
   peer_volume_meter_map = new Map(); // This map is for updating opacity by voice activity
+  media_gain_map = new Map(); // This map is for updating opacity by voice activity
 
   own_stream = null;
   constructor(pluginManager) {
@@ -164,17 +165,19 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
         call.on('stream', (remoteStream) => {
           // Show stream in some <video> element.
 
+          let splitStream = self.split_media_stream(peer_id, remoteStream);
+
           console.log("Answered player " + peer_id);
           const remoteVideo = document.getElementById("p" + peer_id);
           if (!!remoteVideo) {
-            remoteVideo.srcObject = remoteStream;
+            remoteVideo.srcObject = splitStream;
             remoteVideo.autoplay = true;
             remoteVideo.play();
-            // remoteVideo.src = (URL || webkitURL || mozURL).createObjectURL(remoteStream);
+            // remoteVideo.src = (URL || webkitURL || mozURL).createObjectURL(split_stream);
           } else {
             let video = document.createElement('audio');
-            video.srcObject = remoteStream;
-            // video.src = (URL || webkitURL || mozURL).createObjectURL(remoteStream);
+            video.srcObject = splitStream;
+            // video.src = (URL || webkitURL || mozURL).createObjectURL(split_stream);
             video.autoplay = true;
             video.id = "p" + peer_id;
             video.play();
@@ -290,18 +293,20 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
           console.log("Received stream");
 
           self.connected_peer_ids.push(next_peer_id);
+          let peer_id = next_peer_id.toString();
+
+          let splitStream = self.split_media_stream(peer_id, remoteStream);
 
           // Show stream in some <video> element.
-          let peer_id = next_peer_id.toString();
           const remoteVideo = document.getElementById("p" + peer_id);
           if (remoteVideo) {
-            remoteVideo.srcObject = remoteStream;
+            remoteVideo.srcObject = splitStream;
             remoteVideo.autoplay = true;
             remoteVideo.play();
           } else {
             let video = document.createElement('audio');
-            video.srcObject = remoteStream;
-            // video.src = (URL || webkitURL || mozURL).createObjectURL(remoteStream);
+            video.srcObject = splitStream;
+            // video.src = (URL || webkitURL || mozURL).createObjectURL(split_stream);
             video.autoplay = true;
             video.id = "p" + peer_id;
             let element = document.getElementById("media-container");
@@ -360,22 +365,38 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
     let meter = createAudioMeter(this.audioContext);
     mediaStreamSource.connect(meter);
     this.peer_volume_meter_map.set(peer_id, meter);
+  }
 
-    // var microphone = context.createMediaStreamSource(stream);
-    // var backgroundMusic = context.createMediaElementSource(document.getElementById("back"));
-    // var analyser = context.createAnalyser();
+  split_media_stream(p_peer_id, p_stream) {
+    try {
+      let mediaStreamSource = this.audioContext.createMediaStreamSource(p_stream);
 
-    // let finalStream = this.audioContext.createMediaStreamDestination();
+      let splitter = this.audioContext.createChannelSplitter(2);
+      let merger = this.audioContext.createChannelMerger(2);
+      let gain_left = this.audioContext.createGain();
+      let gain_right = this.audioContext.createGain();
+      mediaStreamSource.connect(splitter);
+      splitter.connect(gain_left);
+      splitter.connect(gain_right);
+      gain_left.connect(merger, 0, 0);
+      gain_right.connect(merger, 0, 1);
+      // merger.connect(this.audioContext.destination);
 
-    // microphone.connect(analyser);
-    // meter.connect(finalStream);
-    // backgroundMusic.connect(mixedOutput);
-    // requestAnimationFrame(drawAnimation);
+      let dest = this.audioContext.createMediaStreamDestination();
 
-    // return finalStream;
+      // Because we have used a ChannelMergerNode, we now have a stereo
+      // MediaStream we can use to pipe the Web Audio graph to WebRTC,
+      // MediaRecorder, etc.
+      merger.connect(dest);
 
-    // streamRecorder = mixedOutput.stream.record();
-    // peerConnection.addStream(mixedOutput.stream);
+      media_gain_map.set(p_peer_id, [gain_left, gain_right]);
+
+      return dest.stream;
+
+    } catch (error) {
+      console.warn("Could not split media stream %s", error);
+      return p_stream;
+    }
   }
 
   toggleMicMute() {
