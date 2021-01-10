@@ -3,7 +3,7 @@
 import { encode, decode } from "@msgpack/msgpack";
 import Phaser, { Utils } from 'phaser';
 import { Queue, Clamp } from "./utils.js"
-import { MAX_HEAR_DISTANCE } from "./constants.js"
+import { NO_HEAR_DISTANCE } from "./constants.js"
 import rexYoutubePlayerURL from "../../rex-notes/plugins/youtubeplayer-plugin.js"
 
 import screen_controls_hint_html from './assets/html/screen_controls_hint.html';
@@ -922,7 +922,7 @@ export default class MainGame extends Phaser.Scene {
     handle_video_proximity() {
         let _distance_vid = Phaser.Math.Distance.Between(
             this.youtubePlayer.x, this.youtubePlayer.y, this.current_player.x, this.current_player.y);
-        this.youtubePlayer.setVolume(1 - Clamp(_distance_vid / (MAX_HEAR_DISTANCE * 2), 0, 1));
+        this.youtubePlayer.setVolume(1 - Clamp(_distance_vid / (NO_HEAR_DISTANCE * 2), 0, 1));
     }
 
     static WHY_IS_VIDEO_NOT_CENTERED_X = 45;

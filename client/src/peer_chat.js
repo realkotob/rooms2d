@@ -3,7 +3,7 @@
 import Peer from 'peerjs';
 import createAudioMeter from './lib/volume-meter.js';
 import { Clamp } from "./utils.js"
-import { MAX_HEAR_DISTANCE } from "./constants.js"
+import { NO_HEAR_DISTANCE, FULL_HEAR_DISTANCE } from "./constants.js"
 
 var getUserMedia_ = (navigator.getUserMedia
   || navigator.webkitGetUserMedia
@@ -442,7 +442,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
     let BASE_PAN_DIST = 50;
     let ROLL_OFF = 8;
     let BASE_HEAR_DIST = 170;
-    let MAX_HEAR_DIST = 300;
+    let MAX_HEAR_DIST = 400;
 
     let new_dist = Phaser.Math.Distance.Between(
       base_pos_x, base_pos_y, stream_pos_x, stream_pos_y);
@@ -477,26 +477,37 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
               self.handle_voice_proximity_nogain(p_current_player, tmp_player);
             } else {
 
-              // let _distance = Phaser.Math.Distance.Between(
-              //   tmp_player.x, tmp_player.y, p_current_player.x, p_current_player.y);
+              let _distance = Phaser.Math.Distance.Between(
+                tmp_player.x, tmp_player.y, p_current_player.x, p_current_player.y);
 
               // let _volume = 1 - Clamp(_distance / MAX_HEAR_DISTANCE, 0, 1);
+              if (_distance < 50) {
+                pan_node.pan.value = 0;
+              } else {
+                // let left_ear = {
+                //   x: p_current_player.x - 8,
+                //   y: p_current_player.y
+                // };
+                // let right_ear = {
+                //   x: p_current_player.x + 8,
+                //   y: p_current_player.y
+                // };
+                // let left_dist = Phaser.Math.Distance.Between(
+                //   tmp_player.x, tmp_player.y, left_ear.x, left_ear.y);
+                // let right_dist = Phaser.Math.Distance.Between(
+                //   tmp_player.x, tmp_player.y, right_ear.x, right_ear.y);
+                // let left_vol = 0;
+                // let right_vol = 0;
+                let end_vec = new Phaser.Math.Vector2(tmp_player.x - p_current_player.x, tmp_player.y - p_current_player.y);
+                let final_pan = Math.cos(end_vec.angle());
+                final_pan = Clamp(final_pan, -0.75, 0.75);
+                // console.log(`Set final_pan ${final_pan} for ${t_player_id}`);
+                pan_node.pan.value = final_pan;
+              }
 
-              let left_ear = {
-                x: p_current_player.x - 16 / 2,
-                y: p_current_player.y
-              };
-              let right_ear = {
-                x: p_current_player.x + 16 / 2,
-                y: p_current_player.y
-              };
-              let left_vol = this.calc_gain_for_pos(left_ear, tmp_player);// * r.volume,
-              let right_vol = this.calc_gain_for_pos(right_ear, tmp_player);// * r.volume,
-              console.log(`Set gain L ${left_vol} R ${right_vol} for ${t_player_id}`);
-              pan_node.pan.value = 1;
             }
           } else {
-            console.warn(`Could not find player obj for peer audio ${t_peer_id}`)
+            // console.warn(`Could not find player obj for peer audio ${t_peer_id}`)
           }
         }
       };
@@ -525,7 +536,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
               let _distance = Phaser.Math.Distance.Between(
                 tmp_player.x, tmp_player.y, p_current_player.x, p_current_player.y);
 
-              let _volume = 1 - Clamp(_distance / MAX_HEAR_DISTANCE, 0, 1);
+              let _volume = 1 - Clamp(_distance / NO_HEAR_DISTANCE, 0, 1);
               // TODO I can store the last volume separately if the getter here is costly
               // console.log(`Set volume for ${tmp_player.username} to ${_volume}`);
               child_video.volume = _volume;
@@ -562,7 +573,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
         let _distance = Phaser.Math.Distance.Between(
           tmp_player.x, tmp_player.y, p_current_player.x, p_current_player.y);
 
-        let _volume = 1 - Clamp(_distance / MAX_HEAR_DISTANCE, 0, 1);
+        let _volume = 1 - Clamp(_distance / NO_HEAR_DISTANCE, 0, 1);
         // TODO I can store the last volume separately if the getter here is costly
         // console.log(`Set volume for ${tmp_player.username} to ${_volume}`);
         child_video.volume = _volume;
