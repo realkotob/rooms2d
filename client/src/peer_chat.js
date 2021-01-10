@@ -3,7 +3,7 @@
 import Peer from 'peerjs';
 import createAudioMeter from './lib/volume-meter.js';
 import { Clamp } from "./utils.js"
-import { NO_HEAR_DISTANCE, FULL_HEAR_DISTANCE, PAN_DISTANCE_START, PAN_ROLLOF } from "./constants.js"
+import { NO_HEAR_DISTANCE, FULL_HEAR_DISTANCE, PAN_DISTANCE_START, PAN_ROLLOF, MAX_PAN } from "./constants.js"
 
 var getUserMedia_ = (navigator.getUserMedia
   || navigator.webkitGetUserMedia
@@ -386,21 +386,18 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
 
       let panNode = this.audioContext.createStereoPanner();
       let destination = this.audioContext.createMediaStreamDestination();
-      let gainNode = this.audioContext.createGain();
+      // let gainNode = this.audioContext.createGain();
 
       mediaStreamSource.connect(panNode);
-      panNode.connect(gainNode);
-      // gainNode.connect(this.audioContext.destination);
+      panNode.connect(destination);
 
-
-      gainNode.connect(destination);
+      // gainNode.connect(destination);
 
       this.media_pan_map.set(p_peer_id, panNode);
-      this.media_gain_map.set(p_peer_id, gainNode);
+      // this.media_gain_map.set(p_peer_id, gainNode);
 
       // destination.connect(this.audioContext.destination);
 
-      // return p_stream; 
       return destination.stream;
 
     } catch (error) {
@@ -473,12 +470,12 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
             // TESTME Need to check if this is ok.
             // I can optimize this by storing the DOMS in a map.
             let volume_controller = document.getElementById('v' + t_peer_id);
-            let gain_node = self.media_gain_map.get(t_peer_id);
+            // let gain_node = self.media_gain_map.get(t_peer_id);
             let _volume = 1 - Clamp((distance_to_other_player - FULL_HEAR_DISTANCE) / (NO_HEAR_DISTANCE - FULL_HEAR_DISTANCE), 0, 1);
             // console.log(`Set volume for ${tmp_player.username} to ${_volume}`);
-            if (!!gain_node) {
-              gain_node.gain.value = _volume;
-            }
+            // if (!!gain_node) {
+            //   gain_node.gain.value = _volume;
+            // }
             if (!!volume_controller) {
               volume_controller.volume = _volume;
             }
@@ -492,8 +489,8 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
                 let final_pan = Math.cos(end_vec.angle());
                 final_pan = Phaser.Math.Linear(0, final_pan, Clamp(
                   (distance_to_other_player - PAN_DISTANCE_START) / PAN_ROLLOF, 0, 1));
-                final_pan = Clamp(final_pan, -0.75, 0.75);
-                console.log(`Set final_pan ${final_pan} for ${t_player_id}`);
+                // final_pan = Clamp(final_pan, -MAX_PAN, MAX_PAN);
+                // console.log(`Set final_pan ${final_pan} for ${t_player_id}`);
                 pan_node.pan.value = final_pan;
               }
 
