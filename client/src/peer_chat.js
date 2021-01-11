@@ -338,7 +338,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
       // Give up on calling player
       return;
     }
-    setTimeout(this.call_next_peer, last_timeout * 1000);
+    setTimeout(() => { this.call_peer_with_id(p_peer_id) }, last_timeout * 1000);
     this.timeout_count_map.set(p_peer_id, last_timeout + 5);
   }
 
@@ -368,19 +368,24 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
     }
   }
 
-
-
   call_next_peer() {
-    try {
+    if (this.queued_peer_ids.length <= 0) {
+      // No more peers to call
+      return;
+    }
 
-      if (this.queued_peer_ids.length <= 0) {
-        // No more peers to call
-        return;
-      }
+    let next_peer_id = this.queued_peer_ids.shift();
+
+    this.call_peer_with_id(next_peer_id);
+
+  }
+
+  call_peer_with_id(peer_id) {
+    try {
 
       const self = this;
 
-      let next_peer_id = this.queued_peer_ids.shift();
+      let next_peer_id = peer_id;
 
       if (next_peer_id == self.peer.id) {
         console.warn("Cannot call self.");
