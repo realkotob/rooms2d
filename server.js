@@ -407,7 +407,7 @@ io.on('connection', function (socket) {
             if (!socket.player)
                 return;
             io.in(_room).emit('remove', socket.player.rt.id);
-            rooms_peers.get(_room).set(socket.player.rt.id, p_data.peer_id)
+            rooms_peers.get(_room).set(socket.player.rt.id, null)
         } catch (error) {
             logger.error(`error in socket on disconnect ${error}`);
         }
