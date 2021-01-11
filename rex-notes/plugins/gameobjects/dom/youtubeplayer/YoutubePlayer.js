@@ -107,6 +107,31 @@ class YoutubePlayer extends DOMElement {
         }
     }
 
+    loadPlaylist(p_list, p_index, autoPlay) {
+        if (autoPlay === undefined) {
+            autoPlay = true;
+        }
+
+        // If the listType property value is playlist, then the list property specifies a playlist ID or an array of video IDs. 
+        // In the YouTube Data API, the playlist resource's id property specifies a playlist's ID, and the video resource's id property specifies a video ID.
+        // If the listType property value is user_uploads, then the list property identifies the user whose uploaded videos will be returned.
+        var callback = (function () {
+            this.youtubePlayer.loadPlaylist({
+                list: p_list,
+                listType: "playlist",
+                index: p_index,
+            });
+            if (autoPlay) {
+                this.youtubePlayer.playVideo();
+            } else {
+                this.youtubePlayer.pauseVideo();
+            }
+        }).bind(this);
+
+        this._runCallback(callback);
+        return this;
+    }
+
     load(videoId, autoPlay) {
         if (autoPlay === undefined) {
             autoPlay = true;

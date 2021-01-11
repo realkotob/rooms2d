@@ -108,8 +108,6 @@ export default class SocketClient extends Phaser.Plugins.BasePlugin {
     };
 
     this.sendYoutubeChangeURL = function (p_player_id, p_new_v_id) {
-
-      // TODO Send empty object of the velocity is 0 and rounded positions are same as last frame
       self.socket.emit(
         'yt_url', { p: p_player_id, v: p_new_v_id });
       console.log("Sent yt_url %s", p_new_v_id);

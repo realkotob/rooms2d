@@ -82,11 +82,8 @@ export default class MainGame extends Phaser.Scene {
             if (self.player_id == p_data.p) {
                 return;
             }
-            if (self.current_video_id != p_data.v) {
-                console.log("yt_url: Loaded video ID %s ", p_data.v);
-                self.youtubePlayer.load(p_data.v);
-                self.current_video_id = p_data.v;
-            }
+            let vid_data = p_data.v;
+            self.play_youtube_thing(vid_data.t, vid_data.id, vid_data.index);
         });
 
         this.socketClient.socket.on('yt_state', function (p_data) {
@@ -177,12 +174,8 @@ export default class MainGame extends Phaser.Scene {
             }
 
             try {
-                let tmp_vid = data.room_data.vid_id;
-                if (!!tmp_vid && !!tmp_vid.length && tmp_vid.length > 0 && self.current_video_id != tmp_vid) {
-                    console.log("Set video id from room_info ", tmp_vid);
-                    self.youtubePlayer.load(tmp_vid);
-                    self.current_video_id = tmp_vid;
-                }
+                let vid_data = data.room_data.vid_info;
+                self.play_youtube_thing(vid_data.t, vid_data.id, vid_data.index);
             } catch (error) {
                 console.warn("Error setting vid from room_info", error);
             }
@@ -570,13 +563,10 @@ export default class MainGame extends Phaser.Scene {
             width: 340,
             height: 192
         }
-        this.current_video_id = 'euhtxlDs0TU';
-
-
 
         this.youtubePlayer = this.add.rexYoutubePlayer(
             yt_original_config.x, yt_original_config.y, yt_original_config.width, yt_original_config.height, {
-            videoId: this.current_video_id,
+            videoId: 'DyWhFB9ijzA',
             modestBranding: true,
             loop: false,
             autoPlay: true,
@@ -585,6 +575,10 @@ export default class MainGame extends Phaser.Scene {
         }).on('ready', function () {
             console.log("Youtube Video ready");
             self.load_screen_controls();
+            // if (!self.current_yt_type) {
+            //     let new_playlist = "PLUh4W61bt_K6HLVHp_Z_NmXyV6SVNsg2N";
+            //     self.play_youtube_thing("list", new_playlist, Math.floor(Math.random() * 86));
+            // }
 
             // self.youtubePlayer.setPosition(600, 300);
         }).on('pause', function () {
@@ -1374,90 +1368,150 @@ export default class MainGame extends Phaser.Scene {
         this.screen_controls.node.style.visibility = "hidden";
 
         this.videolink = this.screen_controls.getChildByID('videolink');
-        this.videolink.value = `https://www.youtube.com/watch?v=${this.current_video_id}`;
+        // this.videolink.value = `https://www.youtube.com/watch?v=${this.current_video_id}`;
         this.videolink_validhint = this.screen_controls.getChildByID('validhint');
     }
 
     show_video_controls() {
-        if (!this.screen_controls)
-            return;
+        try {
 
-        const self = this;
-        this.showing_focused_ui = true;
-        this.screen_controls.node.style.visibility = "visible";
 
-        self.videolink.value = `https://www.youtube.com/watch?v=${self.current_video_id}`;
+            if (!this.screen_controls)
+                return;
 
-        let string_before_open = self.videolink.value;
+            const self = this;
+            this.showing_focused_ui = true;
+            this.screen_controls.node.style.visibility = "visible";
 
-        var on_change_fn = function (event) {
-            let new_entered = self.videolink.value;
-            if (new_entered !== '') {
-                // From https://stackoverflow.com/questions/6903823/regex-for-youtube-id
-                // and https://stackoverflow.com/questions/2936467/parse-youtube-video-id-using-preg-match/6382259#6382259
+            // self.videolink.value = `https://www.youtube.com/watch?v=${self.current_video_id}`;
 
-                let videoId = get_yt_id_from_link(new_entered);
-                if (!!videoId) {
-                    self.videolink_validhint.innerHTML = "☑"
-                    self.videolink_validhint.style.color = "#00c569";
-                } else {
-                    self.videolink_validhint.innerHTML = "✖"
-                    self.videolink_validhint.style.color = "#f01c63";
+            try {
+                if (this.current_yt_type == "list") {
+                    this.videolink.value = `https://www.youtube.com/playlist?list=${this.current_playlist_id}`;
                 }
-                // console.log("Changed hint for valid url.");
+                else if (this.current_yt_type == "video") {
+                    this.videolink.value = `https://www.youtube.com/watch?v=${this.current_video_id}`;
+                };
+            } catch (error) {
+                console.error("Error setting videolink.value");
             }
-        };
+            let string_before_open = self.videolink.value;
 
-        this.videolink.addEventListener("change", on_change_fn);
-        this.videolink.addEventListener("input", on_change_fn);
-        this.videolink.addEventListener("paste", on_change_fn);
-        this.videolink.addEventListener("keypress", on_change_fn);
-
-        this.screen_controls.addListener('click');
-        // this.screen_controls.setPerspective(800);
-        this.screen_controls.on('click', function (event) {
-
-            if (event.target.name === 'applyButton') {
-                self.screen_controls.node.style.visibility = "hidden";
-                this.removeListener('click');
-                self.showing_focused_ui = false;
-
+            var on_change_fn = function (event) {
                 let new_entered = self.videolink.value;
                 if (new_entered !== '') {
                     // From https://stackoverflow.com/questions/6903823/regex-for-youtube-id
                     // and https://stackoverflow.com/questions/2936467/parse-youtube-video-id-using-preg-match/6382259#6382259
 
                     let videoId = get_yt_id_from_link(new_entered);
-                    if (!!videoId && self.current_video_id != videoId) {
-                        console.log("Apply loading video with ID %s", videoId);
-                        self.current_video_id = videoId;
-                        self.youtubePlayer.load(videoId);
-                        self.socketClient.sendYoutubeChangeURL(self.player_id, videoId);
-                        // TODO Network this to everyone in the room
+                    if (!!videoId) {
+                        self.videolink_validhint.innerHTML = "☑"
+                        self.videolink_validhint.style.color = "#00c569";
                     } else {
-                        if (!videoId)
-                            console.log("Did not match video IDs");
-                        if (self.current_video_id == videoId)
-                            console.log("Video already loaded");
+                        self.videolink_validhint.innerHTML = "✖"
+                        self.videolink_validhint.style.color = "#f01c63";
                     }
+                    // console.log("Changed hint for valid url.");
+                }
+            };
+
+            this.videolink.addEventListener("change", on_change_fn);
+            this.videolink.addEventListener("input", on_change_fn);
+            this.videolink.addEventListener("paste", on_change_fn);
+            this.videolink.addEventListener("keypress", on_change_fn);
+
+            this.screen_controls.addListener('click');
+            // this.screen_controls.setPerspective(800);
+            this.screen_controls.on('click', function (event) {
+
+                if (event.target.name === 'applyButton') {
+                    self.screen_controls.node.style.visibility = "hidden";
+                    this.removeListener('click');
+                    self.showing_focused_ui = false;
+
+                    let new_entered = self.videolink.value;
+                    if (new_entered !== '') {
+                        // From https://stackoverflow.com/questions/6903823/regex-for-youtube-id
+                        // and https://stackoverflow.com/questions/2936467/parse-youtube-video-id-using-preg-match/6382259#6382259
+
+                        let videoId = get_yt_id_from_link(new_entered);
+                        if (!videoId || !(videoId.length > 0)) {
+                            // matched nothing
+                            return;
+                        }
+                        if (videoId[0] == "video") {
+                            let new_vid = videoId[1];
+                            if (!!new_vid && self.current_video_id != new_vid) {
+                                console.log("Apply loading video with ID %s", new_vid);
+                                self.play_youtube_thing("video", new_vid);
+                                self.socketClient.sendYoutubeChangeURL(self.player_id, { t: "video", id: new_vid });
+                            } else {
+                                if (self.current_video_id == videoId) {
+                                    console.log("Video already loaded");
+                                }
+                            }
+                        }
+                        else if (videoId[0] == "list") {
+                            let new_playlist = videoId[1];
+                            if (!!new_playlist && self.current_playlist_id != new_playlist) {
+                                self.play_youtube_thing("list", new_playlist);
+                                self.socketClient.sendYoutubeChangeURL(self.player_id, { t: "list", id: new_playlist });
+                            } else {
+                                if (self.current_playlist_id == new_playlist) {
+                                    console.log("Video already loaded");
+                                }
+                            }
+                        } else {
+                            console.log("Did not match any type in link.");
+                        }
+
+                    }
+
+                }
+                else if (event.target.name === 'cancelButton') {
+                    self.screen_controls.node.style.visibility = "hidden";
+                    this.removeListener('click');
+                    self.showing_focused_ui = false;
+
+                    self.videolink.value = string_before_open; //`https://www.youtube.com/watch?v=${self.current_video_id}`;
+
+                    // self.scene.tweens.add({ targets: text, alpha: 0.1, duration: 200, ease: 'Power3', yoyo: true });
                 }
 
-            }
-            else if (event.target.name === 'cancelButton') {
-                self.screen_controls.node.style.visibility = "hidden";
-                this.removeListener('click');
-                self.showing_focused_ui = false;
+            });
 
-                self.videolink.value = string_before_open; //`https://www.youtube.com/watch?v=${self.current_video_id}`;
 
-                // self.scene.tweens.add({ targets: text, alpha: 0.1, duration: 200, ease: 'Power3', yoyo: true });
-            }
-
-        });
+        } catch (error) {
+            console.error("Error in show_video_controls %s", error);
+        }
     }
 
+    play_youtube_thing(p_type, p_id, p_index = 0) {
+        try {
+            if (p_type == "list" && this.current_playlist_id != p_id) {
+                this.current_yt_type = p_type;
+                let t_index = !!p_index && Number(p_index) > 0 ? Number(p_index) : 0;
+                this.youtubePlayer.loadPlaylist(p_id, t_index);
+                this.current_playlist_id = p_id;
+                this.current_video_id = null;
+                if (!!this.videolink)
+                    this.videolink.value = `https://www.youtube.com/playlist?list=${p_id}`;
+            }
+            else if (p_type == "video" && this.current_video_id != p_id) {
+                this.current_yt_type = p_type;
+                this.youtubePlayer.load(p_id);
+                this.current_video_id = p_id;
+                this.current_playlist_id = null;
+                if (!!this.videolink)
+                    this.videolink.value = `https://www.youtube.com/watch?v=${p_id}`;
+            };
+        } catch (error) {
+            console.error("Error in play_youtube_thing", error);
+        };
 
+    }
 }
+
 
 
 // This one is pure wizardry courtesy of my friend  https://regex101.com/r/qCDoob/1
@@ -1471,14 +1525,14 @@ var get_yt_id_from_link = function (url) {
 
     if ((typeof code[1] == 'string') && code[1].length > 0) {
         if (code[1] != 'playlist' && code[1] != 'embed/videoseries') {
-            return code[2];
+            return ["video", code[2]];
         } else {
             // link is for a playlist
             // TODO Queue playlist
-            return null;
+            return ["list", code[2]];
         }
     } else {
-        return code[3];
+        return ["video", code[3]];
     }
 }
 

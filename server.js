@@ -166,6 +166,7 @@ const CHARACTER_SPRITE_COUNT = 24;
 var rooms_balls = new Map();
 var all_players = new Map();
 var rooms_peers = new Map();
+var rooms_kexp_start_index = new Map();
 io.on('connection', function (socket) {
     setInterval(() => {
         socket.emit("ping", Date.now());
@@ -247,13 +248,24 @@ io.on('connection', function (socket) {
                     let room_peer_map = new Map();
                     rooms_peers.set(_room, room_peer_map);
                 }
+
             }
 
             let tmp_vid = room_videos.get(_room);
+            if (!tmp_vid) {
+                let room_kexp_index = Math.floor(Math.random() * 86);
+                let new_playlist = "PLUh4W61bt_K6HLVHp_Z_NmXyV6SVNsg2N";
+                tmp_vid = {
+                    t: "list",
+                    id: new_playlist,
+                    index: room_kexp_index
+                }
+                room_videos.set(_room, tmp_vid);
+            }
 
             const enc_room_info = encode({
                 you: socket.player, all: await getAllPlayers(_room), room_data: {
-                    vid_id: !!tmp_vid ? tmp_vid : "", balls: rooms_balls.get(_room)
+                    vid_info: !!tmp_vid ? tmp_vid : {}, balls: rooms_balls.get(_room)
                 }
             });
 

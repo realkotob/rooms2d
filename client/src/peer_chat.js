@@ -228,7 +228,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
         // TODO Tell the server about this
         // self.init_new_peer();
       } catch (error) {
-        console.warn('error in peer.on.error', err);
+        // console.warn('error in peer.on.error', err);
 
       }
     });
