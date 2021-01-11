@@ -73,7 +73,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
 
   send_data_encoded_to_all(p_type, p_data) {
     if (this.peer_conn_map.size <= 0) {
-      console.warn("Empty peer conn map");
+      // console.warn("Empty peer conn map");
       return;
     }
     const self = this;
