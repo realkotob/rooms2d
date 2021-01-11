@@ -428,14 +428,14 @@ export default class MainGame extends Phaser.Scene {
                     y: tmp_player.y - 10,
                     scale: tmp_player.scale * 1.1,
                     ease: 'Power1',
-                    duration: 500
+                    duration: 150
                 },
                 {
                     targets: tmp_player,
                     y: tmp_player.y,
                     scale: tmp_player.scale,
                     ease: 'Power1',
-                    duration: 500,
+                    duration: 150,
                 }
                 ]
             });
@@ -478,7 +478,7 @@ export default class MainGame extends Phaser.Scene {
             return; // Don't bother checking to start simulation if it started
         }
 
-        if (tmp_ball.physics_buffer.length >= (60 - Clamp(this.socketClient.latency / 16, 0, 600)) && tmp_ball.thrower_player_id != this.player_id) { // Only trigger this once, to avoid overriding catch signal from other players
+        if (tmp_ball.physics_buffer.length >= (30 - Clamp(this.socketClient.latency / 16, 0, 600)) && tmp_ball.thrower_player_id != this.player_id) { // Only trigger this once, to avoid overriding catch signal from other players
             console.log("Started simulation on non-thrower");
             let tmp_player = this.playerMap[tmp_ball.thrower_player_id];
             if (!tmp_player) {
@@ -799,14 +799,14 @@ export default class MainGame extends Phaser.Scene {
                             y: self.current_player.y - 10,
                             scale: self.current_player.scale * 1.1,
                             ease: 'Power1',
-                            duration: 500
+                            duration: 150
                         },
                         {
                             targets: self.current_player,
                             y: self.current_player.y,
                             scale: self.current_player.scale,
                             ease: 'Power1',
-                            duration: 500,
+                            duration: 150,
                             onComplete: function () { self.current_player.shooting_anim = false; },
                         }
                         ]
