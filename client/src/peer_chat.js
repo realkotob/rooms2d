@@ -212,26 +212,28 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
     // Error handling adapted from https://github.com/peers/peerjs/issues/650
     const FATAL_ERRORS = ['invalid-id', 'invalid-key', 'network', 'ssl-unavailable', 'server-error', 'socket-error', 'socket-closed', 'unavailable-id', 'webrtc'];
     this.peer.on('error', function (err) {
-      try {
-        // console.warn('error in PeerChat', err);
+      // try {
+      // console.error('error in PeerChat', err);
 
-        // Errors on the peer are almost always fatal and will destroy the peer
-        if (FATAL_ERRORS.includes(err.type)) {
-          // TODO Add increasing timeout here to avoid thrashing the browser
-          self.init_new_peer();
-          // this.reconnectTimeout(e); // this function waits then tries the entire connection over again
-        } else {
-          console.log('Non fatal error: ', e.type);
-        }
-
-        // self._can_call = false;
-
-        // TODO Tell the server about this
-        // self.init_new_peer();
-      } catch (error) {
-        // console.warn('error in peer.on.error', err);
-
+      // Errors on the peer are almost always fatal and will destroy the peer
+      if (FATAL_ERRORS.includes(err.type)) {
+        // TODO Add increasing timeout here to avoid thrashing the browser
+        console.error('Fatal error: ', err.type);
+        self.init_new_peer();
+        // this.reconnectTimeout(e); // this function waits then tries the entire connection over again
+      } else {
+        console.log('Non fatal error: ', err.type);
+        self.call_next_peer();
       }
+
+      // self._can_call = false;
+
+      // TODO Tell the server about this
+      // self.init_new_peer();
+      // } catch (error) {
+      //   // console.warn('error in peer.on.error', err);
+
+      // }
     });
 
 
@@ -355,6 +357,9 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
         self.request_call_peer(element.pid);
       }
     });
+    if (!!this._can_call) {
+      this.call_next_peer();
+    }
   }
 
   request_call_peer(p_peer_id) {
@@ -373,9 +378,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
 
     this.queued_peer_ids.push(p_peer_id);
 
-    if (!!this._can_call) {
-      this.call_next_peer();
-    }
+
   }
 
   call_next_peer() {
@@ -430,7 +433,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
 
       getUserMedia_({ video: false, audio: true }, (t_own_stream) => {
         const call = self.peer.call(p_peer_id.toString(), t_own_stream, options_call);
-     
+
         self.own_stream = t_own_stream;
         call.on('stream', (remoteStream) => {
           if (!p_peer_id) {
