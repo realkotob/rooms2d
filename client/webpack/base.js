@@ -54,6 +54,15 @@ module.exports = {
     new HtmlWebpackPlugin({
       favicon: "./favicon.png",
       template: "./index.html"
+    }),
+    // new HtmlWebpackPlugin({
+    //   alwaysWriteToDisk: true,
+    //   template: '../index.html',
+    //   filename: path.resolve(`${__dirname}/www/index.html`),
+    // }),
+    // new HtmlWebpackHarddiskPlugin(),
+    new webpack.ProvidePlugin({
+      Buffer: ['buffer', 'Buffer'],
     })
   ]
 };
