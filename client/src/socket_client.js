@@ -58,7 +58,7 @@ export default class SocketClient extends Phaser.Plugins.BasePlugin {
         self.latency_logs.pop();
 
       self.latency = average(self.latency_logs);
-      console.log("Average Latency: %s", self.latency);
+      // console.log("Average Latency: %s", self.latency);
     });
 
     this.sendTest = function () {

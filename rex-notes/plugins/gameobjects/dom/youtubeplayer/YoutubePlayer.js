@@ -71,6 +71,7 @@ class YoutubePlayer extends DOMElement {
                             }
                             this.paddingCallbacks = undefined;
                             this.emit('ready', this);
+                            this.youtubePlayer.setLoop(true);
                         }).bind(this),
                         'onError': (function (event) {
                             this.lastError = event.data;
