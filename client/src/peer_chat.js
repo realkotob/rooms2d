@@ -9,6 +9,11 @@ var getUserMedia_ = (navigator.getUserMedia
   || navigator.webkitGetUserMedia
   || navigator.mozGetUserMedia
   || navigator.msGetUserMedia);
+
+const MSG_TYPE = {
+  BALL: 1,
+  PLAYER: 2
+};
 export default class PeerChat extends Phaser.Plugins.BasePlugin {
   peer = null;
 
@@ -49,6 +54,66 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
     });
 
   }
+
+  playerThrowBall(p_ball_id, p_px, p_py, p_vx, p_vy) {
+    self.send_data_to_all_peers(MSG_TYPE.BALL, {
+      b: p_ball_id, x: p_px, y: p_py, v: p_vx, w: p_vy
+    });
+  }
+
+  peer_conn_map = new Map();
+
+  send_data_to_all_peers(p_type, p_data) {
+    if (this.peer_conn_map.size <= 0) {
+      console.warn("Empty peer conn map");
+      return;
+    }
+    const self = this;
+    // let video_parent = document.getElementById("media-container");
+    // for (let [player_id, gain_array] of self.media_gain_map) {
+    for (let [_, t_conn] of self.peer_conn_map) {
+      self.send_webrtc_encoded(t_conn, p_type, p_data);
+
+    }
+  }
+
+  send_webrtc_encoded(p_conn, p_type, p_data) {
+    try {
+      let t_obj = {
+        t: p_type, // message type as int
+        d: p_data // data object
+      }
+
+      const encoded = encode(t_obj);
+      p_conn.send(
+        Buffer.from(encoded.buffer, encoded.byteOffset, encoded.byteLength));
+
+    } catch (error) {
+      console.error("Error in send_webrtc_encoded %s", error);
+    }
+  }
+
+  callback_on_ball_data = null;
+
+  received_ball_data_map = new Map();
+  parse_encoded_webrtc(p_encoded_data) {
+    const data = decode(p_encoded_data);
+    // Parse data
+    console.log(data);
+    switch (data.t) {
+      case MSG_TYPE.BALL:
+        if (self.callback_on_ball_data) {
+          self.callback_on_ball_data(data.d);
+        }
+        break;
+
+      default:
+        console.warn("Received data with unknown type %s", data.t);
+        break;
+    }
+  }
+
+
 
   callback_on_connect = null;
   init_new_peer() {
@@ -95,6 +160,18 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
         console.error("Error in callback_on_connect", error);
       }
 
+    });
+
+    peer.on('connection', (conn) => {
+      conn.on('data', (p_data) => {
+        self.parse_encoded_webrtc(p_data);
+      });
+      conn.on('open', () => {
+        self.peer_conn_map.set(next_peer_id, conn);
+      });
+      conn.on('error', (err) => {
+        console.error("Error in peer data connection", err);
+      });
     });
 
     this.peer.on('close', function () {
@@ -271,6 +348,8 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
     }
   }
 
+
+
   call_next_peer() {
     try {
 
@@ -289,16 +368,17 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
       }
 
       console.log("Calling player ", next_peer_id);
-      self.conn = self.peer.connect(next_peer_id);
+      let conn = self.peer.connect(next_peer_id);
 
-      self.conn.on('open', function () {
+      conn.on('open', function () {
         // Receive messages
-        self.conn.on('data', function (data) {
-          console.log('Received', data);
-        });
-
-        // Send messages
-        self.conn.send(`Hello from ${self.peer.id} !`);
+        self.peer_conn_map.set(next_peer_id, conn);
+      });
+      conn.on('data', function (p_data) {
+        self.parse_encoded_webrtc(p_data);
+      });
+      conn.on('error', (err) => {
+        console.error("Error in peer data connection", err);
       });
 
       let options_call = {

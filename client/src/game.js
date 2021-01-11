@@ -144,6 +144,9 @@ export default class MainGame extends Phaser.Scene {
             self.on_throw_ball(data.b, data.x, data.y, data.v, data.w);
             // console.log("Recieved throw_ball %s ", JSON.stringify(p_data));
         });
+        this.peerChat.callback_on_ball_data = function (p_data) {
+            self.on_throw_ball(p_data.b, p_data.x, p_data.y, p_data.v, p_data.w);
+        }
         this.socketClient.socket.on('start_throw_ball', function (p_data) {
             const data = decode(p_data);
             self.on_start_throw_ball(data.p, data.b, data.x, data.y, data.v, data.w);
@@ -399,12 +402,14 @@ export default class MainGame extends Phaser.Scene {
         tmp_ball.thrower_player_id = p_player_id;
         tmp_ball.just_thrown = true;
         tmp_ball.start_simulation = false;
-        tmp_ball.physics_buffer = [{
-            px: p_px,
-            py: p_py,
-            vx: p_vx,
-            vy: p_vy
-        }];
+
+        // This was commented out because it is possible with webrtc for the `on_throw_ball` to happen first
+        // tmp_ball.physics_buffer = [{
+        //     px: p_px,
+        //     py: p_py,
+        //     vx: p_vx,
+        //     vy: p_vy
+        // }];
 
         if (p_player_id != this.player_id) {
             var timeline = this.tweens.timeline({
@@ -1131,7 +1136,7 @@ export default class MainGame extends Phaser.Scene {
         for (let [ball_id, tmp_ball] of this.ballMap) {
             if (!!tmp_ball) {
                 if (!!tmp_ball.thrower_player_id && tmp_ball.thrower_player_id == this.player_id) {
-                    this.socketClient.playerThrowBall(
+                    this.peerChat.playerThrowBall(
                         ball_id, tmp_ball.fake.x, tmp_ball.fake.y, tmp_ball.fake.body.velocity.x, tmp_ball.fake.body.velocity.y);
                 }
                 if (!!tmp_ball.start_simulation && !tmp_ball.holder_player_id) {
