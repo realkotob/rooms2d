@@ -145,7 +145,7 @@ export default class MainGame extends Phaser.Scene {
             // console.log("Recieved throw_ball %s ", JSON.stringify(p_data));
         });
         this.peerChat.callback_on_ball_throw = function (p_data) {
-            self.on_throw_ball(p_data.b, p_data.x, p_data.y, p_data.v, p_data.w);
+            self.on_throw_ball(p_data.i, p_data.b, p_data.x, p_data.y, p_data.v, p_data.w);
         }
         this.peerChat.callback_on_player_move = function (p_data) {
             if (self.player_id != p_data.id) {
@@ -442,13 +442,55 @@ export default class MainGame extends Phaser.Scene {
         }
     }
 
-    on_throw_ball(p_ball_id, p_px, p_py, p_vx, p_vy) {
+    on_throw_ball(p_player_id, p_ball_id, p_px, p_py, p_vx, p_vy) {
         let tmp_ball = this.ballMap.get(p_ball_id);
 
         if (!tmp_ball) {
             console.warn("Ball with id %s does not exist.", p_ball_id);
             return;
         }
+
+        let tmp_player = this.playerMap[p_player_id];
+        if (!tmp_player) {
+            console.warn("Player with id %s does not exist", p_player_id);
+            return;
+        }
+
+        if (!!tmp_ball.thrower_player_id && tmp_ball.thrower_player_id != p_player_id) {
+            tmp_ball.thrower_player_id = p_player_id;
+            tmp_ball.just_thrown = true;
+            tmp_ball.start_simulation = false;
+
+            // This was commented out because it is possible with webrtc for the `on_throw_ball` to happen first
+            tmp_ball.physics_buffer = [{
+                px: p_px,
+                py: p_py,
+                vx: p_vx,
+                vy: p_vy
+            }];
+
+            if (p_player_id != this.player_id) {
+                var timeline = this.tweens.timeline({
+                    tweens: [{
+                        targets: tmp_player,
+                        y: tmp_player.y - 10,
+                        scale: tmp_player.scale * 1.1,
+                        ease: 'Power1',
+                        duration: 150
+                    },
+                    {
+                        targets: tmp_player,
+                        y: tmp_player.y,
+                        scale: tmp_player.scale,
+                        ease: 'Power1',
+                        duration: 150,
+                    }
+                    ]
+                });
+            };
+            return;
+        }
+
 
         if (!!tmp_ball.assuming_caught) {
             if (tmp_ball.assuming_caught_counter > 0) {
@@ -478,13 +520,12 @@ export default class MainGame extends Phaser.Scene {
             return; // Don't bother checking to start simulation if it started
         }
 
-        if (tmp_ball.physics_buffer.length >= (30 - Clamp(this.socketClient.latency / 16, 0, 600)) && tmp_ball.thrower_player_id != this.player_id) { // Only trigger this once, to avoid overriding catch signal from other players
+        if (!!tmp_player.shooting_anim) {
+            return;
+        }
+
+        if (tmp_ball.physics_buffer.length >= (10 + Clamp(this.socketClient.latency / 16, 0, 600)) && p_player_id != this.player_id) { // Only trigger this once, to avoid overriding catch signal from other players
             console.log("Started simulation on non-thrower");
-            let tmp_player = this.playerMap[tmp_ball.thrower_player_id];
-            if (!tmp_player) {
-                console.warn("Player with id %s does not exist for non-thrower", tmp_ball.thrower_player_id);
-                return;
-            }
             tmp_ball.holder_player_id = null;
             tmp_player.holding_ball = null;
             tmp_ball.just_thrown = true;
@@ -493,13 +534,8 @@ export default class MainGame extends Phaser.Scene {
             });
             tmp_ball.start_simulation = true;
         }
-        else if (tmp_ball.physics_buffer.length >= (60 - Clamp(this.socketClient.latency / 16, 0, 600)) && tmp_ball.thrower_player_id == this.player_id) {
+        else if (tmp_ball.physics_buffer.length >= (5 + Clamp(this.socketClient.latency / 16, 0, 600)) && p_player_id == this.player_id) {
             console.log("Started simulation on thrower");
-            let tmp_player = this.playerMap[tmp_ball.thrower_player_id];
-            if (!tmp_player) {
-                console.warn("Player with id %s does not exist for thrower.", tmp_ball.thrower_player_id);
-                return;
-            }
             tmp_ball.holder_player_id = null;
             tmp_player.holding_ball = null;
             tmp_ball.just_thrown = true;
@@ -789,7 +825,7 @@ export default class MainGame extends Phaser.Scene {
                     let pos_x = self.current_player.x + Math.sign(direction.x) * self.current_player.width;
                     let pos_y = self.current_player.y + Math.sign(direction.y) * self.current_player.height;
                     tmp_ball.fake.setPosition(pos_x, pos_y);
-                    self.socketClient.playerStartThrowBall(self.player_id, tmp_ball.id, pos_x, pos_y, direction.x * 200, direction.y * 200);
+                    self.peerChat.playerThrowBall(self.player_id, tmp_ball.id, pos_x, pos_y, direction.x * 200, direction.y * 200);
                     tmp_ball.fake.setVelocity(direction.x * 200, direction.y * 200);
 
                     self.current_player.shooting_anim = true;
@@ -1155,10 +1191,11 @@ export default class MainGame extends Phaser.Scene {
         for (let [ball_id, tmp_ball] of this.ballMap) {
             if (!!tmp_ball) {
                 if (!!tmp_ball.thrower_player_id && tmp_ball.thrower_player_id == this.player_id) {
-                    this.peerChat.playerThrowBall(
+                    this.peerChat.playerThrowBall(this.player_id,
                         ball_id, tmp_ball.fake.x, tmp_ball.fake.y, tmp_ball.fake.body.velocity.x, tmp_ball.fake.body.velocity.y);
-                    this.on_throw_ball(ball_id, tmp_ball.fake.x, tmp_ball.fake.y, tmp_ball.fake.body.velocity.x, tmp_ball.fake.body.velocity.y);
+                    this.on_throw_ball(this.player_id, ball_id, tmp_ball.fake.x, tmp_ball.fake.y, tmp_ball.fake.body.velocity.x, tmp_ball.fake.body.velocity.y);
                 }
+
                 if (!!tmp_ball.start_simulation && !tmp_ball.holder_player_id) {
                     // a) Only simulate after the buffer has been filled (start_simulation set to true)
                     // b) Ignore the throw simulation when ball is held

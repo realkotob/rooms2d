@@ -55,8 +55,9 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
 
   }
 
-  playerThrowBall(p_ball_id, p_px, p_py, p_vx, p_vy) {
+  playerThrowBall(p_player_id, p_ball_id, p_px, p_py, p_vx, p_vy) {
     this.send_data_encoded_to_all(MSG_TYPE.BALL, {
+      i: p_player_id,
       b: p_ball_id, x: p_px, y: p_py, v: p_vx, w: p_vy
     });
   }
@@ -178,11 +179,11 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
     });
 
     this.peer.on('connection', (conn) => {
-      self.peer_conn_map.set(conn.peer, conn);
       conn.on('data', (p_data) => {
         self.parse_encoded_webrtc(p_data);
       });
       conn.on('open', () => {
+        self.peer_conn_map.set(conn.peer, conn);
       });
       conn.on('error', (err) => {
         console.error("Error in peer data connection", err);
