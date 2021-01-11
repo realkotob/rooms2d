@@ -832,7 +832,7 @@ export default class MainGame extends Phaser.Scene {
                     self.peerChat.playerThrowBall(self.player_id, tmp_ball.id, pos_x, pos_y, direction.x * 200, direction.y * 200);
                     tmp_ball.fake.setVelocity(direction.x * 200, direction.y * 200);
                     tmp_ball.holder_player_id = null;
-                    
+
                     self.current_player.shooting_anim = true;
                     var timeline = this.tweens.timeline({
                         tweens: [{
@@ -992,7 +992,7 @@ export default class MainGame extends Phaser.Scene {
 
     static WHY_IS_VIDEO_NOT_CENTERED_X = 45;
     // The pan range needs to be proportional to the MAX_HEAR_DISTANCE but since the video positioing is mysterious I would rather have the flexibility of fine-tunining
-    static VIDEO_PAN_RANGE_X = 350;
+    static VIDEO_PAN_RANGE_X = 325;
     static VIDEO_PAN_RANGE_Y = 240;
     handleVideoPan() {
         // let _distance_vid = Phaser.Math.Distance.Between(
