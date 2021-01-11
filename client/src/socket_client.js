@@ -100,7 +100,7 @@ export default class SocketClient extends Phaser.Plugins.BasePlugin {
       self.socket.emit('set_peer_id', { player_id: p_player_id, peer_id: p_peer_id });
     };
 
-    this.sendMove = function (p_pos_x, p_pos_y, p_vel_x, p_vel_y) {
+    this.sendMove = function (p_pos_x, p_pos_y, p_vel_x, p_vel_y, p_player_id = null) {
       // TODO Send empty object if the velocity is 0 and rounded positions are same as last frame
       self.send_encoded('move', {
         px: Math.round(p_pos_x), py: Math.round(p_pos_y), vx: Math.round(p_vel_x), vy: Math.round(p_vel_y)

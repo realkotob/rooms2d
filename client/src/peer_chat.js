@@ -56,14 +56,21 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
   }
 
   playerThrowBall(p_ball_id, p_px, p_py, p_vx, p_vy) {
-    this.send_data_to_all_peers(MSG_TYPE.BALL, {
+    this.send_data_encoded_to_all(MSG_TYPE.BALL, {
       b: p_ball_id, x: p_px, y: p_py, v: p_vx, w: p_vy
     });
   }
 
+  sendMove(p_pos_x, p_pos_y, p_vel_x, p_vel_y, p_player_id) {
+    this.send_data_encoded_to_all(MSG_TYPE.PLAYER, {
+      id: p_player_id,
+      px: Math.round(p_pos_x), py: Math.round(p_pos_y), vx: Math.round(p_vel_x), vy: Math.round(p_vel_y)
+    })
+  }
+
   peer_conn_map = new Map();
 
-  send_data_to_all_peers(p_type, p_data) {
+  send_data_encoded_to_all(p_type, p_data) {
     if (this.peer_conn_map.size <= 0) {
       console.warn("Empty peer conn map");
       return;
@@ -92,7 +99,8 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
     }
   }
 
-  callback_on_ball_data = null;
+  callback_on_ball_throw = null;
+  callback_on_player_move = null;
 
   received_ball_data_map = new Map();
   parse_encoded_webrtc(p_encoded_data) {
@@ -101,11 +109,15 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
       // Parse data
       switch (data.t) {
         case MSG_TYPE.BALL:
-          if (this.callback_on_ball_data) {
-            this.callback_on_ball_data(data.d);
+          if (!!this.callback_on_ball_throw) {
+            this.callback_on_ball_throw(data.d);
           }
           break;
-
+        case MSG_TYPE.PLAYER:
+          if (!!this.callback_on_player_move) {
+            this.callback_on_player_move(data.d);
+          }
+          break;
         default:
           console.warn("Received data with unknown type %s", data.t);
           break;

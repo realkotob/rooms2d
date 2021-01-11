@@ -144,8 +144,14 @@ export default class MainGame extends Phaser.Scene {
             self.on_throw_ball(data.b, data.x, data.y, data.v, data.w);
             // console.log("Recieved throw_ball %s ", JSON.stringify(p_data));
         });
-        this.peerChat.callback_on_ball_data = function (p_data) {
+        this.peerChat.callback_on_ball_throw = function (p_data) {
             self.on_throw_ball(p_data.b, p_data.x, p_data.y, p_data.v, p_data.w);
+        }
+        this.peerChat.callback_on_player_move = function (p_data) {
+            if (self.player_id != p_data.id) {
+                // console.log("player %s moved. current player %s", p_data.id, self.player_id)
+                self.updatePlayerPhysics(p_data.id, p_data);
+            };
         }
         this.socketClient.socket.on('start_throw_ball', function (p_data) {
             const data = decode(p_data);
@@ -752,7 +758,7 @@ export default class MainGame extends Phaser.Scene {
                 // console.log("Pressed local: %s %s world: %s %s", pointer.x, pointer.y, world_pointer.x, world_pointer.y);
                 let _player = self.movePlayerToPos(self.player_id, world_pointer.x, world_pointer.y);
                 if (_player)
-                    self.socketClient.sendMove(_player.x, _player.y, _player.body.velocity.x, _player.body.velocity.y);
+                    self.peerChat.sendMove(_player.x, _player.y, _player.body.velocity.x, _player.body.velocity.y, self.player_id);
             }
             else if (pointer.rightButtonDown()) {
                 // Throw ball if present
@@ -1025,8 +1031,8 @@ export default class MainGame extends Phaser.Scene {
 
         // TODO Send less data
         // if (this.player_movement_changed(this.current_player.last_input, current_move_input)) {
-        this.socketClient.sendMove(
-            this.current_player.x, this.current_player.y, this.current_player.body.velocity.x, this.current_player.body.velocity.y);
+        this.peerChat.sendMove(
+            this.current_player.x, this.current_player.y, this.current_player.body.velocity.x, this.current_player.body.velocity.y, this.player_id);
         // }
         // this.current_player.last_input = current_move_input;
 
