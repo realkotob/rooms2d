@@ -456,7 +456,7 @@ export default class MainGame extends Phaser.Scene {
             return;
         }
 
-        if (!!tmp_ball.thrower_player_id && tmp_ball.thrower_player_id != p_player_id) {
+        if (tmp_ball.thrower_player_id != p_player_id) {
             tmp_ball.thrower_player_id = p_player_id;
             tmp_ball.just_thrown = true;
             tmp_ball.start_simulation = false;
