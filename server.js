@@ -459,7 +459,9 @@ async function getAllPeerIDs(p_room) {
             return peer_ids;
         }
         for (let [player_id, peer_id] of room_peer_map) {
-            peer_ids.push({ id: player_id, pid: peer_id });
+            if (!!peer_id) {
+                peer_ids.push({ id: player_id, pid: peer_id });
+            }
         }
         // let players = await getAllPlayers(p_room);
         // players.forEach(e_player => {
