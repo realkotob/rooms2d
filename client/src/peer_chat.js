@@ -559,7 +559,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
   handle_voice_proximity(p_current_player, p_player_map) {
     try {
       if (this.player_peer_map.size <= 0) {
-        console.warn("Empty player peer map");
+        // console.warn("Empty player peer map");
         return;
       }
       const self = this;
