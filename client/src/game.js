@@ -356,7 +356,7 @@ export default class MainGame extends Phaser.Scene {
             // The above is for prediction, but only the player's own client does the decision
             if (!p_ball.assuming_caught) {
                 p_ball.assuming_caught = true;
-                p_ball.assuming_caught_counter = 20;
+                p_ball.assuming_caught_counter = 40;
             }
             return;
         }
