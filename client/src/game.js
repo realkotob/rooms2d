@@ -354,6 +354,10 @@ export default class MainGame extends Phaser.Scene {
 
         if (p_player.player_id != this.player_id) {
             // The above is for prediction, but only the player's own client does the decision
+            if (!p_ball.assuming_caught) {
+                p_ball.assuming_caught = true;
+                p_ball.assuming_caught_counter = 20;
+            }
             return;
         }
 
@@ -444,6 +448,15 @@ export default class MainGame extends Phaser.Scene {
         if (!tmp_ball) {
             console.warn("Ball with id %s does not exist.", p_ball_id);
             return;
+        }
+
+        if (!!tmp_ball.assuming_caught) {
+            if (tmp_ball.assuming_caught_counter > 0) {
+                tmp_ball.assuming_caught_counter -= 1;
+                return;
+            } else {
+                tmp_ball.assuming_caught = false;
+            }
         }
 
         // if (tmp_ball.thrower_player_id == this.player_id) {
