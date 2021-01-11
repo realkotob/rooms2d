@@ -22,6 +22,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
   muted_status = false;
 
   queued_peer_ids = [];
+  attempted_peer_ids = [];
 
   connected_peer_ids = [];
 
@@ -333,13 +334,17 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
   }
 
   reconnectTimeout(p_peer_id) {
+    if (this.connected_peer_ids.indexOf(p_peer_id) != -1) {
+      // Call established
+      return;
+    }
     let last_timeout = this.timeout_count_map.get(p_peer_id) || 3;
+    this.timeout_count_map.set(p_peer_id, last_timeout + 5);
     if (last_timeout > 30) {
       // Give up on calling player
       return;
     }
     setTimeout(() => { this.call_peer_with_id(p_peer_id) }, last_timeout * 1000);
-    this.timeout_count_map.set(p_peer_id, last_timeout + 5);
   }
 
   receive_all_peers(p_all_peers) {
@@ -361,6 +366,11 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
       return;
     }
 
+    // if (this.attempted_peer_ids.indexOf(p_peer_id) != -1) {
+    //   this.reconnectTimeout(p_peer_id);
+    //   return;
+    // }
+
     this.queued_peer_ids.push(p_peer_id);
 
     if (!!this._can_call) {
@@ -380,24 +390,25 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
 
   }
 
-  call_peer_with_id(peer_id) {
+  call_peer_with_id(p_peer_id) {
     try {
+      if (this.connected_peer_ids.indexOf(p_peer_id) != -1) {
+        return;
+      }
 
       const self = this;
 
-      let next_peer_id = peer_id;
-
-      if (next_peer_id == self.peer.id) {
+      if (p_peer_id == self.peer.id) {
         console.warn("Cannot call self.");
         return;
       }
 
-      console.log("Calling player ", next_peer_id);
-      let conn = self.peer.connect(next_peer_id, { serialization: "none" });
+      console.log("Calling player ", p_peer_id);
+      let conn = self.peer.connect(p_peer_id, { serialization: "none" });
 
       conn.on('open', function () {
         // Receive messages
-        self.peer_conn_map.set(next_peer_id, conn);
+        self.peer_conn_map.set(p_peer_id, conn);
       });
       conn.on('data', function (p_data) {
         self.parse_encoded_webrtc(p_data);
@@ -418,16 +429,17 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
       };
 
       getUserMedia_({ video: false, audio: true }, (t_own_stream) => {
-        const call = self.peer.call(next_peer_id.toString(), t_own_stream, options_call);
+        const call = self.peer.call(p_peer_id.toString(), t_own_stream, options_call);
+     
         self.own_stream = t_own_stream;
         call.on('stream', (remoteStream) => {
-          if (!next_peer_id) {
+          if (!p_peer_id) {
             return;
           }
           console.log("Received stream");
 
-          self.connected_peer_ids.push(next_peer_id);
-          let peer_id = next_peer_id.toString();
+          self.connected_peer_ids.push(p_peer_id);
+          let peer_id = p_peer_id.toString();
 
           self.add_stream_to_html(peer_id, remoteStream.clone());
 
@@ -439,15 +451,20 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
           self.setup_voice_activity_meter(self.peer.id, t_own_stream.clone());
         }
 
+        self.reconnectTimeout(p_peer_id);
+        if (this.attempted_peer_ids.indexOf(p_peer_id) == -1) {
+          self.attempted_peer_ids.push(p_peer_id);
+        }
+
         call.on('error', (e) => {
           console.warn('error with stream', e);
           // if (initiator) { // initiator is a value I set myself
-          let index_peer = self.connected_peer_ids.indexOf(next_peer_id);
+          let index_peer = self.connected_peer_ids.indexOf(p_peer_id);
           if (index_peer != -1)
             self.connected_peer_ids.splice(index_peer, 1);
 
           if (!!self._can_call) {
-            self.reconnectTimeout(next_peer_id);
+            self.reconnectTimeout(p_peer_id);
           }
           // else {
           // self.queued_peer_ids.push(next_peer_id);
