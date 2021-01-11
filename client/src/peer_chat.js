@@ -1,5 +1,5 @@
 "use strict";
-
+import { encode, decode } from "@msgpack/msgpack";
 import Peer from 'peerjs';
 import createAudioMeter from './lib/volume-meter.js';
 import { Clamp } from "./utils.js"
@@ -56,7 +56,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
   }
 
   playerThrowBall(p_ball_id, p_px, p_py, p_vx, p_vy) {
-    self.send_data_to_all_peers(MSG_TYPE.BALL, {
+    this.send_data_to_all_peers(MSG_TYPE.BALL, {
       b: p_ball_id, x: p_px, y: p_py, v: p_vx, w: p_vy
     });
   }
@@ -73,7 +73,6 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
     // for (let [player_id, gain_array] of self.media_gain_map) {
     for (let [_, t_conn] of self.peer_conn_map) {
       self.send_webrtc_encoded(t_conn, p_type, p_data);
-
     }
   }
 
@@ -82,7 +81,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
       let t_obj = {
         t: p_type, // message type as int
         d: p_data // data object
-      }
+      };
 
       const encoded = encode(t_obj);
       p_conn.send(
@@ -97,19 +96,23 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
 
   received_ball_data_map = new Map();
   parse_encoded_webrtc(p_encoded_data) {
-    const data = decode(p_encoded_data);
-    // Parse data
-    console.log(data);
-    switch (data.t) {
-      case MSG_TYPE.BALL:
-        if (self.callback_on_ball_data) {
-          self.callback_on_ball_data(data.d);
-        }
-        break;
+    try {
+      const data = decode(p_encoded_data);
+      // Parse data
+      switch (data.t) {
+        case MSG_TYPE.BALL:
+          if (this.callback_on_ball_data) {
+            this.callback_on_ball_data(data.d);
+          }
+          break;
 
-      default:
-        console.warn("Received data with unknown type %s", data.t);
-        break;
+        default:
+          console.warn("Received data with unknown type %s", data.t);
+          break;
+      }
+    } catch (error) {
+      console.error("Error in parse_encoded_webrtc %s", error);
+
     }
   }
 
@@ -162,12 +165,12 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
 
     });
 
-    peer.on('connection', (conn) => {
+    this.peer.on('connection', (conn) => {
+      self.peer_conn_map.set(conn.peer, conn);
       conn.on('data', (p_data) => {
         self.parse_encoded_webrtc(p_data);
       });
       conn.on('open', () => {
-        self.peer_conn_map.set(next_peer_id, conn);
       });
       conn.on('error', (err) => {
         console.error("Error in peer data connection", err);
@@ -368,7 +371,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
       }
 
       console.log("Calling player ", next_peer_id);
-      let conn = self.peer.connect(next_peer_id);
+      let conn = self.peer.connect(next_peer_id, { serialization: "none" });
 
       conn.on('open', function () {
         // Receive messages

@@ -1138,6 +1138,7 @@ export default class MainGame extends Phaser.Scene {
                 if (!!tmp_ball.thrower_player_id && tmp_ball.thrower_player_id == this.player_id) {
                     this.peerChat.playerThrowBall(
                         ball_id, tmp_ball.fake.x, tmp_ball.fake.y, tmp_ball.fake.body.velocity.x, tmp_ball.fake.body.velocity.y);
+                    this.on_throw_ball(ball_id, tmp_ball.fake.x, tmp_ball.fake.y, tmp_ball.fake.body.velocity.x, tmp_ball.fake.body.velocity.y);
                 }
                 if (!!tmp_ball.start_simulation && !tmp_ball.holder_player_id) {
                     // a) Only simulate after the buffer has been filled (start_simulation set to true)
