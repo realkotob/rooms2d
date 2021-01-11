@@ -338,7 +338,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
       // Give up on calling player
       return;
     }
-    setTimeout(self.call_next_peer, last_timeout * 1000);
+    setTimeout(this.call_next_peer, last_timeout * 1000);
     this.timeout_count_map.set(p_peer_id, last_timeout + 5);
   }
 
@@ -354,6 +354,10 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
 
   request_call_peer(p_peer_id) {
     if (this.connected_peer_ids.indexOf(p_peer_id) != -1) {
+      return;
+    }
+    if (!!this.timeout_count_map.get(p_peer_id)) {
+      // This peer is already going through the timeout process
       return;
     }
 
