@@ -456,6 +456,10 @@ export default class MainGame extends Phaser.Scene {
             return;
         }
 
+        if (tmp_ball.holder_player_id == this.player_id) {
+            return;
+        }
+
         if (tmp_ball.thrower_player_id != p_player_id) {
             tmp_ball.thrower_player_id = p_player_id;
             tmp_ball.just_thrown = true;
@@ -827,7 +831,8 @@ export default class MainGame extends Phaser.Scene {
                     tmp_ball.fake.setPosition(pos_x, pos_y);
                     self.peerChat.playerThrowBall(self.player_id, tmp_ball.id, pos_x, pos_y, direction.x * 200, direction.y * 200);
                     tmp_ball.fake.setVelocity(direction.x * 200, direction.y * 200);
-
+                    tmp_ball.holder_player_id = null;
+                    
                     self.current_player.shooting_anim = true;
                     var timeline = this.tweens.timeline({
                         tweens: [{
