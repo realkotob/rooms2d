@@ -48,7 +48,7 @@ PORT = 443;
 SSL_FOUND = true;
 var ssl_key;
 var ssl_cert;
-if (!!!process.env.CERT_PATH && !!fs.existsSync(process.env.CERT_PATH)) {
+if (!!process.env.CERT_PATH && !!fs.existsSync(process.env.CERT_PATH)) {
     logger.info("CERT_PATH found, starting with SSL.");
 
     ssl_key = fs.readFileSync(process.env.CERT_PATH + 'privkey.pem', 'utf8');
