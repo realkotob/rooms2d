@@ -1,17 +1,16 @@
 {
-  "name": "phaser-voice-chat",
+  "name": "rooms2d",
   "version": "1.0.0",
   "description": " WebRTC voice chat with Phaser and Peerjs.",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js ",
-    "buildAllAndStart": "cd client/ && npm run build && cd .. && mkdir -p logs && node server.js | pino-tee warn ./logs/warn.log >> ./logs/all.log",
-    "devbuildAllAndStart": "cd client/ && npm run devbuild && cd .. && mkdir -p logs && node server.js | pino-tee warn ./logs/warn-dev.log >> ./logs/all-dev.log"
+    "start": "cd client/ && npm run build && cd .. && mkdir -p logs && node server.js | pino-tee warn ./logs/warn.log >> ./logs/all.log",
+    "devStart": "cd client/ && npm run devbuild && cd .. && mkdir -p logs && node server.js | pino-tee warn ./logs/warn-dev.log >> ./logs/all-dev.log"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://gitlab.com/asheraryam/smol-chat.git"
+    "url": "git+https://github.com/asheraryam/rooms2d.git"
   },
   "keywords": [
     "Phaser",
@@ -23,7 +22,7 @@
   "author": "asheraryam",
   "license": "MIT",
   "bugs": {
-    "url": "https://gitlab.com/asheraryam/smol-chat"
+    "url": "https://github.com/asheraryam/rooms2d"
   },
   "homepage": "",
   "dependencies": {

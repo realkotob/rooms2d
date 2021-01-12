@@ -1,7 +1,7 @@
 {
-  "name": "phaser3-project",
+  "name": "rooms2d-client",
   "version": "1.1.2",
-  "description": "A Phaser 3 Project",
+  "description": "Rooms2D client",
   "main": "src/index.js",
   "scripts": {
     "build": "webpack --config webpack/prod.js ",
