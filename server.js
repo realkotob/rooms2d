@@ -44,16 +44,22 @@ function ensureSecure(req, res, next) {
     res.redirect('https://' + req.hostname + req.url); // express 4.x
 }
 
-var cert_path = __dirname + '/certs/';
-if (fs.existsSync(process.env.CERT_PATH)) {
-    cert_path = process.env.CERT_PATH;
-}
-
 PORT = 443;
 SSL_FOUND = true;
+var ssl_key;
+var ssl_cert;
+if (!!!process.env.CERT_PATH && !!fs.existsSync(process.env.CERT_PATH)) {
+    logger.info("CERT_PATH found, starting with SSL.");
 
-let ssl_key = fs.readFileSync(cert_path + 'privkey.pem', 'utf8');
-let ssl_cert = fs.readFileSync(cert_path + 'fullchain.pem', 'utf8');
+    ssl_key = fs.readFileSync(process.env.CERT_PATH + 'privkey.pem', 'utf8');
+    ssl_cert = fs.readFileSync(process.env.CERT_PATH + 'fullchain.pem', 'utf8');
+} else {
+    logger.warn("CERT_PATH not found, starting with self-signed certs.");
+    // Self signed
+    ssl_key = fs.readFileSync(__dirname + '/certs/server.key', 'utf8');
+    ssl_cert = fs.readFileSync(__dirname + '/certs/server.cert', 'utf8');
+}
+
 let options = {
     key: ssl_key,
     cert: ssl_cert
