@@ -743,7 +743,7 @@ export default class MainGame extends Phaser.Scene {
         }
 
         add_new_ball(1, 300, 400, col_layers, this);
-        add_new_ball(2, 600, 400, col_layers, this);
+        add_new_ball(2, 700, 250, col_layers, this);
 
 
         this.input.mouse.disableContextMenu();
