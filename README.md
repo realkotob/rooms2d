@@ -1,12 +1,12 @@
-# rooms2d
+# Rooms2D
 
 Try it on https://www.mossylogs.com/r/general
 
 ## How does it work?
 
-The room name is the part after the /r/, so for example to go to a room called "game-dev", the link would be `https://www.mossylogs.com/r/game-dev`
+The room name is after the /r/ so for example to go to a room called `game-dev` the link would be `https://www.mossylogs.com/r/game-dev`
 
-You can **[add the Discord bot](https://discord.com/api/oauth2/authorize?client_id=797931723907268698&permissions=68672&scope=bot)** to your server to instantly create links with `!room`
+You can also add the [**Discord bot**](https://discord.com/api/oauth2/authorize?client_id=797931723907268698&permissions=8&redirect_uri=https%3A%2F%2Fdiscord.com%2Fapi%2Foauth2%2Fauthorize%3Fclient_id%3D797931723907268698%26permissions%3D68672%26scope%3Dbot&scope=bot) to your server to instantly create links with `!room` ([source code](https://github.com/asheraryam/rooms2d-bot)).
 
 Watch the Video Demo:
 
@@ -25,6 +25,7 @@ On your production server you need real certificates from Letsencrypt ([how to s
 Run `sudo npm run start` to start the server (or `sudo npm run devStart` for faster development). You can access the app by navigating to https://localhost/.
 
 Note. You need `sudo` or else you will not be able to use port 443 and the server will crash on launch.
+
 
 
 
