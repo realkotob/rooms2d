@@ -1,5 +1,7 @@
 "use strict";
 
+require('dotenv').config();
+
 const pino = require('pino');
 const logger = require('pino')();
 
@@ -27,8 +29,6 @@ var app = express();
 const helmet = require('helmet');
 
 var PORT = 8081;
-const cert_path = '/etc/letsencrypt/live/mossylogs.com/';
-
 
 var server;
 var SSL_FOUND = false;
@@ -44,42 +44,24 @@ function ensureSecure(req, res, next) {
     res.redirect('https://' + req.hostname + req.url); // express 4.x
 }
 
-var ssl_key;
-var ssl_cert;
-if (fs.existsSync(cert_path)) {
-    PORT = 443;
-    SSL_FOUND = true;
-    logger.info("cert_path found, starting with SSL.");
-
-    // var key = fs.readFileSync(__dirname + '/certs/server.key', 'utf8'); // Self signed
-    // var cert = fs.readFileSync(__dirname + '/certs/server.cert', 'utf8');
-    ssl_key = fs.readFileSync(cert_path + 'privkey.pem', 'utf8');
-    ssl_cert = fs.readFileSync(cert_path + 'fullchain.pem', 'utf8');
-    let options = {
-        key: ssl_key,
-        cert: ssl_cert
-    };
-
-    server = https.Server(options, app);
-    httpServer = http.Server(app);
-
-} else {
-    logger.warn("cert_path not found, starting with self-signed certs.");
-
-    PORT = 443;
-    SSL_FOUND = true;
-
-    ssl_key = fs.readFileSync(__dirname + '/certs/server.key', 'utf8'); // Self signed
-    ssl_cert = fs.readFileSync(__dirname + '/certs/server.cert', 'utf8');
-    let options = {
-        key: ssl_key,
-        cert: ssl_cert
-    };
-
-    server = https.Server(options, app);
-    httpServer = http.Server(app);
-
+var cert_path = __dirname + '/certs/';
+if (fs.existsSync(process.env.CERT_PATH)) {
+    cert_path = process.env.CERT_PATH;
 }
+
+PORT = 443;
+SSL_FOUND = true;
+
+let ssl_key = fs.readFileSync(cert_path + 'privkey.pem', 'utf8');
+let ssl_cert = fs.readFileSync(cert_path + 'fullchain.pem', 'utf8');
+let options = {
+    key: ssl_key,
+    cert: ssl_cert
+};
+
+server = https.Server(options, app);
+httpServer = http.Server(app);
+
 // Reroute to https internally. It's better to use nginx for this later 
 // See https://stackoverflow.com/a/24015460
 // See https://developer.ibm.com/languages/node-js/tutorials/make-https-the-defacto-standard/
