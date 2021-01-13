@@ -35,6 +35,6 @@ Run `sudo npm run start` to start the server (or `sudo npm run devStart` for fas
 
 Note. You need `sudo` or else you will not be able to use port 443 and the server will crash on launch.
 
-
+The server also uses [pino-tee](https://github.com/pinojs/pino-tee) for logging, so you will need to install that in order to run the preset commands that are specified in `package.json`
 
 
