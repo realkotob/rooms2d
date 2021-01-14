@@ -101,6 +101,11 @@ app.use(helmet.hidePoweredBy());
 
 app.use('/peerapp', peerServer);
 
+app.use(function (req, res, next) {
+    res.header('Feature-Policy', "microphone https://localhost https://www.mossylogs.com https://mossylogs.com https://www.rooms2d.com https://rooms2d.com;");
+    next();
+});
+
 
 app.set('appPath', __dirname + '/public');
 // app.use(express.static(__dirname + '/public'));
