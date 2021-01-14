@@ -2,7 +2,7 @@
 
 Walk and talk with your friends -- directly in your browser! Features include shared youtube screen, 3D proximity audio, and minigames! 
 
-[**Try it** now](https://www.mossylogs.com/r/general) in your browser or [**add the bot** to your Discord server](https://discord.com/api/oauth2/authorize?client_id=797931723907268698&permissions=8&redirect_uri=https%3A%2F%2Fdiscord.com%2Fapi%2Foauth2%2Fauthorize%3Fclient_id%3D797931723907268698%26permissions%3D68672%26scope%3Dbot&scope=bot)
+[**Try it** now](https://www.rooms2d.com/r/general) in your browser or [**add the bot** to your Discord server](https://discord.com/api/oauth2/authorize?client_id=797931723907268698&permissions=8&redirect_uri=https%3A%2F%2Fdiscord.com%2Fapi%2Foauth2%2Fauthorize%3Fclient_id%3D797931723907268698%26permissions%3D68672%26scope%3Dbot&scope=bot)
 
 Click to Watch the Video:
 
