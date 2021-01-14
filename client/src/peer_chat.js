@@ -144,7 +144,7 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
     // self.peer = new Peer();
     self.peer = new Peer(null, {
       host: window.location.hostname,
-      // host: "mossylogs.com",
+      // host: "rooms2d.com",
       debug: 1,
       secure: true,
       port: 443,
@@ -153,10 +153,10 @@ export default class PeerChat extends Phaser.Plugins.BasePlugin {
         // Test with https://webrtc.github.io/samples/src/content/peerconnection/trickle-ice/
         'iceServers': [ // Followed this guide to setup coturn service 
           //https://ourcodeworld.com/articles/read/1175/how-to-create-and-configure-your-own-stun-turn-server-with-coturn-in-ubuntu-18-04
-          { url: 'stun:stun.mossylogs.com:5349' },
+          { url: 'stun:stun.rooms2d.com:5349' },
           { url: 'stun:stun.l.google.com:19302' },
           { url: 'turn:p2p.rambly.app:3478', username: 'rambly', credential: 'rambly' },
-          { url: 'turn:turn.mossylogs.com:5349', username: 'mossylogs', credential: 'mossylogs' }
+          { url: 'turn:turn.rooms2d.com:5349', username: 'mossylogs', credential: 'mossylogs' }
         ]
       }
     });
