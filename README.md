@@ -3,9 +3,9 @@
 Walk and talk with your friends -- directly in your browser! 
 
 Features:
-- Proximity Voice Chat 
-- Shared Youtube Screen 
-- Realtime Bouncy Minigames! 
+- Proximity Voice Chat (with 2D panning)
+- Shared Youtube Screen (with proximity volume)
+- Realtime Bouncy Minigames!
 
 [**Try it** now](https://www.rooms2d.com/r/general) in your browser or [**add the bot** to your Discord server](https://discord.com/api/oauth2/authorize?client_id=797931723907268698&permissions=8&redirect_uri=https%3A%2F%2Fdiscord.com%2Fapi%2Foauth2%2Fauthorize%3Fclient_id%3D797931723907268698%26permissions%3D68672%26scope%3Dbot&scope=bot)
 
