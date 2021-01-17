@@ -71,7 +71,7 @@ httpServer = http.Server(app);
 // Reroute to https internally. It's better to use nginx for this later 
 // See https://stackoverflow.com/a/24015460
 // See https://developer.ibm.com/languages/node-js/tutorials/make-https-the-defacto-standard/
-// app.all('*', ensureSecure); // at top of routing calls
+app.all('*', ensureSecure); // at top of routing calls
 
 
 // server = https.Server(app);
