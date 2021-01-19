@@ -521,7 +521,8 @@ export default class MainGame extends Phaser.Scene {
             return;
         }
 
-        if (tmp_ball.physics_buffer.length >= (10 + Clamp(this.socketClient.latency / 16, 0, 600)) && p_player_id != this.player_id) { // Only trigger this once, to avoid overriding catch signal from other players
+        if (p_player_id != this.player_id) { // Only trigger this once, to avoid overriding catch signal from other players
+            // if (tmp_ball.physics_buffer.length >= (10 + Clamp(this.socketClient.latency / 16, 0, 600)) && p_player_id != this.player_id) { // Only trigger this once, to avoid overriding catch signal from other players
             console.log("Started simulation on non-thrower");
             tmp_ball.holder_player_id = null;
             tmp_player.holding_ball = null;
@@ -531,7 +532,7 @@ export default class MainGame extends Phaser.Scene {
             });
             tmp_ball.start_simulation = true;
         }
-        else if (tmp_ball.physics_buffer.length >= (5 + Clamp(this.socketClient.latency / 16, 0, 600)) && p_player_id == this.player_id) {
+        else if (p_player_id == this.player_id) {
             console.log("Started simulation on thrower");
             tmp_ball.holder_player_id = null;
             tmp_player.holding_ball = null;
