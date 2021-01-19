@@ -3,7 +3,7 @@
 import { encode, decode } from "@msgpack/msgpack";
 import Phaser, { Utils } from 'phaser';
 import { Queue, Clamp } from "./utils.js"
-import { NO_HEAR_DISTANCE, MAX_YT_VOLUME } from "./constants.js"
+import { NO_HEAR_DISTANCE, MAX_YT_VOLUME, SEND_INTERVAL_BALL, SEND_INTERVAL_MOVE } from "./constants.js"
 import rexYoutubePlayerURL from "../../rex-notes/plugins/youtubeplayer-plugin.js"
 
 import screen_controls_hint_html from './assets/html/screen_controls_hint.html';
@@ -1077,11 +1077,14 @@ export default class MainGame extends Phaser.Scene {
             }
         }
 
-        // TODO Send less data
         // if (this.player_movement_changed(this.current_player.last_input, current_move_input)) {
-        this.peerChat.sendMove(
-            this.current_player.x, this.current_player.y, this.current_player.body.velocity.x, this.current_player.body.velocity.y, this.player_id);
-        // }
+        if (!this.current_player.send_counter || this.current_player.send_counter <= 0) {
+            this.current_player.send_counter = SEND_INTERVAL_MOVE;
+            this.peerChat.sendMove(
+                this.current_player.x, this.current_player.y, this.current_player.body.velocity.x, this.current_player.body.velocity.y, this.player_id);
+        } else {
+            this.current_player.send_counter -= 1;
+        }
         // this.current_player.last_input = current_move_input;
 
     }
@@ -1190,8 +1193,16 @@ export default class MainGame extends Phaser.Scene {
         for (let [ball_id, tmp_ball] of this.ballMap) {
             if (!!tmp_ball) {
                 if (!!tmp_ball.thrower_player_id && tmp_ball.thrower_player_id == this.player_id) {
-                    this.peerChat.playerThrowBall(this.player_id,
-                        ball_id, tmp_ball.fake.x, tmp_ball.fake.y, tmp_ball.fake.body.velocity.x, tmp_ball.fake.body.velocity.y);
+                    if (!tmp_ball.send_counter || tmp_ball.send_counter <= 0) {
+                        console.log("this.peerChat.playerThrowBall");
+
+                        tmp_ball.send_counter = SEND_INTERVAL_BALL;
+
+                        this.peerChat.playerThrowBall(this.player_id,
+                            ball_id, tmp_ball.fake.x, tmp_ball.fake.y, tmp_ball.fake.body.velocity.x, tmp_ball.fake.body.velocity.y);
+                    } else {
+                        tmp_ball.send_counter -= 1;
+                    }
                     this.on_throw_ball(this.player_id, ball_id, tmp_ball.fake.x, tmp_ball.fake.y, tmp_ball.fake.body.velocity.x, tmp_ball.fake.body.velocity.y);
                 }
 

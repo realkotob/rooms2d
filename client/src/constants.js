@@ -1,3 +1,5 @@
+export var SEND_INTERVAL_MOVE = 10;
+export var SEND_INTERVAL_BALL = 6;
 
 
 export var NO_HEAR_DISTANCE = 400;
