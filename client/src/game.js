@@ -59,6 +59,7 @@ export default class MainGame extends Phaser.Scene {
     static MOVE_CLICK_SPEED = 0.25; // pixels per frame
     static MOVE_KB_SPEED = 60 / MainGame.MOVE_CLICK_SPEED;
     Client = {};
+    forced_refresh_enabled = true;
 
     constructor() {
         super('MainGame');
@@ -751,11 +752,20 @@ export default class MainGame extends Phaser.Scene {
 
         let raycast_offset = 4;
 
+        let esc_key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
+        esc_key.on('down', function (event) {
+            self.forced_refresh_enabled = false;
+        }, self);
+
+
         this.input.on('pointerdown', function (pointer) {
             if (!self.current_player)
                 return;
 
+            self.forced_refresh_enabled = true;
+
             if (pointer.leftButtonDown()) {
+
                 let world_pointer = self.cameras.main.getWorldPoint(pointer.x, pointer.y);
                 let test_point = self.cameras.main.getWorldPoint(pointer.x, pointer.y);
 
@@ -974,6 +984,9 @@ export default class MainGame extends Phaser.Scene {
     }
 
     focus_game() {
+        if (!this.forced_refresh_enabled) {
+            return;
+        }
         // TESTME This needs to be disabled when other UI is shown
         if (this.game_dom_canvas && !this.showing_focused_ui) {
             this.game_dom_canvas.focus();
